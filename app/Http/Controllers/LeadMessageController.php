@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\LeadMessage;
+
+class LeadMessageController extends Controller
+{
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'lead_id' => 'required|exists:leads,id',
+            'message' => 'required|string',
+        ]);
+    
+        $userId = auth('web')->check() ? auth('web')->id() : null;
+        $teamId = auth('team')->check() ? auth('team')->id() : null;
+    
+        if (!$userId && !$teamId) {
+            return back()->withErrors(['error' => 'No autenticado']);
+        }
+    
+        LeadMessage::create([
+            'lead_id' => $request->lead_id,
+            'user_id' => $userId,
+            'team_id' => $teamId,
+            'message' => $request->message,
+        ]);
+    
+        // 👇 Redirigir claramente a la página anterior con mensaje de éxito
+        return back();
+    }
+    
+
+    
+
+
+
+    public function index($lead_id)
+    {
+        $query = LeadMessage::where('lead_id', $lead_id)->with(['user', 'team']);
+    
+        if (auth('team')->check()) {
+            // Solo mensajes creados por el vendedor (team_id no nulo)
+            $query->where('team_id', auth('team')->id());
+        }
+    
+        return response()->json($query->orderBy('created_at', 'asc')->get());
+    }
+    
+}

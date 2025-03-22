@@ -1,0 +1,189 @@
+/* 🌟 NAVBAR GENERAL */
+.navbar {
+    background: #4067b1;  /* Azul oscuro */
+    padding: 8px 15px; /* Reducido para ocupar menos espacio */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 📌 CONTENEDOR PRINCIPAL */
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    max-width: 1200px;
+}
+
+/* 🔹 LOGO */
+.navbar-logo img {
+    height: 20px; /* Reducido de 80px a 40px */
+    transition: transform 0.3s ease;
+}
+
+.navbar-logo img:hover {
+    transform: scale(1.1);
+}
+
+
+
+
+
+
+
+
+
+
+/* 📌 MENÚ PRINCIPAL */
+.navbar-menu {
+    display: flex;
+    gap: 15px; /* Espaciado más compacto */
+}
+
+.navbar-menu li {
+    list-style: none;
+}
+
+.navbar-menu a {
+    color: white;
+    font-size: 14px; /* Reducido de 16px a 14px */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px; /* Padding más pequeño */
+    border-radius: 6px;
+    transition: background 0.3s ease, transform 0.2s;
+}
+
+.navbar-menu a:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+
+
+
+
+
+
+/* 🔹 DROPDOWN DE USUARIO */
+.user-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+/* 🔻 Botón del Dropdown */
+.dropdown-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px; /* Tamaño más compacto */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s ease;
+}
+
+/* Foto de usuario */
+.user-avatar {
+    width: 32px; /* Reducido de 40px a 32px */
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid white;
+    transition: transform 0.3s ease;
+}
+
+.user-avatar:hover {
+    transform: scale(1.1);
+}
+
+/* 📌 MENÚ RESPONSIVO */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* Menú móvil */
+@media (max-width: 768px) {
+    .navbar-menu {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 50px;
+        right: 0;
+        background: rgba(50, 77, 104, 0.95);
+        width: 100%;
+        padding: 10px;
+        border-radius: 0 0 8px 8px;
+    }
+
+    .navbar-menu.show {
+        display: flex;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+}
+/* 📌 ESTILO DEL DROPDOWN */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    min-width: 180px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Mostrar el Dropdown cuando esté activo */
+.dropdown-menu.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* 🔹 Opciones dentro del Dropdown */
+.dropdown-menu a,
+.logout-btn {
+    display: block;
+    padding: 12px 15px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.dropdown-menu a:hover,
+.logout-btn:hover {
+    background: #f8f9fa;
+}
+
+/* 🚪 Botón de Logout */
+.logout-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+}
