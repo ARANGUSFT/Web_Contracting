@@ -1,7 +1,7 @@
 /* 🌟 NAVBAR GENERAL */
 .navbar {
     background: #4067b1;  /* Azul oscuro */
-    padding: 8px 15px; /* Reducido para ocupar menos espacio */
+    padding: 8px 15px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -23,7 +23,7 @@
 
 /* 🔹 LOGO */
 .navbar-logo img {
-    height: 20px; /* Reducido de 80px a 40px */
+    height: 20px;
     transition: transform 0.3s ease;
 }
 
@@ -31,19 +31,13 @@
     transform: scale(1.1);
 }
 
-
-
-
-
-
-
-
-
-
 /* 📌 MENÚ PRINCIPAL */
 .navbar-menu {
     display: flex;
-    gap: 15px; /* Espaciado más compacto */
+    align-items: center;
+    gap: 30px; /* Más separación entre ítems */
+    padding: 0;
+    margin: 0;
 }
 
 .navbar-menu li {
@@ -51,27 +45,21 @@
 }
 
 .navbar-menu a {
+    padding: 10px 18px; /* Más espacio interno */
+    font-size: 14px;
     color: white;
-    font-size: 14px; /* Reducido de 16px a 14px */
-    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 8px 12px; /* Padding más pequeño */
+    gap: 10px; /* Más espacio entre ícono y texto */
     border-radius: 6px;
-    transition: background 0.3s ease, transform 0.2s;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .navbar-menu a:hover {
     background-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
-
-
-
-
-
-
 
 /* 🔹 DROPDOWN DE USUARIO */
 .user-dropdown {
@@ -85,7 +73,7 @@
     background: none;
     border: none;
     color: white;
-    font-size: 14px; /* Tamaño más compacto */
+    font-size: 14px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -95,7 +83,7 @@
 
 /* Foto de usuario */
 .user-avatar {
-    width: 32px; /* Reducido de 40px a 32px */
+    width: 32px;
     height: 32px;
     border-radius: 50%;
     border: 2px solid white;
@@ -116,7 +104,6 @@
     cursor: pointer;
 }
 
-/* Menú móvil */
 @media (max-width: 768px) {
     .navbar-menu {
         display: none;
@@ -137,7 +124,12 @@
     .menu-toggle {
         display: block;
     }
+
+    .navbar-menu li {
+        margin: 6px 0;
+    }
 }
+
 /* 📌 ESTILO DEL DROPDOWN */
 .dropdown-menu {
     display: none;
@@ -155,7 +147,6 @@
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* Mostrar el Dropdown cuando esté activo */
 .dropdown-menu.show {
     display: block;
     opacity: 1;
@@ -186,4 +177,30 @@
     text-align: left;
     cursor: pointer;
     font-size: 14px;
+}
+
+/* Estilo personalizado para los ítems del navbar */
+.navbar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* más espacio entre ícono y texto */
+    padding: 8px 14px;
+    font-size: 14px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 6px;
+}
+
+/* Separación horizontal entre ítems */
+.navbar-nav .nav-item {
+    margin-right: 12px;
+}
+
+/* Estilo del ítem activo (opcional) */
+.navbar-nav .nav-link.active {
+    font-weight: bold;
+    color: #0d6efd;
 }

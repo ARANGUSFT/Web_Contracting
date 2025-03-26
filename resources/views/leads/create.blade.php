@@ -1,6 +1,5 @@
 @extends('layouts.app')
 
-@section('title', 'Página de Inicio')
 
 @section('content')
 
@@ -13,6 +12,9 @@
                 @csrf
 
                 <div class="container">
+                    <h2 class="h4 text-primary fw-bold border-bottom pb-2 mb-4 d-flex align-items-center">
+                        Create New Lead 
+                    </h2>
                     
 
                     <div class="card mb-4">

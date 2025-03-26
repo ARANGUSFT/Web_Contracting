@@ -57,6 +57,10 @@ Route::middleware(['auth:web'])->group(function () {
     // CRUD de Team (Trabajadores/Vendedores)
         Route::resource('/teams', TeamController::class);
 
+
+        Route::get('/financial', [LeadController::class, 'financial'])->name('leads.financial');
+
+
 });
 
 
@@ -64,7 +68,6 @@ Route::middleware(['auth:web'])->group(function () {
 
 // 🔒 Rutas que requieren autenticación con usuarios "web" o "team"
 Route::middleware(['auth:web,team'])->group(function () {
-
     // Lead Messages (Chat)
     Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
     Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
@@ -77,7 +80,6 @@ Route::middleware(['auth:web,team'])->group(function () {
     Route::put('/seller/leads/{lead}/documents/update', [SellerDashboardController::class, 'updateDocuments'])->name('seller.leads.updateDocuments');
     // Eliminar Documentos
     Route::delete('/seller/leads/{lead}/delete-file', [SellerDashboardController::class, 'deleteFile'])->name('seller.leads.delete-file');
-
 });
 
 
@@ -113,5 +115,4 @@ Route::middleware(['auth:team'])->group(function () {
     Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
     // Actualizar estado (l,p,a,c,i)
     Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
-
 });

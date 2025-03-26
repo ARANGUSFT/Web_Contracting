@@ -89,7 +89,11 @@ class LeadController extends Controller
 
     
 
-    
+     // Carga formulario
+     public function financial()
+     {
+         return view('paymentReport.payment');
+     }
 
 
     // Carga formulario

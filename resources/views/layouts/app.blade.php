@@ -7,6 +7,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="{{ asset('css/navbar.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
 
 </head>
 <body>
@@ -32,7 +34,7 @@
         /* 🎨 Estilos Generales */
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #dddedf;
+            background-color: #d1d3d4;
             margin: 0;
             padding: 0;
             display: flex;
@@ -55,7 +57,7 @@
             max-width: 1050px;  /* Controla el ancho del contenido */
             width: 100%;
             padding: 20px;
-            background: white;
+            background: rgb(238, 237, 237);
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
             margin-bottom: 30px;

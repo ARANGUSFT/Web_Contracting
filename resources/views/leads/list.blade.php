@@ -74,12 +74,26 @@
             <div class="col-md-6 col-lg-4 mb-4 lead-item" data-status="{{ strtolower($lead->statusText()) }}" data-assigned="{{ $lead->team_id ? 'yes' : 'no' }}">
                 <div class="card">
 
-                    <div class="card-header">
-                        <h5>{{ $lead->first_name }} {{ $lead->last_name }}</h5>
-                        <span class="badge badge-status {{ strtolower($lead->statusText()) }}">
-                            {{ $lead->statusText() }}
+                    @php
+                        $statusClasses = [
+                            'Lead' => 'bg-warning',
+                            'Prospect' => 'bg-orange',
+                            'Approved' => 'bg-success',
+                            'Completed' => 'bg-primary',
+                            'Invoiced' => 'bg-danger',
+                        ];
+                    
+                        $statusLabel = $lead->statusText();
+                        $badgeClass = $statusClasses[$statusLabel] ?? 'bg-secondary';
+                    @endphp
+                
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ $lead->first_name }} {{ $lead->last_name }}</h5>
+                        <span class="badge text-white {{ $badgeClass }}">
+                            {{ $statusLabel }}
                         </span>
                     </div>
+                
     
                     <div class="card-body">
                         <p class="small text-muted mb-2">
@@ -114,20 +128,6 @@
                                 <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Assign</button>
                             </form>
                         </div><hr>
-    
-                        <div class="card-footer">
-                            <form action="{{ route('leads.assignstatus', $lead->id) }}" method="POST">
-                                @csrf
-                                <label class="form-label small fw-bold">Change Status:</label>
-                                <select name="status" class="form-select select-status">
-                                    @foreach ([1 => 'Lead', 2 => 'Prospect', 3 => 'Approved', 4 => 'Completed', 5 => 'Invoiced', 6 => 'Closed'] as $key => $status)
-                                        <option value="{{ $key }}" {{ $lead->estado == $key ? 'selected' : '' }}>{{ $status }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="btn btn-secondary btn-sm w-100 mt-2">Save</button>
-                            </form>
-
-                        </div><br>
                         
         
                         <a href="{{ route('leads.show', $lead->id) }}" class="btn btn-warning btn-sm w-100 mt-2">

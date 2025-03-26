@@ -13,30 +13,73 @@
     @endif
 
 
+    @php
+    $statusList = [
+        1 => ['label' => 'Lead', 'color' => 'bg-warning'],
+        2 => ['label' => 'Prospect', 'color' => 'bg-orange'],
+        3 => ['label' => 'Approved', 'color' => 'bg-success'],
+        4 => ['label' => 'Completed', 'color' => 'bg-primary'],
+        5 => ['label' => 'Invoiced', 'color' => 'bg-danger'],
+    ];
+
+        $currentIndex = array_search($lead->estado, array_keys($statusList));
+        $statusKeys = array_keys($statusList);
+    @endphp
+
+ 
+
     <div class="card shadow-lg p-4">
         <div class="d-flex justify-content-between align-items-center">
             <h4 class="text-primary">{{ $lead->first_name }} {{ $lead->last_name }}</h4>
-            <a href="{{ route('seller.dashboard') }}" class="btn btn-secondary">
+            <a href="{{ route('leads.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
 
         <p><strong>📞 Phone:</strong> <a href="tel:{{ $lead->phone }}">{{ $lead->phone }}</a></p>
         <p><strong>📧 Email:</strong> <a href="mailto:{{ $lead->email }}">{{ $lead->email }}</a></p>
-        <p><strong>📅 Created At:</strong> {{ $lead->created_at->format('d M, Y') }}</p>
-
-        @php
-            $status = $statusMap[$lead->estado] ?? ['name' => 'Unknown', 'color' => 'bg-secondary'];
-        @endphp
-
-        <p><strong>📌 Status:</strong> 
-            <span class="badge {{ $status['color'] }}">{{ $status['name'] }}</span>
-        </p>
         <p class="small text-muted mb-2">
             <i class="bi bi-geo-alt text-warning"></i>
             {{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}
         </p>
+        <p><strong>📅 Created At:</strong> {{ $lead->created_at->format('d M, Y') }}</p>
+
+
+        <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST" class="mb-3">
+            @csrf
+            <input type="hidden" name="status" id="selectedStatus">
+
+            <label class="form-label fw-semibold text-muted">📌 Status:</label>
+            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
+                {{-- Botón Retroceder --}}
+                @if ($currentIndex > 0)
+                    <button type="button" class="btn btn-outline-secondary" onclick="changeStatus({{ $statusKeys[$currentIndex - 1] }})">
+                        &#8592; Back
+                    </button>
+                @endif
+
+                {{-- Estados en fila --}}
+                @foreach ($statusList as $key => $status)
+                    <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}">
+                        {{ $status['label'] }}
+                    </div>
+                @endforeach
+
+                {{-- Botón Avanzar --}}
+                @if ($currentIndex < count($statusList) - 1)
+                    <button type="button" class="btn btn-outline-primary" onclick="changeStatus({{ $statusKeys[$currentIndex + 1] }})">
+                        Next &#8594;
+                    </button>
+                @endif
+            </div>
+        </form>
+
+    
     </div>
+
+
+
+    
 
     <!-- Pestañas -->
     <ul class="nav nav-tabs mt-4" id="leadTabs">
@@ -173,6 +216,42 @@
 
 
 <script>
+    function changeStatus(newStatus) {
+        if (confirm('Are you sure you want to change the status?')) {
+            document.getElementById('selectedStatus').value = newStatus;
+            document.getElementById('statusForm').submit();
+        }
+    }
+</script>
+
+<style>
+    .status-box {
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        border-radius: 8px;
+        min-width: 100px;
+        text-align: center;
+        transition: all 0.3s ease-in-out;
+    }
+    .bg-orange {
+        background-color: #f79646 !important;
+    }
+    .status-active {
+        border: 3px solid #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+        transform: scale(1.05);
+        z-index: 1;
+    }
+    .status-inactive {
+        opacity: 0.5;
+    }
+</style>
+
+
+
+
+<script>
     document.addEventListener("DOMContentLoaded", function () {
         let leadId = document.querySelector('input[name="lead_id"]').value;
 
@@ -231,8 +310,6 @@
         .catch(error => console.error("Error al eliminar imagen:", error));
     }
 </script>
-
-
 
 <style>
     body { background: #2270be; }

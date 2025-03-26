@@ -1,50 +1,84 @@
-<nav class="navbar">
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2">
     <div class="container">
         <!-- 🔹 LOGO -->
-        <div class="navbar-logo">
-            <img src="{{ asset('img/logo.png') }}" alt="Logo">
-        </div>
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <img src="{{ asset('img/logo.png') }}" alt="Logo" height="36" class="me-2">
+        </a>
 
-        <!-- 🔹 Botón Menú Móvil -->
-        <button class="menu-toggle" onclick="toggleMobileMenu()">☰</button>
+        <!-- 🔹 Botón Responsive -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <!-- 🔹 Menú de Navegación -->
-        <ul class="navbar-menu" id="navbarMenu">
-            @if(Auth::guard('web')->check()) 
-                <!-- Menú para Administradores -->
-                <li><a href="{{ route('leads.index') }}"><span class="icon">🛠</span><span class="text">Project MG</span></a></li>
-                <li><a href="{{ route('leads.index') }}"><span class="icon">🏢</span><span class="text">CRM</span></a></li>
-                <li><a href="{{ route('leads.create') }}"><span class="icon">📋</span><span class="text">Leads</span></a></li>
-                <li><a href="{{ route('leads.index') }}"><span class="icon">📊</span><span class="text">Payment Report</span></a></li>
-                <li><a href="{{ route('teams.index') }}"><span class="icon">👥</span><span class="text">Manage Team</span></a></li>
-                <li><a href="{{ route('leads.index') }}"><span class="icon">🛡️</span><span class="text">Insurance</span></a></li>
+        <!-- 🔹 Menú -->
+        <div class="collapse navbar-collapse" id="navbarMenu">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                @if(Auth::guard('web')->check()) 
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('leads.index') }}">
+                            <i class="bi bi-kanban"></i> Project MG
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('leads.index') }}">
+                            <i class="bi bi-building"></i> CRM
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('leads.create') }}">
+                            <i class="bi bi-person-plus"></i> Leads
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('leads.financial') }}">
+                            <i class="bi bi-bar-chart-line"></i> Payment Report
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('teams.index') }}">
+                            <i class="bi bi-people"></i> Manage Team
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('leads.index') }}">
+                            <i class="bi bi-shield-check"></i> Insurance
+                        </a>
+                    </li>
                 @elseif(Auth::guard('team')->check()) 
-                <!-- Menú para Vendedores -->
-                <li><a href="{{ route('seller.dashboard') }}"><span class="icon">👥</span><span class="text">CRM</span></a></li>
-                <li><a href="{{ route('seller.create') }}"><span class="icon">📋</span><span class="text">Create Lead</span></a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('seller.dashboard') }}">
+                            <i class="bi bi-kanban"></i> CRM
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('seller.create') }}">
+                            <i class="bi bi-person-plus"></i> Create Lead
+                        </a>
+                    </li>
+                @endif
+            </ul>
+            
 
-            @endif
-        </ul>
-
-        <!-- 🔹 Dropdown de Usuario -->
-        <div class="user-dropdown">
-            <button class="dropdown-btn" onclick="toggleDropdown()">
-                <span>
+            <!-- 🔹 User Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
                     @if(Auth::guard('web')->check()) 
                         {{ Auth::guard('web')->user()->name }}
                     @elseif(Auth::guard('team')->check()) 
                         {{ Auth::guard('team')->user()->name }}
                     @endif
-                </span>
-                <i class="bi bi-chevron-down"></i>
-            </button>
-            <div class="dropdown-menu" id="userDropdown">
-                <a href="{{ route('profile.edit') }}">👤 Perfil</a>
-                <form method="POST" action="{{ Auth::guard('web')->check() ? route('logout') : route('team.logout') }}">
-                    @csrf
-                    <button type="submit" class="logout-btn">🚪 Cerrar Sesión</button>
-                </form>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">👤 Perfil</a></li>
+                    <li>
+                        <form method="POST" action="{{ Auth::guard('web')->check() ? route('logout') : route('team.logout') }}">
+                            @csrf
+                            <button type="submit" class="dropdown-item text-danger">🚪 Cerrar Sesión</button>
+                        </form>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
 </nav>
+
