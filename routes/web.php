@@ -73,6 +73,10 @@ Route::middleware(['auth:web,team'])->group(function () {
     Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
     Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
     Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
+    // Actualizar Documentos
+    Route::put('/seller/leads/{lead}/documents/update', [SellerDashboardController::class, 'updateDocuments'])->name('seller.leads.updateDocuments');
+    // Eliminar Documentos
+    Route::delete('/seller/leads/{lead}/delete-file', [SellerDashboardController::class, 'deleteFile'])->name('seller.leads.delete-file');
 
 });
 
@@ -96,11 +100,18 @@ Route::middleware(['auth:team'])->group(function () {
     Route::get('/seller/dashboard', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
     Route::get('/seller/leads/{id}', [SellerDashboardController::class, 'show'])->name('seller.leads.show');
     Route::get('/seller/leads/{id}/edit', [SellerDashboardController::class, 'edit'])->name('seller.leads.edit');
-    Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
-    Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
-    Route::put('/seller/leads/{lead}/documents/update', [SellerDashboardController::class, 'updateDocuments'])->name('seller.leads.updateDocuments');
-    Route::delete('/seller/leads/{lead}/delete-file', [SellerDashboardController::class, 'deleteFile'])->name('seller.leads.delete-file');
-    
 
+    
+    // Crear Lead
+    // Mostrar el formulario (GET)
+    Route::get('seller/create/lead', [SellerDashboardController::class, 'create'])->name('seller.create');
+    // Procesar el formulario (POST)
+    Route::post('seller/create/lead', [SellerDashboardController::class, 'store'])->name('seller.store');
+
+
+    // Actualziar Lead
+    Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
+    // Actualizar estado (l,p,a,c,i)
+    Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
 
 });

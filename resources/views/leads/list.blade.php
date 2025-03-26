@@ -46,8 +46,24 @@
         <button id="notAssignedBtn" class="btn btn-outline-danger filter-assignment" data-type="not-assigned" onclick="filterByAssignment(false, this)">
             <i class="bi bi-person-x"></i> Not Assigned
         </button>
+
+        <select id="sellerFilter" class="form-select" onchange="filterBySeller(this.value)">
+            <option value="all">All Sellers</option>
+            @foreach($teams as $team)
+                <option value="{{ $team->id }}">{{ $team->name }}</option>
+            @endforeach
+        </select>
     </div>
-    
+
+    <script>
+    function filterBySeller(sellerId) {
+        document.querySelectorAll('.lead-item').forEach(item => {
+            const itemSellerId = item.querySelector('.select-seller').value;
+            item.style.display = (sellerId === 'all' || itemSellerId === sellerId) ? '' : 'none';
+        });
+    }
+    </script>
+
 
 
 

@@ -203,14 +203,15 @@
                                                     </td>
                                                     <td>
                                                         <a href="{{ asset('storage/' . $path) }}" download class="btn btn-sm btn-outline-primary">
-                                                        Download <i class="bi bi-download"></i>
+                                                            Download <i class="bi bi-download"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteDocument('{{ $file['path'] }}', '{{ $docType['field'] }}')">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteDocument('{{ $path }}', '{{ $docType['field'] }}')">
                                                             Delete <i class="bi bi-trash"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
                                             @endforeach
+                                        
                                         </tbody>
                                     </table>
                                     <input type="file" name="{{ $docType['input'] }}[]" multiple class="form-control">

@@ -20,8 +20,8 @@
                 <li><a href="{{ route('leads.index') }}"><span class="icon">🛡️</span><span class="text">Insurance</span></a></li>
                 @elseif(Auth::guard('team')->check()) 
                 <!-- Menú para Vendedores -->
-                <li><a href="{{ route('seller.dashboard') }}"><span class="icon">📌</span><span class="text">Mis Leads</span></a></li>
-                <li><a href="{{ route('seller.dashboard') }}"><span class="icon">📌</span><span class="text">Create Lead</span></a></li>
+                <li><a href="{{ route('seller.dashboard') }}"><span class="icon">👥</span><span class="text">CRM</span></a></li>
+                <li><a href="{{ route('seller.create') }}"><span class="icon">📋</span><span class="text">Create Lead</span></a></li>
 
             @endif
         </ul>

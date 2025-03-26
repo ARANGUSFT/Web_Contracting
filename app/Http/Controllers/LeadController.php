@@ -10,12 +10,24 @@ use Illuminate\Http\Request;
 
 class LeadController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $leads = Lead::paginate(10);
-        $teams = Team::all(); // Obtener todos los vendedores
+        $sellerId = $request->input('seller_id');
     
-        // Contar leads por estado
+        // Consulta inicial
+        $query = Lead::with('team');
+    
+        // Aplicar filtro solo si se seleccionó un vendedor específico
+        if ($sellerId && $sellerId !== 'all') {
+            $query->where('team_id', $sellerId);
+        }
+    
+        // Resultados paginados
+        $leads = $query->paginate(10)->appends(['seller_id' => $sellerId]);
+    
+        $teams = Team::all();
+    
+        // Contadores generales (sin filtro por vendedor)
         $statusCounts = [
             'leads' => Lead::where('estado', 1)->count(),
             'prospect' => Lead::where('estado', 2)->count(),
@@ -24,10 +36,9 @@ class LeadController extends Controller
             'invoiced' => Lead::where('estado', 5)->count(),
         ];
     
-        // Enviamos $teams a la vista
-        return view('leads.list', compact('leads', 'statusCounts', 'teams'));
+        return view('leads.list', compact('leads', 'statusCounts', 'teams', 'sellerId'));
     }
-
+    
     
 
     public function updateStatus(Request $request, $id)

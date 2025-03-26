@@ -16,16 +16,17 @@ class SellerDashboardController extends Controller
     public function index()
     {
         $user = Auth::guard('team')->user();
+    
+        // Obtener los leads que pertenecen al vendedor actual
         $leads = Lead::where('team_id', $user->id)->paginate(10);
-
-
-        // Contar leads por estado
+    
+        // Contar leads por estado SOLO del vendedor autenticado
         $statusCounts = [
-            'leads' => Lead::where('estado', 1)->count(),
-            'prospect' => Lead::where('estado', 2)->count(),
-            'approved' => Lead::where('estado', 3)->count(),
-            'completed' => Lead::where('estado', 4)->count(),
-            'invoiced' => Lead::where('estado', 5)->count(),
+            'leads'     => Lead::where('team_id', $user->id)->where('estado', 1)->count(),
+            'prospect'  => Lead::where('team_id', $user->id)->where('estado', 2)->count(),
+            'approved'  => Lead::where('team_id', $user->id)->where('estado', 3)->count(),
+            'completed' => Lead::where('team_id', $user->id)->where('estado', 4)->count(),
+            'invoiced'  => Lead::where('team_id', $user->id)->where('estado', 5)->count(),
         ];
     
         // Status mapping with names and Bootstrap colors
@@ -39,6 +40,89 @@ class SellerDashboardController extends Controller
     
         return view('seller.dashboard', compact('leads', 'statusMap', 'statusCounts'));
     }
+    
+
+    
+
+    // Renderiza el form
+    public function create()
+    {
+        return view('seller.createLeads');
+    }
+    public function store(Request $request)
+    {
+        // Validar datos
+        $validatedData = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'date_loss' => 'nullable|date',
+            'files_documento' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'files_finanzas' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'files_anexos' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'files_contratos' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'location_photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+        ]);
+    
+        // Manejo de archivos
+        $data = $request->except(['files_documento', 'files_finanzas', 'files_anexos', 'files_contratos', 'location_photo']);
+    
+        if ($request->hasFile('files_documento')) {
+            $file = $request->file('files_documento');
+            $data['files']['documento'] = [
+                'path' => $file->storeAs('uploads/documents', $file->getClientOriginalName(), 'public'),
+                'original_name' => $file->getClientOriginalName()
+            ];
+        }
+    
+        if ($request->hasFile('files_finanzas')) {
+            $file = $request->file('files_finanzas');
+            $data['finanzas']['documento'] = [
+                'path' => $file->storeAs('uploads/finances', $file->getClientOriginalName(), 'public'),
+                'original_name' => $file->getClientOriginalName()
+            ];
+        }
+    
+        if ($request->hasFile('files_anexos')) {
+            $file = $request->file('files_anexos');
+            $data['anexos'][] = [
+                'path' => $file->storeAs('uploads/annexes', $file->getClientOriginalName(), 'public'),
+                'original_name' => $file->getClientOriginalName()
+            ];
+        }
+    
+        if ($request->hasFile('files_contratos')) {
+            $file = $request->file('files_contratos');
+            $data['contratos'][] = [
+                'path' => $file->storeAs('uploads/contracts', $file->getClientOriginalName(), 'public'),
+                'original_name' => $file->getClientOriginalName()
+            ];
+        }
+    
+        if ($request->hasFile('location_photo')) {
+            $file = $request->file('location_photo');
+            $data['location_photo'] = [
+                'path' => $file->storeAs('uploads/location_photos', $file->getClientOriginalName(), 'public'),
+                'original_name' => $file->getClientOriginalName()
+            ];
+        }
+    
+        // Crear el Lead inicialmente sin asignar
+        $lead = Lead::create($data);
+    
+        // ⚙️ Asignar automáticamente el Lead al vendedor autenticado
+        $user = Auth::guard('team')->user();
+        $lead->team_id = $user->id;
+        $lead->save();
+    
+        return redirect()->route('seller.dashboard')->with('success', 'Lead creado con éxito y asignado automáticamente a ti.');
+    }
+    
+    
+    
+    
+    
 
     public function show($id) 
     {
@@ -68,11 +152,7 @@ class SellerDashboardController extends Controller
     
         return view('seller.lead_details', compact('lead', 'messages', 'images', 'statusMap'));
     }
-    
-    
 
-
-  
     public function updateDocuments(Request $request, $leadId)
     {
         $user = Auth::guard('team')->user();
@@ -160,15 +240,6 @@ class SellerDashboardController extends Controller
         $request->validate([
             'estado' => 'required|integer|between:1,5'
         ]);
-
-        // Verificar si se avanza o retrocede
-        if ($request->change_status == "next" && $lead->estado < 5) {
-            $lead->estado += 1;
-        } elseif ($request->change_status == "back" && $lead->estado > 1) {
-            $lead->estado -= 1;
-        } else {
-            $lead->estado = $request->estado; // Cambio manual
-        }
 
         // Guardar el nuevo estado
         $lead->save();

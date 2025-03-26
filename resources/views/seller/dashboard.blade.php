@@ -20,15 +20,18 @@
                     'completed' => ['C', 'bg-primary', 'Completed'],
                     'invoiced' => ['I', 'bg-danger', 'Invoiced']
                 ] as $key => [$letter, $color, $label])
+                
                     <div class="pipeline-item text-center">
                         <div class="status-circle {{ $color }}" onclick="toggleStatusFilter('{{ $key }}')">
                             {{ $letter }}
                         </div>
                         <div class="status-count mt-1">{{ $statusCounts[$key] }}</div>
+                        <p>1.233</p>
                         <div class="form-check mt-2">
-                            <input class="form-check-input status-checkbox" type="checkbox" id="status-{{ $key }}" value="{{ $key }}" onchange="filterLeads()">
-                            <label class="form-check-label small" for="status-{{ $key }}">{{ $label }}</label>
+                            <input class="form-check-input status-checkbox" hidden type="checkbox" id="status-{{ $key }}" 
+                                value="{{ strtolower($label) }}" onchange="filterLeads()">
                         </div>
+                        
                     </div>
                 @endforeach
             </div>
@@ -47,40 +50,49 @@
         </div>
     </div>
 
-    <!-- 🔹 Leads Table -->
+    <!-- 🔹 Leads Responsive Table - Diseño Limpio -->
     @if($leads->isEmpty())
         <div class="alert alert-warning text-center">
             <i class="bi bi-exclamation-circle"></i> You have no assigned leads.
         </div>
     @else
         <div class="table-responsive">
-            <table class="table leads-table">
-                <thead>
+            <table class="table table-hover align-middle">
+                <thead class="bg-light">
                     <tr>
-                        <th><i class="bi bi-person-fill"></i> Name</th>
-                        <th><i class="bi bi-telephone-fill"></i> Phone</th>
-                        <th><i class="bi bi-envelope-fill"></i> Email</th>
-                        <th><i class="bi bi-bar-chart-fill"></i> Status</th>
-                        <th><i class="bi bi-gear-fill"></i> Actions</th>
+                        <th>Name</th>
+                        <th class="d-none d-sm-table-cell">Phone</th>
+                        <th class="d-none d-md-table-cell">Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($leads as $lead)
-                        <tr class="lead-row">
-                            <td class="lead-name">
+                        <tr>
+                            <td>
                                 <strong>{{ $lead->first_name }} {{ $lead->last_name }}</strong>
+                                <div class="small d-block d-sm-none mt-1">
+                                    <a href="tel:{{ $lead->phone }}" class="text-decoration-none text-muted">
+                                        <i class="bi bi-telephone"></i> {{ $lead->phone }}
+                                    </a>
+                                    <br>
+                                    <a href="mailto:{{ $lead->email }}" class="text-decoration-none text-muted">
+                                        <i class="bi bi-envelope"></i> {{ $lead->email }}
+                                    </a>
+                                </div>
                             </td>
-                            <td class="lead-phone">
-                                <a href="tel:{{ $lead->phone }}" class="text-decoration-none text-dark">
-                                    <i class="bi bi-telephone text-success"></i> {{ $lead->phone }}
+                            <td class="d-none d-sm-table-cell">
+                                <a href="tel:{{ $lead->phone }}" class="text-decoration-none text-muted">
+                                    <i class="bi bi-telephone"></i> {{ $lead->phone }}
+                                </a>
+                            </td>
+                            <td class="d-none d-md-table-cell">
+                                <a href="mailto:{{ $lead->email }}" class="text-decoration-none text-muted">
+                                    <i class="bi bi-envelope"></i> {{ $lead->email }}
                                 </a>
                             </td>
                             <td>
-                                <a href="mailto:{{ $lead->email }}" class="text-decoration-none text-dark">
-                                    <i class="bi bi-envelope text-danger"></i> {{ $lead->email }}
-                                </a>
-                            </td>
-                            <td class="lead-status">
                                 @php
                                     $status = $statusMap[$lead->estado] ?? ['name' => 'Unknown', 'color' => 'bg-secondary'];
                                 @endphp
@@ -88,12 +100,12 @@
                                     {{ $status['name'] }}
                                 </span>
                             </td>
-                            <td class="actions">
-                                <a href="{{ route('seller.leads.show', $lead->id) }}" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-eye"></i> View
+                            <td>
+                                <a href="{{ route('seller.leads.show', $lead->id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye">View</i>
                                 </a>
-                                <a href="{{ route('seller.leads.edit', $lead->id) }}" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-pencil-square"></i> Edit
+                                <a href="{{ route('seller.leads.edit', $lead->id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-pencil-square">Edit</i>
                                 </a>
                             </td>
                         </tr>
@@ -102,6 +114,7 @@
             </table>
         </div>
     @endif
+
 </div>
 
 <!-- 🔹 Custom Styles -->
@@ -228,50 +241,51 @@
 
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Agregar eventos de cambio a los checkboxes de estado
-        document.querySelectorAll(".status-checkbox").forEach(checkbox => {
-            checkbox.addEventListener("change", filterLeads);
-        });
-
-        // Agregar eventos de entrada a los campos de búsqueda
-        document.getElementById("searchName").addEventListener("input", filterLeads);
-        document.getElementById("searchPhone").addEventListener("input", filterLeads);
-    });
-
+    // Función para filtrar leads
     function filterLeads() {
-        let searchName = document.getElementById("searchName").value.toLowerCase();
-        let searchPhone = document.getElementById("searchPhone").value.toLowerCase();
-
-        // Obtener los estados seleccionados (permite múltiples selecciones)
-        let selectedStatuses = [];
-        document.querySelectorAll(".status-checkbox:checked").forEach(checkbox => {
-            selectedStatuses.push(checkbox.value.toLowerCase());
-        });
-
-        document.querySelectorAll(".lead-row").forEach(row => {
-            let name = row.querySelector(".lead-name").textContent.toLowerCase();
-            let phone = row.querySelector(".lead-phone").textContent.toLowerCase();
-            let status = row.querySelector(".lead-status span").textContent.toLowerCase();
-
-            // Comprobar si el estado de la fila coincide con alguno de los seleccionados
-            let statusMatch = selectedStatuses.length === 0 || selectedStatuses.some(statusFilter => status.includes(statusFilter));
-
-            let showRow = 
-                (name.includes(searchName) || searchName === "") &&
-                (phone.includes(searchPhone) || searchPhone === "") &&
-                statusMatch;
-
-            row.style.display = showRow ? "" : "none";
+        const statusCheckboxes = document.querySelectorAll('.status-checkbox');
+        const searchName = document.getElementById('searchName').value.toLowerCase();
+        const searchPhone = document.getElementById('searchPhone').value.toLowerCase();
+    
+        // Obtén los estados seleccionados
+        const selectedStatuses = Array.from(statusCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+    
+        // Recorre cada fila de la tabla
+        document.querySelectorAll('.table tbody tr').forEach(row => {
+            const leadName = row.querySelector('td:first-child').textContent.toLowerCase();
+            const leadPhone = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const leadStatus = row.querySelector('td:nth-child(4) .badge').textContent.trim().toLowerCase();
+    
+            // Comprueba coincidencias en nombre y teléfono
+            const matchesName = !searchName || leadName.includes(searchName);
+            const matchesPhone = !searchPhone || leadPhone.includes(searchPhone);
+    
+            // Comprueba coincidencias en estados
+            const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(leadStatus);
+    
+            // Mostrar u ocultar filas según coincidencias
+            if (matchesName && matchesPhone && matchesStatus) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
         });
     }
-
-    // Permitir filtrar al hacer clic en los círculos de estado
-    function toggleStatusFilter(statusKey) {
-        let checkbox = document.getElementById(`status-${statusKey}`);
+    
+    // Activar filtro inicial
+    document.addEventListener('DOMContentLoaded', () => {
+        filterLeads();
+    });
+    
+    // Función para activar filtros al hacer clic en el círculo de estado
+    function toggleStatusFilter(key) {
+        const checkbox = document.getElementById('status-' + key);
         checkbox.checked = !checkbox.checked;
         filterLeads();
     }
 </script>
+    
 
 @endsection
