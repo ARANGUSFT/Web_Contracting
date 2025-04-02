@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LeadFile extends Model
 {
-    use HasFactory;
-
-    protected $fillable = ['lead_id', 'user_id', 'type', 'file_path'];
+    protected $fillable = [
+        'lead_id',
+        'user_id',
+        'team_id',
+        'type',
+        'file_path',
+    ];
 
     public function lead()
     {
@@ -18,6 +21,11 @@ class LeadFile extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class); // Para usuarios normales
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class); // Para vendedores
     }
 }

@@ -295,6 +295,7 @@
             </div>
         </div>
 
+
         <!-- Toast de éxito -->
         @if(session('success'))
             <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
@@ -441,27 +442,7 @@
 
 
 <!--Actulizar pestana sin refrescar pagina-->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Restaurar la última pestaña activa
-        const lastTab = localStorage.getItem('activeLeadTab');
-        if (lastTab) {
-            const trigger = document.querySelector(`a[data-bs-toggle="tab"][href="${lastTab}"]`);
-            if (trigger) {
-                const tab = new bootstrap.Tab(trigger);
-                tab.show();
-            }
-        }
-    
-        // Guardar pestaña activa al cambiar
-        const tabLinks = document.querySelectorAll('#leadTabs a[data-bs-toggle="tab"]');
-        tabLinks.forEach(link => {
-            link.addEventListener('shown.bs.tab', function (e) {
-                localStorage.setItem('activeLeadTab', e.target.getAttribute('href'));
-            });
-        });
-    });
-</script>
+
 
 <script>
 

@@ -11,7 +11,10 @@ class CreateLeadFilesTable extends Migration
         Schema::create('lead_files', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lead_id')->constrained()->cascadeOnDelete();
+
             $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('team_id')->nullable()->constrained('teams')->cascadeOnDelete();
+
             $table->string('type'); // finanzas, files, anexos, contratos
             $table->string('file_path');
             $table->timestamps();
