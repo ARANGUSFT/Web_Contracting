@@ -2,10 +2,16 @@
 
 @section('content')
 
+
 <div class="container mt-4">
 
-    <h2 class="mb-4 text-center"><i class="bi bi-person-circle"></i> Lead Details</h2>
-
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <h2 class="text-primary m-0">
+            <i class="bi bi-person-circle"></i> Customer Details
+        </h2>
+    </div>
+    
+   
     @if(session('success'))
         <div class="alert alert-success mt-3">
             <i class="bi bi-check-circle"></i> {{ session('success') }}
@@ -30,10 +36,29 @@
 
     <div class="card shadow-lg p-4">
         <div class="d-flex justify-content-between align-items-center">
-            <h4 class="text-primary">{{ $lead->first_name }} {{ $lead->last_name }}</h4>
+
             <a href="{{ route('leads.index') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
+
+            <h4 class="text-primary">{{ $lead->first_name }} {{ $lead->last_name }}</h4>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Textual Info -->
+                <div class="text-end me-2">
+                    <h5 class="fw-bold mb-0" id="totalAmountText">$0.00</h5>
+                    <div class="text-danger fw-bold">Balance Due</div>
+                    <div class="text-danger small" id="balanceDueText">$0.00</div>
+                </div>
+            
+                <!-- Chart with percentage -->
+                <div class="position-relative" style="width: 70px; height: 70px;">
+                    <canvas id="balanceChart" class="balance-chart"></canvas>
+                    <div class="position-absolute top-50 start-50 translate-middle fw-bold small" id="chartPercentageText">0%</div>
+                </div>
+            </div>
+            
+
         </div>
 
         <p><strong>📞 Phone:</strong> <a href="tel:{{ $lead->phone }}">{{ $lead->phone }}</a></p>
@@ -93,7 +118,7 @@
             <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#Financial Worksheet">Financial Worksheet</a>
+            <a class="nav-link" data-bs-toggle="tab" href="#invoice">Financial Worksheet</a>
         </li>
     </ul>
 
@@ -181,19 +206,219 @@
             </div>
         </div>
 
-        <!-- Documents -->
-        <div class="tab-pane fade" id="invoice">
-        <h4><i class="bi bi-receipt"></i> Documents</h4>
-        <p>Review lead invoices and billing details.</p>
-        <button class="btn btn-warning"><i class="bi bi-file-earmark-text"></i> Generate</button>
+       
+        <!-- Documents Section -->
+        <div class="tab-pane fade" id="documents">
+            <h4><i class="bi bi-folder"></i> Documents</h4>
+
+            <div class="accordion" id="documentsAccordion">
+                @php
+                    $documentTypes = [
+                        ['title' => 'Job Paperwork', 'type' => 'files'],
+                        ['title' => 'Other', 'type' => 'finanzas'],
+                        ['title' => 'Packets', 'type' => 'anexos'],
+                        ['title' => 'Roof Report', 'type' => 'contratos'],
+                    ];
+
+                    $iconsByExtension = [
+                        'pdf' => 'bi-file-earmark-pdf text-danger',
+                        'xls' => 'bi-file-earmark-spreadsheet text-success',
+                        'xlsx' => 'bi-file-earmark-spreadsheet text-success',
+                        'doc' => 'bi-file-earmark-word text-primary',
+                        'docx' => 'bi-file-earmark-word text-primary',
+                        'default' => 'bi-file-earmark text-secondary',
+                    ];
+                @endphp
+
+                @foreach($documentTypes as $index => $docType)
+                    @php
+                        $files = $lead->files()->where('type', $docType['type'])->get();
+                    @endphp
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ $index }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}">
+                                <i class="bi bi-folder-fill me-2"></i> {{ $docType['title'] }} ({{ $files->count() }})
+                            </button>
+                        </h2>
+                        <div id="collapse{{ $index }}" class="accordion-collapse collapse" data-bs-parent="#documentsAccordion">
+                            <div class="accordion-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Documento</th>
+                                            <th>Type</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($files as $file)
+                                            @php
+                                                $path = $file->file_path;
+                                                $original_name = basename($path);
+                                                $extension = pathinfo($path, PATHINFO_EXTENSION);
+                                                $iconClass = $iconsByExtension[$extension] ?? $iconsByExtension['default'];
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $original_name }}</td>
+                                                <td>
+                                                    <i class="bi {{ $iconClass }}"></i> {{ strtoupper($extension) }}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ asset('storage/' . $path) }}" download class="btn btn-sm btn-outline-primary">
+                                                        Download <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <form action="{{ route('leads.files.destroy', $file->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            Delete <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <form action="{{ route('leads.files.store', $lead->id) }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <input type="hidden" name="type" value="{{ $docType['type'] }}">
+                                    <input type="file" name="file" class="form-control mb-2" required>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-upload"></i> Subir {{ $docType['title'] }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
 
+        <!-- Toast de éxito -->
+        @if(session('success'))
+            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ session('success') }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+
         <!-- Financial Worksheet -->
-        <div class="tab-pane fade" id="invoice">
-            <h4><i class="bi bi-receipt"></i> Financial Worksheet</h4>
-            <p>Review lead invoices and billing details.</p>
-            <button class="btn btn-warning"><i class="bi bi-file-earmark-text"></i> Generate</button>
+        <div class="tab-pane fade show" id="invoice">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="mb-4"><i class="bi bi-receipt me-2"></i> Financial Worksheet</h4>
+
+                    <form method="POST" action="{{ route('leads.finanzas.update', $lead->id) }}">
+                        @csrf
+                        @method('PUT')
+
+                        <!-- Contract Value -->
+                        <div class="mb-4 row align-items-center">
+                            <label for="contractValue" class="col-sm-4 col-form-label fw-bold">Contract Value</label>
+                            <div class="col-sm-8">
+                                <input type="number" step="0.01" name="contract_value" value="{{ old('contract_value', $lead->contract_value) }}" class="form-control" required id="contractValue">
+                            </div>
+                        </div>
+
+                        <!-- Contributions -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Contributions</label>
+                            <table class="table table-bordered align-middle text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Check Number</th>
+                                        <th>Notes</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="aportTable">
+                                    @foreach($lead->finanzas ?? [] as $index => $aporte)
+                                        <tr>
+                                            <td>
+                                                <input type="date" name="finanzas[{{ $index }}][date]" class="form-control @error("finanzas.$index.date") is-invalid @enderror" value="{{ old("finanzas.$index.date", $aporte['date']) }}">
+                                                @error("finanzas.$index.date")
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]" class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror" value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
+                                                @error("finanzas.$index.amount")
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+
+                                            <td class="p-2">
+                                                <select name="finanzas[{{ $index }}][method]" class="form-select w-100 @error("finanzas.$index.method") is-invalid @enderror" style="min-width: 130px;">
+                                                    <option value="">Select method</option>
+                                                    <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
+                                                    <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
+                                                    <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
+                                                </select>
+                                                @error("finanzas.$index.method")
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+
+                                            
+                                            <td>
+                                                <input type="text" name="finanzas[{{ $index }}][check_number]" class="form-control @error("finanzas.$index.check_number") is-invalid @enderror" value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
+                                                @error("finanzas.$index.check_number")
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                            <td class="p-2">
+                                                <textarea name="finanzas[{{ $index }}][notes]" 
+                                                          rows="1"
+                                                          class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror" 
+                                                          style="min-width: 120px; max-height: 80px; resize: vertical;"
+                                                          placeholder="Add notes...">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
+                                                @error("finanzas.$index.notes")
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
+                                            </td>
+                                            
+                                            <td>
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
+                                <i class="bi bi-plus-circle"></i> Add Contribution
+                            </button>
+                        </div>
+
+                        <!-- Balance -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Balance:</label>
+                            <div id="balanceDisplay" class="h5 text-success">$0.00</div>
+                        </div>
+
+                        <!-- Chart + Submit -->
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success px-4 mt-3">
+                                <i class="bi bi-save me-1"></i> Save Financials
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
+
 
     </div>
 
@@ -204,7 +429,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="imagePreviewLabel">Vista Previa</h5>
+                <h5 class="modal-title" id="imagePreviewLabel">Preview</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body d-flex justify-content-center align-items-center">
@@ -213,6 +438,187 @@
         </div>
     </div>
 </div>
+
+
+<!--Actulizar pestana sin refrescar pagina-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Restaurar la última pestaña activa
+        const lastTab = localStorage.getItem('activeLeadTab');
+        if (lastTab) {
+            const trigger = document.querySelector(`a[data-bs-toggle="tab"][href="${lastTab}"]`);
+            if (trigger) {
+                const tab = new bootstrap.Tab(trigger);
+                tab.show();
+            }
+        }
+    
+        // Guardar pestaña activa al cambiar
+        const tabLinks = document.querySelectorAll('#leadTabs a[data-bs-toggle="tab"]');
+        tabLinks.forEach(link => {
+            link.addEventListener('shown.bs.tab', function (e) {
+                localStorage.setItem('activeLeadTab', e.target.getAttribute('href'));
+            });
+        });
+    });
+</script>
+
+<script>
+
+
+    
+
+    const toggleCheckNumber = (select) => {
+        const tr = select.closest('tr');
+        const checkInput = tr.querySelector('.check-number-input');
+        if (checkInput) {
+            if (select.value === 'Check') {
+                checkInput.removeAttribute('disabled');
+            } else {
+                checkInput.value = '';
+                checkInput.setAttribute('disabled', true);
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBalance();
+
+        document.getElementById('contractValue').addEventListener('input', updateBalance);
+
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            input.addEventListener('input', updateBalance);
+        });
+
+        document.querySelectorAll('.method-select').forEach(select => {
+            toggleCheckNumber(select);
+            select.addEventListener('change', () => toggleCheckNumber(select));
+        });
+
+        document.getElementById('addRow').addEventListener('click', function () {
+            const tableBody = document.querySelector('#aportTable');
+            const rowIndex = tableBody.querySelectorAll('tr').length;
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="date" name="finanzas[${rowIndex}][date]" class="form-control" required /></td>
+                <td><input type="number" step="0.01" name="finanzas[${rowIndex}][amount]" class="form-control aporte-value" required /></td>
+                <td>
+                    <select name="finanzas[${rowIndex}][method]" class="form-control method-select">
+                        <option value="">Select</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Check">Check</option>
+                        <option value="Transfer">Transfer</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="finanzas[${rowIndex}][check_number]" class="form-control check-number-input" disabled />
+                </td>
+                <td><input type="text" name="finanzas[${rowIndex}][notes]" class="form-control" /></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+            `;
+
+            tableBody.appendChild(newRow);
+
+            newRow.querySelector('.aporte-value').addEventListener('input', updateBalance);
+            const methodSelect = newRow.querySelector('.method-select');
+            methodSelect.addEventListener('change', () => toggleCheckNumber(methodSelect));
+
+            updateBalance();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-row') || e.target.closest('.remove-row')) {
+                e.target.closest('tr').remove();
+                updateBalance();
+            }
+        });
+    });
+</script>
+
+<script>
+    let chart;
+    
+    const renderChart = (paid, remaining) => {
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        if (chart) chart.destroy();
+    
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Remaining'],
+                datasets: [{
+                    data: [paid, remaining],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+    
+    const updateBalance = () => {
+        const aporteInputs = document.querySelectorAll('.aporte-value');
+        let total = 0;
+        aporteInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+    
+        const contractValue = parseFloat(document.getElementById('contractValue').value) || 0;
+        const balance = contractValue - total;
+        const percentage = contractValue > 0 ? (total / contractValue) * 100 : 0;
+    
+        // Actualizar textos
+        document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+        document.getElementById('totalAmountText').textContent = `$${contractValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('balanceDueText').textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('chartPercentageText').textContent = `${percentage.toFixed(0)}%`;
+    
+        // Cambiar color del porcentaje según el progreso
+        const percentEl = document.getElementById('chartPercentageText');
+        if (percentage >= 100) {
+            percentEl.classList.add('text-success');
+            percentEl.classList.remove('text-danger');
+        } else {
+            percentEl.classList.add('text-danger');
+            percentEl.classList.remove('text-success');
+        }
+    
+        renderChart(total, Math.max(0, balance));
+    };
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBalance();
+    
+        document.getElementById('contractValue').addEventListener('input', updateBalance);
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            input.addEventListener('input', updateBalance);
+        });
+    });
+</script>
+    
+
+<style>
+    .balance-chart {
+        width: 70px !important;
+        height: 70px !important;
+    }
+    #chartPercentageText {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #dc3545; /* default red */
+    }
+</style>
+
+    
+
+
 
 
 <script>
@@ -248,7 +654,23 @@
     }
 </style>
 
+<!-- Script Eliminar documento-->
+<script>
+    function deleteDocument(filePath, fileType) {
+        if (confirm('¿Estás seguro de que deseas eliminar este archivo?')) {
+            document.getElementById('deleteFileType').value = fileType;
+            document.getElementById('deleteFilePath').value = filePath;
+            document.getElementById('deleteDocumentForm').submit();
+        }
+    }
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastElList = [].slice.call(document.querySelectorAll('.toast'))
+        toastElList.map(function (toastEl) {
+            new bootstrap.Toast(toastEl).show()
+        })
+    });
+</script>
 
 
 <script>

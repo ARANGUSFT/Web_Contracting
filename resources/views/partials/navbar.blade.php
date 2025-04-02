@@ -29,11 +29,7 @@
                             <i class="bi bi-person-plus"></i> Leads
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('leads.financial') }}">
-                            <i class="bi bi-bar-chart-line"></i> Payment Report
-                        </a>
-                    </li>
+                   
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('teams.index') }}">
                             <i class="bi bi-people"></i> Manage Team

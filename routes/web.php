@@ -1,13 +1,18 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\TeamLoginController;
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TeamController;
-use App\Http\Controllers\Auth\TeamLoginController;
-use App\Http\Controllers\Seller\SellerDashboardController; // ❗ Falta incluir este controlador
+
+use App\Http\Controllers\Seller\SellerDashboardController; 
 use App\Http\Controllers\LeadMessageController;
 use App\Http\Controllers\LeadImageController;
+use App\Http\Controllers\LeadFilesController;
+use App\Http\Controllers\LeadFinanzaController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,6 +40,8 @@ Route::get('/leads/{lead_id}/chat', function ($lead_id) {
 
 
 
+
+
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")
 Route::middleware(['auth:web'])->group(function () {
     // Perfil de usuario (admin)
@@ -58,9 +65,6 @@ Route::middleware(['auth:web'])->group(function () {
         Route::resource('/teams', TeamController::class);
 
 
-        Route::get('/financial', [LeadController::class, 'financial'])->name('leads.financial');
-
-
 });
 
 
@@ -69,17 +73,18 @@ Route::middleware(['auth:web'])->group(function () {
 // 🔒 Rutas que requieren autenticación con usuarios "web" o "team"
 Route::middleware(['auth:web,team'])->group(function () {
     // Lead Messages (Chat)
-    Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
-    Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
-    Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
+        Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
+        Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
+        Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
     // Lead Images
-    Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
-    Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
-    Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
-    // Actualizar Documentos
-    Route::put('/seller/leads/{lead}/documents/update', [SellerDashboardController::class, 'updateDocuments'])->name('seller.leads.updateDocuments');
-    // Eliminar Documentos
-    Route::delete('/seller/leads/{lead}/delete-file', [SellerDashboardController::class, 'deleteFile'])->name('seller.leads.delete-file');
+        Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
+        Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
+        Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
+    // Actualizar y Elimianr Documentos
+        Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
+        Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
+    // Financial Panel Contratista
+    Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
 });
 
 
@@ -99,20 +104,20 @@ Route::middleware(['auth:web,team'])->group(function () {
 // 🔹 Panel de Vendedores (Solo para usuarios autenticados en "team")
 Route::middleware(['auth:team'])->group(function () {
     // Perfil Seller
-    Route::get('/seller/dashboard', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
-    Route::get('/seller/leads/{id}', [SellerDashboardController::class, 'show'])->name('seller.leads.show');
-    Route::get('/seller/leads/{id}/edit', [SellerDashboardController::class, 'edit'])->name('seller.leads.edit');
+        Route::get('/seller/dashboard', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
+        Route::get('/seller/leads/{id}', [SellerDashboardController::class, 'show'])->name('seller.leads.show');
+        Route::get('/seller/leads/{id}/edit', [SellerDashboardController::class, 'edit'])->name('seller.leads.edit');
 
     
     // Crear Lead
-    // Mostrar el formulario (GET)
-    Route::get('seller/create/lead', [SellerDashboardController::class, 'create'])->name('seller.create');
-    // Procesar el formulario (POST)
-    Route::post('seller/create/lead', [SellerDashboardController::class, 'store'])->name('seller.store');
+        // Mostrar el formulario (GET)
+        Route::get('seller/create/lead', [SellerDashboardController::class, 'create'])->name('seller.create');
+        // Procesar el formulario (POST)
+        Route::post('seller/create/lead', [SellerDashboardController::class, 'store'])->name('seller.store');
 
 
     // Actualziar Lead
-    Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
-    // Actualizar estado (l,p,a,c,i)
-    Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
+        Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
+        // Actualizar estado (l,p,a,c,i)
+        Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
 });

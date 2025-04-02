@@ -56,12 +56,12 @@
     </div>
 
     <script>
-    function filterBySeller(sellerId) {
-        document.querySelectorAll('.lead-item').forEach(item => {
-            const itemSellerId = item.querySelector('.select-seller').value;
-            item.style.display = (sellerId === 'all' || itemSellerId === sellerId) ? '' : 'none';
-        });
-    }
+        function filterBySeller(sellerId) {
+            document.querySelectorAll('.lead-item').forEach(item => {
+                const itemSellerId = item.querySelector('.select-seller').value;
+                item.style.display = (sellerId === 'all' || itemSellerId === sellerId) ? '' : 'none';
+            });
+        }
     </script>
 
 

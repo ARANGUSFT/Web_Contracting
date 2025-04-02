@@ -50,10 +50,6 @@ return new class extends Migration {
             $table->string('adjuster_email')->nullable();
             $table->text('notas')->nullable();
             $table->unsignedBigInteger('id_padre')->nullable();
-            $table->json('finanzas')->nullable();
-            $table->json('files')->nullable();
-            $table->json('anexos')->nullable();
-            $table->json('contratos')->nullable();
             $table->json('location_photo')->nullable();
             $table->timestamps();
 

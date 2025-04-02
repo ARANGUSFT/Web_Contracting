@@ -18,15 +18,10 @@ class Lead extends Model
         'suitebilling', 'citybilling', 'statebilling', 'zipbilling', 
         'insurance_company', 'adjuster_phone_type', 'damage_location', 
         'date_loss', 'claim_number', 'adjuster_phone', 'adjuster_ext', 
-        'adjuster_fax', 'adjuster_email', 'notas', 'id_padre', 'finanzas', 
-        'files', 'anexos', 'contratos', 'location_photo'
+        'adjuster_fax', 'adjuster_email', 'notas', 'id_padre', 'location_photo'
     ];
 
     protected $casts = [
-        'finanzas' => 'array',
-        'files' => 'array',
-        'anexos' => 'array',
-        'contratos' => 'array',
         'location_photo' => 'array',
         'date_loss' => 'date',
     ];
@@ -64,6 +59,18 @@ class Lead extends Model
     {
         return $this->hasMany(LeadImage::class, 'lead_id');
     }
+
+    public function files()
+    {
+        return $this->hasMany(leadFile::class);
+    }
+
+    public function finanzas()
+    {
+        return $this->hasMany(LeadFinanza::class);
+    }
+
+
 
 
 }

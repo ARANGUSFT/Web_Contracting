@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Lead;
 use App\Models\Team; // Asegúrate de importar el modelo Team
 use App\Notifications\LeadAssignedNotification;
+use Illuminate\Support\Facades\Auth;
+
 
 use Illuminate\Http\Request;
 
@@ -89,11 +91,11 @@ class LeadController extends Controller
 
     
 
-     // Carga formulario
-     public function financial()
-     {
+    // Carga formulario
+    public function financial()
+    {
          return view('paymentReport.payment');
-     }
+    }
 
 
     // Carga formulario
@@ -112,28 +114,12 @@ class LeadController extends Controller
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'date_loss' => 'nullable|date',
-            'files_documento' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'files_finanzas' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'files_anexos' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'files_contratos' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'location_photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         // Manejo de archivos
-        $data = $request->except(['files_documento', 'files_finanzas', 'files_anexos', 'files_contratos', 'location_photo']);
+        $data = $request->except(['location_photo']);
 
-        if ($request->hasFile('files_documento')) {
-            $data['files']['documento'] = $request->file('files_documento')->store('uploads/documents', 'public');
-        }
-        if ($request->hasFile('files_finanzas')) {
-            $data['finanzas']['documento'] = $request->file('files_finanzas')->store('uploads/finances', 'public');
-        }
-        if ($request->hasFile('files_anexos')) {
-            $data['anexos'][] = $request->file('files_anexos')->store('uploads/annexes', 'public');
-        }
-        if ($request->hasFile('files_contratos')) {
-            $data['contratos'][] = $request->file('files_contratos')->store('uploads/contracts', 'public');
-        }
+  
         if ($request->hasFile('location_photo')) {
             $data['location_photo'] = $request->file('location_photo')->store('uploads/location_photos', 'public');
         }
@@ -146,10 +132,15 @@ class LeadController extends Controller
 
 
 
+
+
+
+
+
     public function show($id) 
     {
         // Obtener el Lead con sus relaciones
-        $lead = Lead::with(['messages.user', 'messages.team', 'images'])->findOrFail($id);
+        $lead = Lead::with(['messages.user', 'messages.team', 'images', 'files'])->findOrFail($id);
     
         // Obtener mensajes del chat
         $messages = $lead->messages->sortBy('created_at');
@@ -168,7 +159,14 @@ class LeadController extends Controller
     
         return view('leads.view', compact('lead', 'messages', 'images', 'statusMap'));
     }
+
+   
     
+
+
+
+
+
 
 
 

@@ -593,62 +593,7 @@
             
             
             
-            
-                  
-                    <!-- Tabs Navigation -->
-                    <ul class="nav nav-tabs mb-3" id="documentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#documento" type="button" role="tab">Document</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#finanzas" type="button" role="tab">Finance</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#anexos" type="button" role="tab">Annexes</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#contratos" type="button" role="tab">Contracts</button>
-                        </li>
-                    </ul>
 
-                    <!-- Tabs Content -->
-                    <div class="tab-content">
-                        <div class="tab-pane fade show active" id="documento" role="tabpanel">
-                            <h5>Manage Documents</h5>
-                            <div class="mb-3">
-                                <label for="files_documento" class="form-label">Upload Document</label>
-                                <input type="file" class="form-control" id="files_documento" name="files_documento" data-preview="preview_documento">
-                                <ul id="preview_documento" class="preview-list"></ul>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="finanzas" role="tabpanel">
-                            <h5>Finance Documents</h5>
-                            <div class="mb-3">
-                                <label for="files_finanzas" class="form-label">Upload Finance Document</label>
-                                <input type="file" class="form-control" id="files_finanzas" name="files_finanzas" data-preview="preview_finanzas">
-                                <ul id="preview_finanzas" class="preview-list"></ul>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="anexos" role="tabpanel">
-                            <h5>Annex Documents</h5>
-                            <div class="mb-3">
-                                <label for="files_anexos" class="form-label">Upload Annex Document</label>
-                                <input type="file" class="form-control" id="files_anexos" name="files_anexos" data-preview="preview_anexos">
-                                <ul id="preview_anexos" class="preview-list"></ul>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="contratos" role="tabpanel">
-                            <h5>Contract Documents</h5>
-                            <div class="mb-3">
-                                <label for="files_contratos" class="form-label">Upload Contract Document</label>
-                                <input type="file" class="form-control" id="files_contratos" name="files_contratos" data-preview="preview_contratos">
-                                <ul id="preview_contratos" class="preview-list"></ul>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Submit Button -->
                     <div class="form-group mt-4">
