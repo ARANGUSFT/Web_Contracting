@@ -27,10 +27,22 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'name' => ['required', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string'],
+            'language' => ['nullable', 'string'],
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
+            'company_name' => ['nullable', 'string'],
+            'residential_roof_types' => ['nullable', 'array'],
+            'commercial_roof_types' => ['nullable', 'array'],
+            'states_you_can_work' => ['nullable', 'string'],
+            'all_states' => ['nullable', 'boolean'],
+            'years_experience' => ['nullable', 'string'],
+            'company_documents.*' => ['file', 'mimes:pdf,doc,docx,jpg,jpeg,png', 'max:5120'], // 👈 Aquí
         ];
     }
+    
 
     /**
      * Attempt to authenticate the request's credentials.

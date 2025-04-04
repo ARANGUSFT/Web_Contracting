@@ -26,7 +26,6 @@
                             {{ $letter }}
                         </div>
                         <div class="status-count mt-1">{{ $statusCounts[$key] }}</div>
-                        <p>1.233</p>
                         <div class="form-check mt-2">
                             <input class="form-check-input status-checkbox" hidden type="checkbox" id="status-{{ $key }}" 
                                 value="{{ strtolower($label) }}" onchange="filterLeads()">

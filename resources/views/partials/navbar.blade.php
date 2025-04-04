@@ -59,7 +59,7 @@
             <div class="dropdown">
                 <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
                     @if(Auth::guard('web')->check()) 
-                        {{ Auth::guard('web')->user()->name }}
+                        {{ Auth::guard('web')->user()->company_name }}
                     @elseif(Auth::guard('team')->check()) 
                         {{ Auth::guard('team')->user()->name }}
                     @endif

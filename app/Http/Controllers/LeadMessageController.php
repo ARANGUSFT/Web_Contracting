@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\LeadMessage;
+use App\Models\Lead;
+
 
 class LeadMessageController extends Controller
 {
@@ -28,6 +30,7 @@ class LeadMessageController extends Controller
             'team_id' => $teamId,
             'message' => $request->message,
         ]);
+        
     
         // 👇 Redirigir claramente a la página anterior con mensaje de éxito
         return back();
@@ -49,5 +52,9 @@ class LeadMessageController extends Controller
     
         return response()->json($query->orderBy('created_at', 'asc')->get());
     }
+
+
+
+
     
 }

@@ -81,16 +81,19 @@ class LeadImageController extends Controller
         try {
             $image = LeadImage::findOrFail($id);
 
-            // Verificar si el archivo existe antes de eliminarlo
             if (Storage::disk('public')->exists($image->image_path)) {
                 Storage::disk('public')->delete($image->image_path);
+                Log::info("Imagen eliminada del disco: {$image->image_path}");
+            } else {
+                Log::warning("Imagen no encontrada en disco: {$image->image_path}");
             }
 
-            // Eliminar registro en la base de datos
             $image->delete();
 
             return redirect()->back()->with('success', 'Imagen eliminada correctamente.');
         } catch (\Exception $e) {
+            Log::error("Error al eliminar imagen: " . $e->getMessage());
+
             return redirect()->back()->with('error', 'Error al eliminar la imagen: ' . $e->getMessage());
         }
     }

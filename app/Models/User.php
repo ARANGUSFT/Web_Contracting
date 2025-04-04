@@ -19,9 +19,22 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'last_name',
         'email',
+        'phone',
+        'language',
+        'profile_photo',
+        'company_name',
+        'residential_roof_types',
+        'commercial_roof_types',
+        'states_you_can_work',
+        'all_states',
+        'years_experience',
         'password',
+        'company_documents',
+
     ];
+    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -39,7 +52,12 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'residential_roof_types' => 'array',
+        'commercial_roof_types' => 'array',
+        'states_you_can_work' => 'array',
+        'all_states' => 'boolean',
+        'company_documents' => 'array',
+
     ];
+    
 }

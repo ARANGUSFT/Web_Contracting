@@ -126,43 +126,45 @@
         
         <!-- Chat Tab -->
         <div class="tab-pane fade show active" id="chat">
-            <h4><i class="bi bi-chat"></i> Chat</h4>
-            <div id="chat-box" class="border p-3 mb-3 rounded" style="height: 350px; overflow-y: auto; background: #bfd9ff;">
-        
-                @foreach($messages as $msg)
-                    @php
-                        // Determinar si el mensaje es de un vendedor o un usuario
-                        $isSeller = isset($msg->team); // Si el mensaje viene de un vendedor
-                        $senderName = $isSeller ? $msg->team->name : ($msg->user->name ?? 'Usuario');
-        
-                        // Definir el color y alineación de los mensajes
-                        $isMine = $msg->user_id == auth()->id();
-                        $messageClass = $isMine ? 'bg-primary text-white' : 'bg-light';
-                        $alignment = $isMine ? 'justify-content-end' : 'justify-content-start';
-                        $textAlign = $isMine ? 'text-end' : 'text-start';
-                    @endphp
-        
-                    <div class="d-flex {{ $alignment }} mb-2">
-                        <div class="p-2 rounded shadow-sm" style="max-width: 75%; background: {{ $isMine ? '#007bff' : '#ffffff' }}; color: {{ $isMine ? '#ffffff' : '#000' }};">
-                            <strong class="d-block text-muted small">{{ $senderName }}</strong>
-                            <p class="mb-0">{{ $msg->message }}</p>
-                            <small class="d-block text-muted text-end mt-1" style="font-size: 0.8rem;">{{ $msg->created_at->format('d/m/Y H:i') }}</small>
+                <h4 class="mb-3"><i class="bi bi-chat-dots me-2"></i> Conversation</h4>
+    
+                <div id="chat-box" class="border rounded shadow-sm p-3 mb-4" style="height: 350px; overflow-y: auto; background-color: #f2f6fb;">
+                    @foreach($messages as $msg)
+                        @php
+                            $isSeller = isset($msg->team);
+                            $senderName = $isSeller ? $msg->team->name : ($msg->user->name ?? 'Usuario');
+                            $isMine = $msg->user_id == auth()->id();
+    
+                            $alignment = $isMine ? 'justify-content-end' : 'justify-content-start';
+                            $bubbleClass = $isMine ? 'bg-primary text-white' : 'bg-white text-dark';
+                            $nameColor = $isMine ? 'text-light' : 'text-muted';
+                            $timeAlign = $isMine ? 'text-end' : 'text-start';
+                        @endphp
+    
+                        <div class="d-flex {{ $alignment }} mb-3">
+                            <div class="p-3 rounded shadow-sm {{ $bubbleClass }}" style="max-width: 80%;">
+                                <div class="fw-bold small {{ $nameColor }}">{{ $senderName }}</div>
+                                <div class="small">{{ $msg->message }}</div>
+                                <div class="small text-muted {{ $timeAlign }} mt-1" style="font-size: 0.75rem;">
+                                    {{ $msg->created_at->format('d/m/Y H:i') }}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        
-            <form method="POST" action="{{ route('lead.messages.store') }}">
-                @csrf
-                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
-                <div class="input-group">
-                    <input type="text" name="message" class="form-control rounded-pill" placeholder="Write a message.." required>
-                    <button class="btn btn-success rounded-pill ms-2 px-4" type="submit">
-                        <i class="bi bi-send"></i> Send
-                    </button>
+                    @endforeach
                 </div>
-            </form>
+    
+                <form id="chatForm" method="POST" action="{{ route('lead.messages.store') }}">
+                    @csrf
+                    <input type="hidden" id="lead_id" name="lead_id" value="{{ $lead->id }}">
+                    <div class="input-group">
+                        <input type="text" id="message" name="message" class="form-control rounded-start-pill" placeholder="Write a message..." required>
+                        <button class="btn btn-success rounded-end-pill px-4" type="submit">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
         </div>
+        
 
         <!-- Photos Tab -->
         <div class="tab-pane fade" id="photos">
@@ -323,81 +325,89 @@
 
                         <!-- Contract Value -->
                         <div class="mb-4 row align-items-center">
-                            <label for="contractValue" class="col-sm-4 col-form-label fw-bold">Contract Value</label>
-                            <div class="col-sm-8">
-                                <input type="number" step="0.01" name="contract_value" value="{{ old('contract_value', $lead->contract_value) }}" class="form-control" required id="contractValue">
+                            <label for="contractValue" class="col-md-4 col-form-label fw-bold">Contract Value</label>
+                            <div class="col-md-8">
+                                <input type="number" step="0.01" name="contract_value"
+                                    value="{{ old('contract_value', $lead->contract_value) }}"
+                                    class="form-control" required id="contractValue">
                             </div>
                         </div>
 
                         <!-- Contributions -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Contributions</label>
-                            <table class="table table-bordered align-middle text-center">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>Method</th>
-                                        <th>Check Number</th>
-                                        <th>Notes</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="aportTable">
-                                    @foreach($lead->finanzas ?? [] as $index => $aporte)
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle text-nowrap">
+                                    <thead class="table-light text-center">
                                         <tr>
-                                            <td>
-                                                <input type="date" name="finanzas[{{ $index }}][date]" class="form-control @error("finanzas.$index.date") is-invalid @enderror" value="{{ old("finanzas.$index.date", $aporte['date']) }}">
-                                                @error("finanzas.$index.date")
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]" class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror" value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
-                                                @error("finanzas.$index.amount")
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </td>
-
-                                            <td class="p-2">
-                                                <select name="finanzas[{{ $index }}][method]" class="form-select w-100 @error("finanzas.$index.method") is-invalid @enderror" style="min-width: 130px;">
-                                                    <option value="">Select method</option>
-                                                    <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
-                                                    <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
-                                                    <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
-                                                </select>
-                                                @error("finanzas.$index.method")
-                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                                @enderror
-                                            </td>
-
-                                            
-                                            <td>
-                                                <input type="text" name="finanzas[{{ $index }}][check_number]" class="form-control @error("finanzas.$index.check_number") is-invalid @enderror" value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
-                                                @error("finanzas.$index.check_number")
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </td>
-                                            <td class="p-2">
-                                                <textarea name="finanzas[{{ $index }}][notes]" 
-                                                          rows="1"
-                                                          class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror" 
-                                                          style="min-width: 120px; max-height: 80px; resize: vertical;"
-                                                          placeholder="Add notes...">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
-                                                @error("finanzas.$index.notes")
-                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                                @enderror
-                                            </td>
-                                            
-                                            <td>
-                                                <button type="button" class="btn btn-outline-danger btn-sm remove-row">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </td>
+                                            <th style="min-width: 120px;">Date</th>
+                                            <th style="min-width: 100px;">Amount</th>
+                                            <th style="min-width: 140px;">Method</th>
+                                            <th style="min-width: 140px;">Check #</th>
+                                            <th style="min-width: 200px;">Notes</th>
+                                            <th style="min-width: 80px;">Action</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody id="aportTable">
+                                        @foreach($lead->finanzas ?? [] as $index => $aporte)
+                                            <tr>
+                                                <td>
+                                                    <input type="date" name="finanzas[{{ $index }}][date]"
+                                                        class="form-control @error("finanzas.$index.date") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.date", $aporte['date']) }}">
+                                                    @error("finanzas.$index.date")
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
+                                                        class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
+                                                    @error("finanzas.$index.amount")
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </td>
+                                                <td>
+                                                    <select name="finanzas[{{ $index }}][method]"
+                                                        class="form-select @error("finanzas.$index.method") is-invalid @enderror">
+                                                        <option value="">Select</option>
+                                                        <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
+                                                        <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
+                                                        <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
+                                                    </select>
+                                                    @error("finanzas.$index.method")
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="finanzas[{{ $index }}][check_number]"
+                                                        class="form-control @error("finanzas.$index.check_number") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
+                                                    @error("finanzas.$index.check_number")
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </td>
+                                                <td>
+                                                    <textarea name="finanzas[{{ $index }}][notes]"
+                                                        rows="1"
+                                                        class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror"
+                                                        style="resize: vertical;"
+                                                        placeholder="Add notes...">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
+                                                    @error("finanzas.$index.notes")
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
                             <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
                                 <i class="bi bi-plus-circle"></i> Add Contribution
                             </button>
@@ -409,7 +419,7 @@
                             <div id="balanceDisplay" class="h5 text-success">$0.00</div>
                         </div>
 
-                        <!-- Chart + Submit -->
+                        <!-- Submit -->
                         <div class="text-end">
                             <button type="submit" class="btn btn-success px-4 mt-3">
                                 <i class="bi bi-save me-1"></i> Save Financials
@@ -441,8 +451,41 @@
 </div>
 
 
-<!--Actulizar pestana sin refrescar pagina-->
+<style>
+        #chat-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    #chat-box::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 3px;
+    }
 
+</style>
+
+
+
+<!--Actulizar pestana sin refrescar pagina-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Restaurar la última pestaña activa
+        const lastTab = localStorage.getItem('activeLeadTab');
+        if (lastTab) {
+            const trigger = document.querySelector(`a[data-bs-toggle="tab"][href="${lastTab}"]`);
+            if (trigger) {
+                const tab = new bootstrap.Tab(trigger);
+                tab.show();
+            }
+        }
+    
+        // Guardar pestaña activa al cambiar
+        const tabLinks = document.querySelectorAll('#leadTabs a[data-bs-toggle="tab"]');
+        tabLinks.forEach(link => {
+            link.addEventListener('shown.bs.tab', function (e) {
+                localStorage.setItem('activeLeadTab', e.target.getAttribute('href'));
+            });
+        });
+    });
+</script>
 
 <script>
 

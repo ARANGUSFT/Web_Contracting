@@ -5,6 +5,7 @@
 
 <div class="container py-5">
 
+
     <!-- Current Pipeline -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -15,23 +16,28 @@
             <!-- Círculos de Estado + Checkboxes -->
             <div class="d-flex justify-content-around flex-wrap">
                 @foreach ([
-                    'leads' => ['L', 'bg-warning', 'Lead'],
-                    'prospect' => ['P', 'bg-orange', 'Prospect'],
-                    'approved' => ['A', 'bg-success', 'Approved'],
-                    'completed' => ['C', 'bg-primary', 'Completed'],
-                    'invoiced' => ['I', 'bg-danger', 'Invoiced']
+                    'leads' => ['L', 'bg-warning', ''],
+                    'prospect' => ['P', 'bg-orange', ''],
+                    'approved' => ['A', 'bg-success', ''],
+                    'completed' => ['C', 'bg-primary', ''],
+                    'invoiced' => ['I', 'bg-danger', '']
                 ] as $key => [$letter, $color, $label])
-                    <div class="pipeline-item">
-                        <div class="status-circle {{ $color }}" onclick="toggleStatusFilter('{{ $key }}')">
-                            {{ $letter }}
-                        </div>
-                        <div class="status-count">{{ $statusCounts[$key] }}</div>
-                        
-                        <div class="form-check mt-2">
-                            <input class="form-check-input status-checkbox" type="checkbox" id="status-{{ $key }}" value="{{ $key }}" onchange="filterLeads()">
-                            <label class="form-check-label small" for="status-{{ $key }}">{{ $label }}</label>
-                        </div>
+                   
+
+
+
+                <div class="pipeline-item text-center">
+                    <div class="status-circle {{ $color }} mb-1" data-status="{{ $key }}">
+                        {{ $letter }}
                     </div>
+                    <div class="status-count">{{ $statusCounts[$key] ?? 0 }}</div>
+                    <p class="small text-muted mb-0">
+                        ${{ number_format($statusSums[$key] ?? 0, 2) }}
+                    </p>
+                    <small class="d-block mt-1">{{ $label }}</small>
+                </div>
+                
+
                 @endforeach
             </div>
         </div>
@@ -54,15 +60,6 @@
             @endforeach
         </select>
     </div>
-
-    <script>
-        function filterBySeller(sellerId) {
-            document.querySelectorAll('.lead-item').forEach(item => {
-                const itemSellerId = item.querySelector('.select-seller').value;
-                item.style.display = (sellerId === 'all' || itemSellerId === sellerId) ? '' : 'none';
-            });
-        }
-    </script>
 
 
 
@@ -119,12 +116,14 @@
                                 <label class="form-label small fw-bold">Assign Seller:</label>
                                 <select name="team_id" class="form-select select-seller" required>
                                     <option value="">Select Seller</option>
+                                    <option value="" class="text-danger">-- Remove Assignment --</option>
                                     @foreach ($teams as $team)
                                         <option value="{{ $team->id }}" {{ $lead->team_id == $team->id ? 'selected' : '' }}>
                                             {{ $team->name }}
                                         </option>
                                     @endforeach
                                 </select>
+                                
                                 <button type="submit" class="btn btn-primary btn-sm w-100 mt-2">Assign</button>
                             </form>
                         </div><hr>
@@ -149,6 +148,100 @@
     </div>
 
 </div>
+
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selectedStatuses = new Set(); // Estados seleccionados
+        let assignedFilter = null; // Asignación (sí, no, todos)
+
+        // 🔍 Búsqueda en tiempo real
+        const searchInput = document.getElementById("searchInput");
+        if (searchInput) {
+            searchInput.addEventListener("keyup", filterLeads);
+        }
+
+        // 🎯 Botones de asignación
+        const assignedBtn = document.getElementById("assignedBtn");
+        const notAssignedBtn = document.getElementById("notAssignedBtn");
+
+        if (assignedBtn) assignedBtn.addEventListener("click", () => filterByAssignment(true, assignedBtn));
+        if (notAssignedBtn) notAssignedBtn.addEventListener("click", () => filterByAssignment(false, notAssignedBtn));
+
+        // 🚀 Círculos de estado
+        document.querySelectorAll(".status-circle").forEach(circle => {
+            const status = circle.dataset.status;
+            circle.addEventListener("click", () => toggleStatusFilter(status, circle));
+        });
+
+        // ✅ Alternar estado seleccionado
+        function toggleStatusFilter(status, circle) {
+            if (selectedStatuses.has(status)) {
+                selectedStatuses.delete(status);
+                circle.classList.remove("selected-status");
+            } else {
+                selectedStatuses.add(status);
+                circle.classList.add("selected-status");
+            }
+            filterLeads();
+        }
+
+        // ✅ Filtrar leads combinando búsqueda, estado y asignación
+        function filterLeads() {
+            const query = searchInput?.value.toLowerCase() || "";
+            const leads = document.querySelectorAll(".lead-item");
+
+            leads.forEach(lead => {
+                const leadText = lead.innerText.toLowerCase();
+                const leadStatus = lead.dataset.status;
+                const assigned = lead.dataset.assigned === "yes";
+
+                const matchSearch = !query || leadText.includes(query);
+                const matchStatus = selectedStatuses.size === 0 || selectedStatuses.has(leadStatus);
+                const matchAssigned = assignedFilter === null || assignedFilter === assigned;
+
+                lead.style.display = (matchSearch && matchStatus && matchAssigned) ? "block" : "none";
+            });
+        }
+
+        // ✅ Filtrar por asignación
+        function filterByAssignment(assigned, element) {
+            assignedFilter = assigned;
+
+            // Quitar clase activa a todos los botones
+            document.querySelectorAll(".filter-assignment").forEach(btn =>
+                btn.classList.remove("selected-filter")
+            );
+
+            // Marcar botón activo
+            if (element) element.classList.add("selected-filter");
+
+            filterLeads();
+        }
+
+        // Filtro inicial
+        filterLeads();
+    });
+
+    // 🏹 Redirección segura a edición
+    function redirectToEdit(url, event) {
+        const tag = event.target.tagName.toLowerCase();
+        if (tag !== "select" && tag !== "button") {
+            window.location.href = url;
+        }
+    }
+</script>
+
+<style>
+    .status-circle.selected-status {
+    border: 3px solid black;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+    }
+</style>
+
 
 
 
@@ -352,112 +445,15 @@
 
 
 </style>
+    
 
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        let selectedStatuses = new Set(); // Estados seleccionados
-        let assignedFilter = null; // Asignados (true), No Asignados (false), Todos (null)
-
-        // 🔍 Búsqueda en tiempo real
-        function searchLeads() {
-            filterLeads();
-        }
-
-        // 🎯 Filtrar por estado (permite múltiples estados con checkboxes)
-        function toggleStatusFilter(status) {
-            let checkbox = document.getElementById(`status-${status}`);
-            checkbox.checked = !checkbox.checked; // Alternar selección
-            updateSelectedStatuses();
-        }
-
-        function updateSelectedStatuses() {
-            selectedStatuses.clear();
-            document.querySelectorAll(".status-checkbox:checked").forEach(checkbox => {
-                selectedStatuses.add(checkbox.value);
-            });
-            updatePipelineUI();
-            filterLeads();
-        }
-
-        // 👥 Filtrar por asignación (asignado o no asignado)
-        function filterByAssignment(assigned, element) {
-            assignedFilter = assigned;
-
-            // Remueve la clase activa de todos los botones de asignación
-            document.querySelectorAll(".filter-assignment").forEach(btn => btn.classList.remove("selected-filter"));
-
-            // Agrega la clase activa al botón seleccionado
-            if (element) element.classList.add("selected-filter");
-
-            filterLeads();
-        }
-
-        // 🔄 Aplica los filtros combinados (búsqueda, estado y asignación)
-        function filterLeads() {
-            let searchQuery = document.getElementById("searchInput") ? document.getElementById("searchInput").value.toLowerCase() : "";
-            let leads = document.querySelectorAll(".lead-item");
-
-            leads.forEach(lead => {
-                let text = lead.innerText.toLowerCase();
-                let status = lead.getAttribute("data-status");
-                let assigned = lead.getAttribute("data-assigned") === "yes";
-
-                let matchesSearch = searchQuery === "" || text.includes(searchQuery);
-                let matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(status);
-                let matchesAssignment = assignedFilter === null || assignedFilter === assigned;
-
-                lead.style.display = (matchesSearch && matchesStatus && matchesAssignment) ? "block" : "none";
-            });
-        }
-
-        // 🎨 Actualiza la UI del Pipeline (resalta los estados seleccionados)
-        function updatePipelineUI() {
-            document.querySelectorAll(".status-circle").forEach(circle => {
-                let status = circle.dataset.status;
-                if (selectedStatuses.has(status)) {
-                    circle.classList.add("selected-status");
-                } else {
-                    circle.classList.remove("selected-status");
-                }
-            });
-        }
-
-        // 🚀 Inicializar checkboxes de estado
-        document.querySelectorAll(".status-checkbox").forEach(checkbox => {
-            checkbox.addEventListener("change", updateSelectedStatuses);
+    function filterBySeller(sellerId) {
+        document.querySelectorAll('.lead-item').forEach(item => {
+            const itemSellerId = item.querySelector('.select-seller').value;
+            item.style.display = (sellerId === 'all' || itemSellerId === sellerId) ? '' : 'none';
         });
-
-        // 🎯 Asigna eventos a los botones de estado
-        document.querySelectorAll(".status-circle").forEach(circle => {
-            let status = circle.dataset.status;
-            circle.addEventListener("click", function () {
-                toggleStatusFilter(status);
-            });
-        });
-
-        // 🎯 Inicializar botones de asignación
-        let assignedBtn = document.getElementById("assignedBtn");
-        let notAssignedBtn = document.getElementById("notAssignedBtn");
-
-        if (assignedBtn) assignedBtn.addEventListener("click", function () { filterByAssignment(true, this); });
-        if (notAssignedBtn) notAssignedBtn.addEventListener("click", function () { filterByAssignment(false, this); });
-
-        // 📝 Evento para la búsqueda en tiempo real
-        let searchInput = document.getElementById("searchInput");
-        if (searchInput) searchInput.addEventListener("keyup", searchLeads);
-    });
-
-    // 🏹 Redirige a la página de edición cuando se hace clic en una tarjeta (excepto en el formulario)
-    function redirectToEdit(url, event) {
-        let target = event.target;
-
-        // Evita redireccionar si se hizo clic en un select o botón dentro de la tarjeta
-        if (target.tagName.toLowerCase() !== "select" && target.tagName.toLowerCase() !== "button") {
-            window.location.href = url;
-        }
     }
-
-
 </script>
 
 <script>

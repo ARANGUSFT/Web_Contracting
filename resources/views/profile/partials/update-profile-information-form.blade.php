@@ -1,64 +1,110 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            {{ __('Profile Information') }}
-        </h2>
+<form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+    @csrf
+    @method('PATCH')
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
-
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
-
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
-        @csrf
-        @method('patch')
-
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+    <div class="card border-0 shadow mb-5">
+        <div class="card-header bg-primary text-white fw-semibold">
+            <i class="bi bi-person-lines-fill me-2"></i> Personal & Company Information
         </div>
+        <div class="card-body">
 
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
+                </div>
 
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800 dark:text-gray-200">
-                        {{ __('Your email address is unverified.') }}
+                <div class="col-md-6">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ old('last_name', $user->last_name) }}">
+                </div>
 
-                        <button form="send-verification" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
+                </div>
 
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
+                <div class="col-md-6">
+                    <label class="form-label">Phone</label>
+                    <div class="input-group">
+                        <select class="form-select" name="phone_country_code" style="max-width: 100px;">
+                            <option value="+1" {{ str_contains($user->phone, '+1') ? 'selected' : '' }}>🇺🇸 +1</option>
+                            <option value="+52" {{ str_contains($user->phone, '+52') ? 'selected' : '' }}>🇲🇽 +52</option>
+                            <option value="+57" {{ str_contains($user->phone, '+57') ? 'selected' : '' }}>🇨🇴 +57</option>
+                        </select>
+                        <input type="text" name="phone" class="form-control" value="{{ old('phone', preg_replace('/^\+\d+\s?/', '', $user->phone)) }}">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Language</label>
+                    <select name="language" class="form-select">
+                        <option value="English" {{ $user->language === 'English' ? 'selected' : '' }}>English</option>
+                        <option value="Spanish" {{ $user->language === 'Spanish' ? 'selected' : '' }}>Spanish</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Profile Photo</label>
+                    <input type="file" name="profile_photo" class="form-control">
+                    @if ($user->profile_photo)
+                        <img src="{{ asset('storage/' . $user->profile_photo) }}" alt="Photo" class="rounded mt-2" style="max-height: 90px;">
                     @endif
                 </div>
-            @endif
+
+                <div class="col-md-6">
+                    <label class="form-label">Company Name</label>
+                    <input type="text" name="company_name" class="form-control" value="{{ old('company_name', $user->company_name) }}">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Years of Experience</label>
+                    <input type="text" name="years_experience" class="form-control" value="{{ old('years_experience', $user->years_experience) }}">
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Residential Roof Types</label>
+                    @foreach(['TPO', 'Low Slope', 'Tile', 'Wood Shakes', 'Asphalt Shingle', 'Metal'] as $roof)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="residential_roof_types[]" value="{{ $roof }}"
+                                {{ in_array($roof, $user->residential_roof_types ?? []) ? 'checked' : '' }}>
+                            <label class="form-check-label">{{ $roof }}</label>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Commercial Roof Types</label>
+                    @foreach(['EPDM', 'Asphalt Shingle', 'Low Slope', 'TPO', 'Tar & Gravel', 'Metal'] as $roof)
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="commercial_roof_types[]" value="{{ $roof }}"
+                                {{ in_array($roof, $user->commercial_roof_types ?? []) ? 'checked' : '' }}>
+                            <label class="form-check-label">{{ $roof }}</label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="col-12">
+                <label class="form-label">States You Can Work</label>
+                <input type="text" name="states_you_can_work" class="form-control"
+                    value="{{ old('states_you_can_work', is_array($user->states_you_can_work) ? implode(',', $user->states_you_can_work) : '') }}">
+                <div class="form-check mt-2">
+                    <input type="checkbox" name="all_states" class="form-check-input" value="1" {{ $user->all_states ? 'checked' : '' }}>
+                    <label class="form-check-label">I can work in all states</label>
+                </div>
+            </div>
+
         </div>
 
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600 dark:text-gray-400"
-                >{{ __('Saved.') }}</p>
-            @endif
+        <div class="card-footer bg-light text-end">
+            <button class="btn btn-primary px-4">Save Changes</button>
         </div>
-    </form>
-</section>
+    </div>
+</form>

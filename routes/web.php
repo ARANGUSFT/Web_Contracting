@@ -75,11 +75,11 @@ Route::middleware(['auth:web,team'])->group(function () {
     // Lead Messages (Chat)
         Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
         Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
-        Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
     // Lead Images
         Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
         Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
         Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
+        Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
     // Actualizar y Elimianr Documentos
         Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
         Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
