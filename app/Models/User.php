@@ -59,5 +59,32 @@ class User extends Authenticatable
         'company_documents' => 'array',
 
     ];
+
+
+    public function leads()
+    {
+        return $this->hasMany(Lead::class);
+    }
+
+    public function leadFiles()
+    {
+        return $this->hasMany(LeadFile::class);
+    }
+
+    public function leadFinanzas()
+    {
+        return $this->hasMany(LeadFinanza::class);
+    }
+
+    public function leadImages()
+    {
+        return $this->hasMany(LeadImage::class);
+    }
+
+    public function leadMessages()
+    {
+        return $this->hasMany(LeadMessage::class);
+    }
+
     
 }

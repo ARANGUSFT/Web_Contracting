@@ -135,11 +135,16 @@
                 </div>
             </div>
     
-            <!-- Company Documents -->
+            <!-- Company Documents Upload -->
             <div class="mt-4">
-                <label class="form-label" for="company_documents">Company Documents (upload multiple)</label>
-                <input type="file" id="company_documents" name="company_documents[]" multiple class="form-control">
+                <label class="form-label" for="company_documents">Subir Documento</label>
+                <input type="file" id="company_documents" class="form-control">
+                <div id="uploaded_list" class="mt-3"></div>
+                <!-- Este input oculto contendrá todos los archivos para enviarlos a Laravel -->
+                <input type="file" id="hidden_documents" name="company_documents[]" multiple hidden>
             </div>
+
+
     
             <!-- PASSWORD -->
             <div class="mb-4">
@@ -192,6 +197,47 @@
                 };
                 reader.readAsDataURL(event.target.files[0]);
             }
+
+            const companyInput = document.getElementById('company_documents');
+            const uploadedList = document.getElementById('uploaded_list');
+            const hiddenInput = document.getElementById('hidden_documents');
+            let uploadedFiles = [];
+
+            companyInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                uploadedFiles.push(file);
+                updateHiddenInput();
+                renderUploadedList();
+                companyInput.value = ''; // Reinicia el input
+            });
+
+            function removeFile(index) {
+                uploadedFiles.splice(index, 1);
+                updateHiddenInput();
+                renderUploadedList();
+            }
+
+            function renderUploadedList() {
+                uploadedList.innerHTML = '';
+                uploadedFiles.forEach((file, index) => {
+                    const item = document.createElement('div');
+                    item.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'border', 'p-2', 'mb-2');
+                    item.innerHTML = `
+                        <span>${file.name}</span>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeFile(${index})">Eliminar</button>
+                    `;
+                    uploadedList.appendChild(item);
+                });
+            }
+
+            function updateHiddenInput() {
+                const dataTransfer = new DataTransfer();
+                uploadedFiles.forEach(file => dataTransfer.items.add(file));
+                hiddenInput.files = dataTransfer.files;
+            }
+
         </script>
     @endpush
 

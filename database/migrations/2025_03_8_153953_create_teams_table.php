@@ -14,6 +14,8 @@ return new class extends Migration {
             $table->string('password');
             $table->enum('role', ['company_admin', 'manager', 'sales', 'guest', 'project_manager', 'crew'])->default('sales');
             $table->boolean('is_active')->default(true);
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();
         });
     }

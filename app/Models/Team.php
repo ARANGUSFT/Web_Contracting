@@ -12,7 +12,8 @@ class Team extends Authenticatable
 
     protected $table = 'team'; // Asegúrate de que coincida con tu BD
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'is_active'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'is_active',
+    'user_id'];
 
     protected $hidden = ['password'];
 
@@ -31,4 +32,10 @@ class Team extends Authenticatable
     {
         return $this->hasMany(Lead::class, 'team_id');
     }
+
+        public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

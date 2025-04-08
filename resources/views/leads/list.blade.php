@@ -24,16 +24,17 @@
                 ] as $key => [$letter, $color, $label])
                    
 
-
-
                 <div class="pipeline-item text-center">
                     <div class="status-circle {{ $color }} mb-1" data-status="{{ $key }}">
                         {{ $letter }}
                     </div>
                     <div class="status-count">{{ $statusCounts[$key] ?? 0 }}</div>
+                    @unless($key === 'leads')
                     <p class="small text-muted mb-0">
                         ${{ number_format($statusSums[$key] ?? 0, 2) }}
                     </p>
+                @endunless
+                
                     <small class="d-block mt-1">{{ $label }}</small>
                 </div>
                 
@@ -59,6 +60,7 @@
                 <option value="{{ $team->id }}">{{ $team->name }}</option>
             @endforeach
         </select>
+        
     </div>
 
 
@@ -105,6 +107,10 @@
                             <a href="{{ route('leads.edit', $lead->id) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
+                            <hr>
+                            <p><strong>🕒 Last Touched:</strong> 
+                                {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
+                            </p>
                         </p><hr>
     
     
@@ -246,9 +252,10 @@
 
 
 
-<style>
- 
 
+
+<style>
+    /* CARD STYLES */
     .card {
         background-color: #ffffff;
         border-radius: 12px;
@@ -257,13 +264,28 @@
         margin-bottom: 1.5rem;
     }
 
-    .card-header {
-        background-color: #f9fafb;
-        border-bottom: 1px solid #e5e7eb;
+    .lead-item {
+        display: flex;
+    }
+
+    .lead-item .card {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .card-header,
+    .card-footer {
         padding: 1rem 1.5rem;
+        background-color: #f9fafb;
+        border-color: #e5e7eb;
+    }
+
+    .card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid #e5e7eb;
     }
 
     .card-header h5 {
@@ -277,17 +299,22 @@
         text-align: left;
     }
 
-    .card-footer {
-        padding: 1rem 1.5rem;
-        background-color: #f8f9fa;
-        border-top: 1px solid #e5e7eb;
-    }
-
+    /* BADGE STYLES */
     .badge-status {
         font-size: 0.75rem;
         padding: 5px 10px;
         border-radius: 10px;
         color: #ffffff;
+    }
+
+    /* FORM CONTROLS */
+    .form-label {
+        margin-bottom: 0.5rem;
+    }
+
+    .form-select,
+    .btn {
+        border-radius: 0.25rem;
     }
 
     .select-seller {
@@ -302,20 +329,7 @@
         background-color: #f0f8ff;
     }
 
-    .form-label {
-        margin-bottom: 0.5rem;
-    }
-
-    .form-select, .btn {
-        border-radius: 0.25rem;
-    }
-
-
-
-
-
-
-    /* Pipeline items styling */
+    /* PIPELINE ITEMS */
     .pipeline-item {
         display: inline-flex;
         flex-direction: column;
@@ -323,11 +337,11 @@
         margin: 0.75rem;
         transition: transform 0.2s;
     }
-    
+
     .pipeline-item:hover {
         transform: scale(1.05);
     }
-    
+
     .status-circle {
         width: 55px;
         height: 55px;
@@ -341,45 +355,37 @@
         cursor: pointer;
         box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     }
-    
-    /* Status Colors */
-    .bg-warning { background-color: #fbbf24; }
-    .bg-orange { background-color: #fb923c; }
-    .bg-success { background-color: #22c55e; }
-    .bg-primary { background-color: #3b82f6; }
-    .bg-danger { background-color: #ef4444; }
-    
+
+    /* STATUS COLORS */
+    .bg-warning  { background-color: #fbbf24; }
+    .bg-orange   { background-color: #fb923c; }
+    .bg-success  { background-color: #22c55e; }
+    .bg-primary  { background-color: #3b82f6; }
+    .bg-danger   { background-color: #ef4444; }
+
     .status-count {
         margin-top: 0.5rem;
         font-size: 1rem;
         font-weight: 500;
         color: #374151;
     }
-    
+
+    /* FORM CHECK */
     .form-check {
         margin-top: 0.5rem;
     }
-    
+
     .form-check-label {
         font-size: 0.875rem;
         color: #6b7280;
         cursor: pointer;
     }
-    
+
     .form-check-input {
         cursor: pointer;
     }
 
-
-
-
-
-
-
-
-    
-    
-    /* Search bar and filters styling */
+    /* SEARCH BAR AND FILTERS */
     .input-group {
         display: flex;
         border-radius: 10px;
@@ -387,60 +393,47 @@
         box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         margin-bottom: 1rem;
     }
-    
+
     .input-group .form-control {
         padding: 0.75rem 1rem;
         border: none;
         flex-grow: 1;
     }
-    
+
     .input-group .form-control:focus {
         outline: none;
         box-shadow: none;
     }
-    
+
     .filter-assignment {
         padding: 0.75rem 1rem;
         font-weight: 500;
         cursor: pointer;
         transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     }
-    
+
+    /* BUTTON VARIANTS */
     .btn-outline-success {
         border-color: #22c55e;
         color: #22c55e;
     }
-    
-    .btn-outline-success:hover, .btn-outline-success.active {
+
+    .btn-outline-success:hover,
+    .btn-outline-success.active {
         background-color: #22c55e;
         color: #ffffff;
     }
-    
+
     .btn-outline-danger {
         border-color: #ef4444;
         color: #ef4444;
     }
-    
-    .btn-outline-danger:hover, .btn-outline-danger.active {
+
+    .btn-outline-danger:hover,
+    .btn-outline-danger.active {
         background-color: #ef4444;
         color: #ffffff;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

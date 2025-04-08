@@ -12,6 +12,8 @@ return new class extends Migration {
             $table->foreignId('lead_id')->constrained()->onDelete('cascade');
             $table->nullableMorphs('uploaded_by'); // Permite que el campo sea opcional
             $table->string('image_path');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();
         });
     }

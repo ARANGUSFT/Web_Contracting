@@ -10,11 +10,12 @@ return new class extends Migration {
         Schema::create('lead_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lead_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->foreignId('team_id')->nullable()->constrained('team')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('team_id')->nullable()->constrained('team')->nullOnDelete();
             $table->text('message');
             $table->timestamps();
         });
+        
         
     }
 

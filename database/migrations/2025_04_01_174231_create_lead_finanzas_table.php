@@ -11,7 +11,7 @@ class CreateLeadFinanzasTable extends Migration
         Schema::create('lead_finanzas', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lead_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->date('date');
             $table->decimal('amount', 12, 2);
             $table->string('method')->nullable();
@@ -19,6 +19,7 @@ class CreateLeadFinanzasTable extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
         });
+        
 
         Schema::table('leads', function (Blueprint $table) {
             $table->decimal('contract_value', 12, 2)->nullable();

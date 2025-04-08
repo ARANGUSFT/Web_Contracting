@@ -51,7 +51,6 @@ class SellerDashboardController extends Controller
     }
     public function store(Request $request)
     {
-        // Validar datos
         $validatedData = $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -60,9 +59,7 @@ class SellerDashboardController extends Controller
             'date_loss' => 'nullable|date',
         ]);
     
-        // Manejo de archivos
         $data = $request->except(['location_photo']);
-    
     
         if ($request->hasFile('location_photo')) {
             $file = $request->file('location_photo');
@@ -75,13 +72,22 @@ class SellerDashboardController extends Controller
         // Crear el Lead inicialmente sin asignar
         $lead = Lead::create($data);
     
-        // ⚙️ Asignar automáticamente el Lead al vendedor autenticado
-        $user = Auth::guard('team')->user();
-        $lead->team_id = $user->id;
+        // Obtener el vendedor autenticado (Team)
+        $team = Auth::guard('team')->user();
+    
+        // Asignar team_id y user_id después de crear
+        $lead->team_id = $team->id;
+    
+        if ($team->user_id) {
+            $lead->user_id = $team->user_id;
+        }
+    
         $lead->save();
     
-        return redirect()->route('seller.dashboard')->with('success', 'Lead creado con éxito y asignado automáticamente a ti.');
+        return redirect()->route('seller.dashboard')->with('success', 'Lead creado con éxito y asignado correctamente.');
     }
+    
+
     
     
     

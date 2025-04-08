@@ -62,8 +62,10 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label">Company Name</label>
-                        <input type="text" name="company_name" value="{{ old('company_name', $user->company_name) }}" class="form-control">
+                        <input type="text" name="company_name" value="{{ old('company_name', $user->company_name) }}" class="form-control bg-light text-muted" readonly>
                     </div>
+                    
+                    
                     <div class="col-md-6">
                         <label class="form-label">Years of Experience</label>
                         <input type="text" name="years_experience" value="{{ old('years_experience', $user->years_experience) }}" class="form-control">

@@ -51,7 +51,11 @@ return new class extends Migration {
             $table->text('notas')->nullable();
             $table->unsignedBigInteger('id_padre')->nullable();
             $table->json('location_photo')->nullable();
-            $table->timestamps();
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
+            $table->timestamps(); // created_at, updated_at
+            $table->timestamp('last_touched_at')->nullable(); // 👈 se define después, sin 'after'
+            
 
             // Nueva columna para el vendedor asignado
             $table->unsignedBigInteger('team_id')->nullable();

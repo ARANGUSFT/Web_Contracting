@@ -11,9 +11,12 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $teams = Team::all();
+        // Mostrar solo los vendedores creados por el admin logueado
+        $teams = Team::where('user_id', auth()->id())->get();
+    
         return view('manageTeam.main', compact('teams'));
     }
+    
 
     public function create()
     {
@@ -37,7 +40,9 @@ class TeamController extends Controller
             'password' => Hash::make($password),
             'role' => $request->role,
             'is_active' => $request->has('is_active'),
+            'user_id' => auth()->id(), // ✅ Asigna el admin que lo creó
         ]);
+        
     
         // URL de acceso (ajusta según sea necesario)
         $loginUrl = url('/login');

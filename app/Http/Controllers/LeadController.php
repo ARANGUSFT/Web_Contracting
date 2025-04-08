@@ -18,35 +18,32 @@ class LeadController extends Controller
     {
         $sellerId = $request->input('seller_id');
 
-        // Consulta inicial
-        $query = Lead::with('team');
+        // Solo mostrar leads del admin autenticado
+        $query = Lead::with('team')->where('user_id', auth()->id());
 
-        // Aplicar filtro solo si se seleccionó un vendedor específico
         if ($sellerId && $sellerId !== 'all') {
             $query->where('team_id', $sellerId);
         }
 
-        // Resultados paginados
         $leads = $query->paginate(10)->appends(['seller_id' => $sellerId]);
 
-        $teams = Team::all();
+        $teams = Team::where('user_id', auth()->id())->get();
 
-        // Contadores generales por estado (sin filtro por vendedor)
+        // Contadores por estado (solo para este admin)
         $statusCounts = [
-            'leads' => Lead::where('estado', 1)->count(),
-            'prospect' => Lead::where('estado', 2)->count(),
-            'approved' => Lead::where('estado', 3)->count(),
-            'completed' => Lead::where('estado', 4)->count(),
-            'invoiced' => Lead::where('estado', 5)->count(),
+            'leads' => Lead::where('estado', 1)->where('user_id', auth()->id())->count(),
+            'prospect' => Lead::where('estado', 2)->where('user_id', auth()->id())->count(),
+            'approved' => Lead::where('estado', 3)->where('user_id', auth()->id())->count(),
+            'completed' => Lead::where('estado', 4)->where('user_id', auth()->id())->count(),
+            'invoiced' => Lead::where('estado', 5)->where('user_id', auth()->id())->count(),
         ];
 
-        // Suma total de contract_value por estado (sin filtro por vendedor)
         $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
+            ->where('user_id', auth()->id())
             ->groupBy('estado')
             ->pluck('total', 'estado')
             ->toArray();
 
-        // Normalizar claves por consistencia con $statusCounts
         $statusSums = [
             'leads' => $statusSumsRaw[1] ?? 0,
             'prospect' => $statusSumsRaw[2] ?? 0,
@@ -57,6 +54,7 @@ class LeadController extends Controller
 
         return view('leads.list', compact('leads', 'statusCounts', 'statusSums', 'teams', 'sellerId'));
     }
+
 
     
     
@@ -82,13 +80,15 @@ class LeadController extends Controller
     public function assignStatus(Request $request, $id)
     {
         $request->validate(['status' => 'required|integer|between:1,6']);
-
+    
         $lead = Lead::findOrFail($id);
         $lead->estado = $request->status;
+        $lead->last_touched_at = now(); // 👈 actualiza la última modificación
         $lead->save();
-
+    
         return back()->with('success', 'Lead status updated successfully.');
     }
+    
 
 
     public function assignSales(Request $request, $id)
@@ -127,7 +127,6 @@ class LeadController extends Controller
         return view('leads.create');
     }
 
-    // Create leads form
     public function store(Request $request)
     {
         // Validar datos
@@ -138,20 +137,23 @@ class LeadController extends Controller
             'email' => 'nullable|email|max:255',
             'date_loss' => 'nullable|date',
         ]);
-
+    
         // Manejo de archivos
         $data = $request->except(['location_photo']);
-
-  
+    
         if ($request->hasFile('location_photo')) {
             $data['location_photo'] = $request->file('location_photo')->store('uploads/location_photos', 'public');
         }
-
+    
+        // Asociar el lead al usuario autenticado
+        $data['user_id'] = auth()->id();
+    
         // Crear el Lead
         Lead::create($data);
-
+    
         return redirect()->route('leads.index')->with('success', 'Lead creado con éxito.');
     }
+    
 
 
 

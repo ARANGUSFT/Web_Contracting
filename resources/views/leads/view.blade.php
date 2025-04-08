@@ -68,6 +68,11 @@
             {{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}
         </p>
         <p><strong>📅 Created At:</strong> {{ $lead->created_at->format('d M, Y') }}</p>
+        <p><strong>🕒 Last Touched:</strong> 
+            {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
+        </p>
+        
+        
 
 
         <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST" class="mb-3">

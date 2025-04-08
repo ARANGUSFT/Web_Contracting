@@ -21,38 +21,28 @@ class LeadImageController extends Controller
         ]);
 
         try {
-            // Verificar si la carpeta existe, si no, crearla
             if (!Storage::disk('public')->exists('lead_images')) {
                 Storage::disk('public')->makeDirectory('lead_images');
                 Log::info("Carpeta lead_images creada en storage.");
             }
 
-            // Guardar imagen en almacenamiento público
             $path = $request->file('image')->store('lead_images', 'public');
 
             if (!$path) {
                 throw new \Exception("Error al guardar la imagen en almacenamiento.");
             }
 
-            // Verificar si el usuario autenticado es un `User` o `Team`
-            if (!Auth::check()) {
-                throw new \Exception("No se pudo determinar el usuario autenticado.");
+            $userId = auth('web')->check() ? auth('web')->id() : null;
+            $teamId = auth('team')->check() ? auth('team')->id() : null;
+
+            if (!$userId && !$teamId) {
+                throw new \Exception("No autenticado.");
             }
 
-            $user = Auth::user();
-
-            // Si el usuario tiene rol de `seller`, `manager` o `crew`, se guarda como `Team`
-            if (property_exists($user, 'role') && in_array($user->role, ['seller', 'manager', 'crew'])) {
-                $uploadedByType = 'App\Models\Team';
-            } else {
-                $uploadedByType = 'App\Models\User';
-            }
-
-            // Guardar en la base de datos
             $image = LeadImage::create([
                 'lead_id' => $request->lead_id,
-                'uploaded_by_id' => $user->id,
-                'uploaded_by_type' => $uploadedByType,
+                'user_id' => $userId,
+                'team_id' => $teamId,
                 'image_path' => $path,
             ]);
 
@@ -72,6 +62,7 @@ class LeadImageController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Eliminar una imagen.

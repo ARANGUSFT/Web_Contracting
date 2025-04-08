@@ -18,13 +18,18 @@ class Lead extends Model
         'suitebilling', 'citybilling', 'statebilling', 'zipbilling', 
         'insurance_company', 'adjuster_phone_type', 'damage_location', 
         'date_loss', 'claim_number', 'adjuster_phone', 'adjuster_ext', 
-        'adjuster_fax', 'adjuster_email', 'notas', 'id_padre', 'location_photo'
+        'adjuster_fax', 'adjuster_email', 'notas', 'id_padre', 'location_photo',
+        'user_id','last_touched_at'
     ];
 
     protected $casts = [
         'location_photo' => 'array',
         'date_loss' => 'date',
+        'last_touched_at' => 'datetime', 
+
     ];
+
+    
 
     
     public function statusText()
@@ -70,6 +75,11 @@ class Lead extends Model
         return $this->hasMany(LeadFinanza::class);
     }
 
+
+        public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
 
 
