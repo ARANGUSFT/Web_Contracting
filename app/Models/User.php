@@ -86,5 +86,11 @@ class User extends Authenticatable
         return $this->hasMany(LeadMessage::class);
     }
 
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+
     
 }

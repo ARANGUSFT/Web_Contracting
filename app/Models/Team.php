@@ -38,4 +38,10 @@ class Team extends Authenticatable
         return $this->belongsTo(User::class);
     }
 
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+
 }

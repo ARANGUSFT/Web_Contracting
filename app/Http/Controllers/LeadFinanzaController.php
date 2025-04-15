@@ -65,4 +65,6 @@ class LeadFinanzaController extends Controller
 
         return redirect()->back()->with('success', 'Financial data updated successfully.');
     }
+
+    
 }

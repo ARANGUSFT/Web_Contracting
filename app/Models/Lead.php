@@ -19,7 +19,7 @@ class Lead extends Model
         'insurance_company', 'adjuster_phone_type', 'damage_location', 
         'date_loss', 'claim_number', 'adjuster_phone', 'adjuster_ext', 
         'adjuster_fax', 'adjuster_email', 'notas', 'id_padre', 'location_photo',
-        'user_id','last_touched_at'
+        'user_id', 'contract_value', 'last_touched_at'
     ];
 
     protected $casts = [
@@ -80,6 +80,19 @@ class Lead extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function expenses()
+    {
+        return $this->hasMany(lead_expenses::class);
+    }
+
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    
+
 
 
 

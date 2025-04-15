@@ -20,20 +20,20 @@
 
 
     @php
-    $statusList = [
-        1 => ['label' => 'Lead', 'color' => 'bg-warning'],
-        2 => ['label' => 'Prospect', 'color' => 'bg-orange'],
-        3 => ['label' => 'Approved', 'color' => 'bg-success'],
-        4 => ['label' => 'Completed', 'color' => 'bg-primary'],
-        5 => ['label' => 'Invoiced', 'color' => 'bg-danger'],
-    ];
+        $statusList = [
+            1 => ['label' => 'Lead', 'color' => 'bg-warning'],
+            2 => ['label' => 'Prospect', 'color' => 'bg-orange'],
+            3 => ['label' => 'Approved', 'color' => 'bg-success'],
+            4 => ['label' => 'Completed', 'color' => 'bg-primary'],
+            5 => ['label' => 'Invoiced', 'color' => 'bg-danger'],
+        ];
 
         $currentIndex = array_search($lead->estado, array_keys($statusList));
         $statusKeys = array_keys($statusList);
     @endphp
 
  
-
+    {{-- Tarjeta --}}
     <div class="card shadow-lg p-4">
         <div class="d-flex justify-content-between align-items-center">
 
@@ -104,8 +104,33 @@
             </div>
         </form>
 
+        <hr>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="border p-3 rounded bg-light">
+                    <strong>Total Expenses:</strong>
+                    <div id="totalExpensesDisplayBelow" class="h5 text-danger">${{ number_format($lead->total_expenses, 2) }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border p-3 rounded bg-light">
+                    <strong>Total Paid:</strong>
+                    <div id="totalPaidDisplayBelow" class="h5 text-primary">${{ number_format($lead->total_paid, 2) }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="border p-3 rounded bg-light">
+                    <strong>Net Profit:</strong>
+                    <div id="netProfitDisplayBelow" class="h5 fw-bold {{ $lead->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
+                        ${{ number_format($lead->net_profit, 2) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
     
     </div>
+    {{-- Fin --}}
 
 
 
@@ -123,9 +148,31 @@
             <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#invoice">Financial Worksheet</a>
+            <a class="nav-link" data-bs-toggle="tab" href="#contribution">Contribution</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#expenses">Expenses</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#quote">Quote</a>
         </li>
     </ul>
+
+
+    <!-- Toast de éxito -->
+    @if(session('success'))
+         <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+             <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+                 <div class="d-flex">
+                     <div class="toast-body">
+                         {{ session('success') }}
+                     </div>
+                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                 </div>
+             </div>
+         </div>
+    @endif
+
 
     <div class="tab-content p-4 bg-white shadow-lg rounded">
         
@@ -224,7 +271,7 @@
                         ['title' => 'Job Paperwork', 'type' => 'files'],
                         ['title' => 'Other', 'type' => 'finanzas'],
                         ['title' => 'Packets', 'type' => 'anexos'],
-                        ['title' => 'Roof Report', 'type' => 'contratos'],
+                        ['title' => 'Invoices', 'type' => 'contratos'],
                     ];
 
                     $iconsByExtension = [
@@ -303,26 +350,13 @@
         </div>
 
 
-        <!-- Toast de éxito -->
-        @if(session('success'))
-            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-                <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            {{ session('success') }}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            </div>
-        @endif
-
-
-        <!-- Financial Worksheet -->
-        <div class="tab-pane fade show" id="invoice">
+       <!-- Contributions Tab -->
+        <div class="tab-pane fade show" id="contribution">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
-                    <h4 class="mb-4"><i class="bi bi-receipt me-2"></i> Financial Worksheet</h4>
+                    <h4 class="mb-4">
+                        <i class="bi bi-receipt me-2"></i> Contribution
+                    </h4>
 
                     <form method="POST" action="{{ route('leads.finanzas.update', $lead->id) }}">
                         @csrf
@@ -338,19 +372,19 @@
                             </div>
                         </div>
 
-                        <!-- Contributions -->
+                        <!-- Contributions Table -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Contributions</label>
                             <div class="table-responsive">
-                                <table class="table table-bordered align-middle text-nowrap">
-                                    <thead class="table-light text-center">
+                                <table class="table table-bordered text-center align-middle">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th style="min-width: 120px;">Date</th>
-                                            <th style="min-width: 100px;">Amount</th>
-                                            <th style="min-width: 140px;">Method</th>
-                                            <th style="min-width: 140px;">Check #</th>
-                                            <th style="min-width: 200px;">Notes</th>
-                                            <th style="min-width: 80px;">Action</th>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Check #</th>
+                                            <th>Notes</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody id="aportTable">
@@ -360,49 +394,32 @@
                                                     <input type="date" name="finanzas[{{ $index }}][date]"
                                                         class="form-control @error("finanzas.$index.date") is-invalid @enderror"
                                                         value="{{ old("finanzas.$index.date", $aporte['date']) }}">
-                                                    @error("finanzas.$index.date")
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
                                                 </td>
                                                 <td>
                                                     <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
                                                         class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror"
                                                         value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
-                                                    @error("finanzas.$index.amount")
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
                                                 </td>
                                                 <td>
                                                     <select name="finanzas[{{ $index }}][method]"
-                                                        class="form-select @error("finanzas.$index.method") is-invalid @enderror">
+                                                        class="form-select method-select @error("finanzas.$index.method") is-invalid @enderror">
                                                         <option value="">Select</option>
                                                         <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
                                                         <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
                                                         <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
                                                     </select>
-                                                    @error("finanzas.$index.method")
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
                                                 </td>
                                                 <td>
                                                     <input type="text" name="finanzas[{{ $index }}][check_number]"
-                                                        class="form-control @error("finanzas.$index.check_number") is-invalid @enderror"
+                                                        class="form-control check-number-input @error("finanzas.$index.check_number") is-invalid @enderror"
                                                         value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
-                                                    @error("finanzas.$index.check_number")
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
                                                 </td>
                                                 <td>
                                                     <textarea name="finanzas[{{ $index }}][notes]"
-                                                        rows="1"
                                                         class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror"
-                                                        style="resize: vertical;"
-                                                        placeholder="Add notes...">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
-                                                    @error("finanzas.$index.notes")
-                                                        <div class="invalid-feedback">{{ $message }}</div>
-                                                    @enderror
+                                                        placeholder="Add notes..." rows="1">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
                                                 </td>
-                                                <td class="text-center">
+                                                <td>
                                                     <button type="button" class="btn btn-outline-danger btn-sm remove-row">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
@@ -435,6 +452,181 @@
             </div>
         </div>
 
+        
+        <!-- Expense -->
+        <div class="tab-pane fade show" id="expenses">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="mb-4"><i class="bi bi-currency-dollar me-2"></i> Add Expense</h4>
+
+                    <form method="POST" action="{{ route('leads.expenses.update', $lead->id) }}">
+                        @csrf
+                    
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle text-nowrap">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th style="min-width: 120px;">Date</th>
+                                        <th style="min-width: 180px;">Type</th>
+                                        <th style="min-width: 200px;">Amount</th>
+                                        <th style="min-width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTable">
+                                    @foreach($lead->expenses ?? [] as $index => $expense)
+                                        <tr>
+                                            <td>
+                                                <input type="date" name="expenses[{{ $index }}][expense_date]" 
+                                                       value="{{ $expense->expense_date->format('Y-m-d') }}" 
+                                                       class="form-control" required>
+                                            </td>
+                                            <td>
+                                                <select class="form-select expense-type" data-index="{{ $index }}">
+                                                    <option value="">Select Type</option>
+                                                    <option value="material" {{ $expense->material ? 'selected' : '' }}>Material</option>
+                                                    <option value="labor_cost" {{ $expense->labor_cost ? 'selected' : '' }}>Labor</option>
+                                                    <option value="commission_percentage" {{ $expense->commission_percentage ? 'selected' : '' }}>Commission</option>
+                                                    <option value="permit" {{ $expense->permit ? 'selected' : '' }}>Permit</option>
+                                                    <option value="supplement" {{ $expense->supplement ? 'selected' : '' }}>Supplement</option>
+                                                    <option value="other_expenses" {{ $expense->other_expenses ? 'selected' : '' }}>Other</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" name="expenses[{{ $index }}][material]" 
+                                                       value="{{ $expense->material }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->material ? '' : 'd-none' }}" 
+                                                       placeholder="Material ($)">
+                                                
+                                                <input type="number" step="0.01" name="expenses[{{ $index }}][labor_cost]" 
+                                                       value="{{ $expense->labor_cost }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->labor_cost ? '' : 'd-none' }}" 
+                                                       placeholder="Labor ($)">
+                                                
+                                                <input type="number" step="0.01" name="expenses[{{ $index }}][commission_percentage]" 
+                                                       value="{{ $expense->commission_percentage }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->commission_percentage ? '' : 'd-none' }}" 
+                                                       placeholder="Commission (%)">
+                                                
+                                                <input type="text" name="expenses[{{ $index }}][permit]" 
+                                                       value="{{ $expense->permit }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->permit ? '' : 'd-none' }}" 
+                                                       placeholder="Permit">
+                                                
+                                                <input type="number" step="0.01" name="expenses[{{ $index }}][supplement]" 
+                                                       value="{{ $expense->supplement }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->supplement ? '' : 'd-none' }}" 
+                                                       placeholder="Supplement ($)">
+                                                
+                                                <input type="number" step="0.01" name="expenses[{{ $index }}][other_expenses]" 
+                                                       value="{{ $expense->other_expenses }}" 
+                                                       class="form-control amount-field mt-2 {{ $expense->other_expenses ? '' : 'd-none' }}" 
+                                                       placeholder="Other ($)">
+                                            </td>
+                                            <td class="text-center">
+                                                <meta name="csrf-token" content="{{ csrf_token() }}">
+
+                                                <button type="button"
+                                                    class="btn btn-outline-danger btn-sm remove-expense"
+                                                    data-id="{{ $expense->id }}"
+                                                    data-url="{{ route('leads.expenses.destroy', [$lead->id, $expense->id]) }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                
+                                            
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addExpenseRow">
+                                <i class="bi bi-plus-circle"></i> Add Expense
+                            </button>
+                    
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-save"></i> Save Expenses
+                            </button>
+                        </div>
+                    </form>
+                    
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Quote -->
+        <div class="tab-pane fade show" id="quote">
+
+            <!-- Form to create a quote -->
+            <form method="POST" action="{{ route('quotes.store') }}">
+                @csrf
+                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Sq</label>
+                        <input type="number" name="sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Material Cost per Sq</label>
+                        <input type="number" step="0.01" name="material_cost_per_sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Labor Cost per Sq</label>
+                        <input type="number" step="0.01" name="labor_cost_per_sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Other Costs</label>
+                        <input type="number" step="0.01" name="other_costs" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Profit Percentage (%)</label>
+                        <input type="number" step="0.01" name="percentage" class="form-control" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">Save Quote</button>
+            </form>
+
+            <!-- Quote table -->
+            <h5 class="mt-4">Previous Quotes</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Sq</th>
+                        <th>Material Total</th>
+                        <th>Labor Total</th>
+                        <th>Other Costs</th>
+                        <th>Profit</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lead->quotes as $quote)
+                    <tr>
+                        <td>{{ $quote->sq }}</td>
+                        <td>{{ number_format($quote->material_total, 2) }}</td>
+                        <td>{{ number_format($quote->labor_total, 2) }}</td>
+                        <td>{{ number_format($quote->other_costs, 2) }}</td>
+                        <td>{{ number_format($quote->profit, 2) }}</td>
+                        <td>{{ number_format($quote->quote_total, 2) }}</td>
+                        <td>
+                            <form action="{{ route('quotes.destroy', $quote->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this quote?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+        </div>
+
 
     </div>
 
@@ -456,15 +648,17 @@
 </div>
 
 
+
+
+
 <style>
-        #chat-box::-webkit-scrollbar {
+    #chat-box::-webkit-scrollbar {
         width: 6px;
     }
     #chat-box::-webkit-scrollbar-thumb {
         background-color: rgba(0,0,0,0.2);
         border-radius: 3px;
     }
-
 </style>
 
 
@@ -492,10 +686,77 @@
     });
 </script>
 
+{{-- Grafica del balance --}}
+<script>
+    let chart;
+    
+    const renderChart = (paid, remaining) => {
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        if (chart) chart.destroy();
+    
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Remaining'],
+                datasets: [{
+                    data: [paid, remaining],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+    
+    const updateBalance = () => {
+        const aporteInputs = document.querySelectorAll('.aporte-value');
+        let total = 0;
+        aporteInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+    
+        const contractValue = parseFloat(document.getElementById('contractValue').value) || 0;
+        const balance = contractValue - total;
+        const percentage = contractValue > 0 ? (total / contractValue) * 100 : 0;
+    
+        // Actualizar textos
+        document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+        document.getElementById('totalAmountText').textContent = `$${contractValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('balanceDueText').textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('chartPercentageText').textContent = `${percentage.toFixed(0)}%`;
+    
+        // Cambiar color del porcentaje según el progreso
+        const percentEl = document.getElementById('chartPercentageText');
+        if (percentage >= 100) {
+            percentEl.classList.add('text-success');
+            percentEl.classList.remove('text-danger');
+        } else {
+            percentEl.classList.add('text-danger');
+            percentEl.classList.remove('text-success');
+        }
+    
+        renderChart(total, Math.max(0, balance));
+    };
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBalance();
+    
+        document.getElementById('contractValue').addEventListener('input', updateBalance);
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            input.addEventListener('input', updateBalance);
+        });
+    });
+</script>
+
+{{-- Script Contribution --}}
 <script>
 
-
-    
 
     const toggleCheckNumber = (select) => {
         const tr = select.closest('tr');
@@ -565,123 +826,217 @@
     });
 </script>
 
+
+
+
+
+
+
+{{-- Expenses --}}
 <script>
-    let chart;
+    document.addEventListener('DOMContentLoaded', function () {
+        let rowIndex = document.querySelectorAll('#expensesTable tr').length;
     
-    const renderChart = (paid, remaining) => {
-        const ctx = document.getElementById('balanceChart').getContext('2d');
-        if (chart) chart.destroy();
+        function toggleAmountFields(select) {
+            const row = select.closest('tr');
+            const index = select.dataset.index;
+            const selected = select.value;
     
-        chart = new Chart(ctx, {
+            row.querySelectorAll('.amount-field').forEach(input => {
+                input.classList.add('d-none');
+            });
+    
+            const visibleInput = row.querySelector(`[name="expenses[${index}][${selected}]"]`);
+            if (visibleInput) {
+                visibleInput.classList.remove('d-none');
+            }
+        }
+    
+        function bindEventsToRow(row) {
+            const select = row.querySelector('.expense-type');
+            if (!select) return;
+    
+            select.addEventListener('change', function () {
+                toggleAmountFields(this);
+            });
+    
+            toggleAmountFields(select); // Inicializar
+        }
+    
+        document.querySelectorAll('#expensesTable tr').forEach(row => bindEventsToRow(row));
+    
+        document.getElementById('addExpenseRow').addEventListener('click', function () {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>
+                    <input type="date" name="expenses[${rowIndex}][expense_date]" class="form-control" required>
+                </td>
+                <td>
+                    <select class="form-select expense-type" data-index="${rowIndex}">
+                        <option value="">Select Type</option>
+                        <option value="material">Material</option>
+                        <option value="labor_cost">Labor</option>
+                        <option value="commission_percentage">Commission</option>
+                        <option value="permit">Permit</option>
+                        <option value="supplement">Supplement</option>
+                        <option value="other_expenses">Other</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" name="expenses[${rowIndex}][material]" class="form-control amount-field d-none" placeholder="Material ($)">
+                    <input type="number" step="0.01" name="expenses[${rowIndex}][labor_cost]" class="form-control amount-field d-none" placeholder="Labor ($)">
+                    <input type="number" step="0.01" name="expenses[${rowIndex}][commission_percentage]" class="form-control amount-field d-none" placeholder="Commission (%)">
+                    <input type="text" name="expenses[${rowIndex}][permit]" class="form-control amount-field d-none" placeholder="Permit">
+                    <input type="number" step="0.01" name="expenses[${rowIndex}][supplement]" class="form-control amount-field d-none" placeholder="Supplement ($)">
+                    <input type="number" step="0.01" name="expenses[${rowIndex}][other_expenses]" class="form-control amount-field d-none" placeholder="Other ($)">
+                </td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>
+                </td>
+            `;
+    
+            document.getElementById('expensesTable').appendChild(newRow);
+            bindEventsToRow(newRow);
+            rowIndex++;
+        });
+    
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-row')) {
+                e.target.closest('tr').remove();
+            }
+        });
+    });
+</script>
+
+{{-- Eliminar Expenses --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.remove-expense').forEach(function (button) {
+            button.addEventListener('click', function () {
+                const expenseId = this.getAttribute('data-id');
+                const deleteUrl = this.getAttribute('data-url');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This expense will be permanently deleted.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(deleteUrl, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                button.closest('tr').remove();
+                                Swal.fire('Deleted!', data.success, 'success');
+                            } else {
+                                Swal.fire('Error', data.error || 'Could not delete expense.', 'error');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Error', 'An error occurred while deleting.', 'error');
+                        });
+                    }
+                });
+            });
+        });
+    });
+
+</script>
+    
+
+
+
+{{-- Total expenses / paid / nex profit --}}
+<script>
+    let expensesChart = null;
+    
+    const renderExpensesChart = (expenses, profit) => {
+        const ctx = document.getElementById('expensesOnlyChart')?.getContext('2d');
+        if (!ctx) return;
+    
+        if (expensesChart) expensesChart.destroy();
+    
+        expensesChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Paid', 'Remaining'],
+                labels: ['Expenses', 'Net Profit'],
                 datasets: [{
-                    data: [paid, remaining],
-                    backgroundColor: ['#28a745', '#dc3545'],
-                    borderWidth: 1
+                    data: [expenses, profit],
+                    backgroundColor: ['#dc3545', '#198754']
                 }]
             },
             options: {
                 cutout: '70%',
                 plugins: {
-                    legend: { display: false }
+                    legend: { display: false },
+                    title: { display: true, text: 'Expenses vs Profit' }
                 }
             }
         });
     };
     
-    const updateBalance = () => {
-        const aporteInputs = document.querySelectorAll('.aporte-value');
-        let total = 0;
-        aporteInputs.forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            total += value;
+    const updateExpenseSummary = () => {
+        const contractValue = parseFloat(document.getElementById('contractValue')?.value) || 0;
+        let totalExpenses = 0;
+    
+        document.querySelectorAll('#expensesTable tr').forEach(row => {
+            const type = row.querySelector('.expense-type')?.value;
+            if (!type) return;
+    
+            const input = row.querySelector(`[name*="[${type}]"]`);
+            if (!input || input.classList.contains('d-none')) return;
+    
+            const val = parseFloat(input.value) || 0;
+            if (type === 'commission_percentage') {
+                totalExpenses += contractValue * (val / 100);
+            } else {
+                totalExpenses += val;
+            }
         });
     
-        const contractValue = parseFloat(document.getElementById('contractValue').value) || 0;
-        const balance = contractValue - total;
-        const percentage = contractValue > 0 ? (total / contractValue) * 100 : 0;
+        let totalPaid = 0;
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            totalPaid += parseFloat(input.value) || 0;
+        });
     
-        // Actualizar textos
-        document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
-        document.getElementById('totalAmountText').textContent = `$${contractValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-        document.getElementById('balanceDueText').textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
-        document.getElementById('chartPercentageText').textContent = `${percentage.toFixed(0)}%`;
+        const netProfit = totalPaid - totalExpenses;
     
-        // Cambiar color del porcentaje según el progreso
-        const percentEl = document.getElementById('chartPercentageText');
-        if (percentage >= 100) {
-            percentEl.classList.add('text-success');
-            percentEl.classList.remove('text-danger');
-        } else {
-            percentEl.classList.add('text-danger');
-            percentEl.classList.remove('text-success');
-        }
+        document.getElementById('totalExpensesDisplayBelow').textContent = `$${totalExpenses.toFixed(2)}`;
+        document.getElementById('totalPaidDisplayBelow').textContent = `$${totalPaid.toFixed(2)}`;
     
-        renderChart(total, Math.max(0, balance));
+        const netEl = document.getElementById('netProfitDisplayBelow');
+        netEl.textContent = `$${netProfit.toFixed(2)}`;
+        netEl.className = 'h5 fw-bold ' + (netProfit >= 0 ? 'text-success' : 'text-danger');
+    
+        renderExpensesChart(totalExpenses, netProfit);
     };
     
-    document.addEventListener('DOMContentLoaded', function () {
-        updateBalance();
+    document.addEventListener('input', function (e) {
+        if (
+            e.target.closest('#expensesTable') ||
+            e.target.classList.contains('aporte-value') ||
+            e.target.id === 'contractValue'
+        ) {
+            updateExpenseSummary();
+        }
+    });
     
-        document.getElementById('contractValue').addEventListener('input', updateBalance);
-        document.querySelectorAll('.aporte-value').forEach(input => {
-            input.addEventListener('input', updateBalance);
-        });
+    document.addEventListener('DOMContentLoaded', () => {
+        updateExpenseSummary(); // al cargar
     });
 </script>
-    
-
-<style>
-    .balance-chart {
-        width: 70px !important;
-        height: 70px !important;
-    }
-    #chartPercentageText {
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #dc3545; /* default red */
-    }
-</style>
-
-    
-
-
-
-
-<script>
-    function changeStatus(newStatus) {
-        if (confirm('Are you sure you want to change the status?')) {
-            document.getElementById('selectedStatus').value = newStatus;
-            document.getElementById('statusForm').submit();
-        }
-    }
-</script>
-
-<style>
-    .status-box {
-        padding: 8px 16px;
-        color: white;
-        font-weight: 600;
-        border-radius: 8px;
-        min-width: 100px;
-        text-align: center;
-        transition: all 0.3s ease-in-out;
-    }
-    .bg-orange {
-        background-color: #f79646 !important;
-    }
-    .status-active {
-        border: 3px solid #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
-        transform: scale(1.05);
-        z-index: 1;
-    }
-    .status-inactive {
-        opacity: 0.5;
-    }
-</style>
 
 <!-- Script Eliminar documento-->
 <script>
@@ -701,7 +1056,7 @@
     });
 </script>
 
-
+{{-- Imagenes--}}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let leadId = document.querySelector('input[name="lead_id"]').value;
@@ -761,6 +1116,57 @@
         .catch(error => console.error("Error al eliminar imagen:", error));
     }
 </script>
+    
+    
+
+    
+    
+    
+
+<style>
+    .balance-chart {
+        width: 70px !important;
+        height: 70px !important;
+    }
+    #chartPercentageText {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #dc3545; /* default red */
+    }
+</style>
+
+<script>
+    function changeStatus(newStatus) {
+        if (confirm('Are you sure you want to change the status?')) {
+            document.getElementById('selectedStatus').value = newStatus;
+            document.getElementById('statusForm').submit();
+        }
+    }
+</script>
+
+<style>
+    .status-box {
+        padding: 8px 16px;
+        color: white;
+        font-weight: 600;
+        border-radius: 8px;
+        min-width: 100px;
+        text-align: center;
+        transition: all 0.3s ease-in-out;
+    }
+    .bg-orange {
+        background-color: #f79646 !important;
+    }
+    .status-active {
+        border: 3px solid #fff;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+        transform: scale(1.05);
+        z-index: 1;
+    }
+    .status-inactive {
+        opacity: 0.5;
+    }
+</style>
 
 <style>
     body { background: #2270be; }

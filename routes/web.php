@@ -12,6 +12,8 @@ use App\Http\Controllers\LeadMessageController;
 use App\Http\Controllers\LeadImageController;
 use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
+use App\Http\Controllers\LeadExpensesController;
+use App\Http\Controllers\QuoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,8 +64,6 @@ Route::middleware(['auth:web'])->group(function () {
         Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
     // CRUD de Team (Trabajadores/Vendedores)
         Route::resource('/teams', TeamController::class);
-
-
 });
 
 
@@ -82,8 +82,17 @@ Route::middleware(['auth:web,team'])->group(function () {
     // Actualizar y Elimianr Documentos
         Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
         Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
-    // Financial Panel Contratista
-    Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
+    // Contribution Panel 
+        Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
+        Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');
+        Route::delete('/leads/{lead}/finanzas/{finanza}', [LeadFinanzaController::class, 'destroy'])->name('lead.finanzas.destroy');
+    // Expenses Panel 
+        Route::post('/leads/{lead}/expenses', [LeadExpensesController::class, 'update'])->name('leads.expenses.update');
+        Route::delete('/leads/{lead}/expenses/{expense}', [LeadExpensesController::class, 'destroy'])->name('leads.expenses.destroy');
+    // Quotes 
+        Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
+        Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
+        Route::delete('/quotes/{quote}', [QuoteController::class, 'destroy'])->name('quotes.destroy');
 });
 
 
@@ -113,6 +122,6 @@ Route::middleware(['auth:team'])->group(function () {
         Route::post('seller/create/lead', [SellerDashboardController::class, 'store'])->name('seller.store');
     // Actualziar Lead
         Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
-        // Actualizar estado (l,p,a,c,i)
+    // Actualizar estado (l,p,a,c,i)
         Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
 });
