@@ -50,7 +50,7 @@ class TeamController extends Controller
         // Enviar notificación con credenciales
         $user->notify(new UserCredentialsNotification($user->email, $password, $loginUrl));
     
-        return redirect()->route('teams.index')->with('success', 'Team member created successfully. Se ha enviado un correo con las credenciales.');
+        return redirect()->route('teams.index')->with('success', 'Team member created successfully. An email has been sent with the credentials.');
     }
     
     

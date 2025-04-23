@@ -128,6 +128,9 @@
             </div>
         </div>
 
+
+
+
     
     </div>
     {{-- Fin --}}
@@ -350,41 +353,52 @@
         </div>
 
 
-       <!-- Contributions Tab -->
+        <!-- Contributions Tab -->
         <div class="tab-pane fade show" id="contribution">
             <div class="card shadow-sm border-0">
                 <div class="card-body">
-                    <h4 class="mb-4">
-                        <i class="bi bi-receipt me-2"></i> Contribution
+                    <h4 class="mb-4 text-primary">
+                        <i class="bi bi-receipt me-2"></i> Financial Contributions
                     </h4>
 
                     <form method="POST" action="{{ route('leads.finanzas.update', $lead->id) }}">
                         @csrf
                         @method('PUT')
 
-                        <!-- Contract Value -->
-                        <div class="mb-4 row align-items-center">
-                            <label for="contractValue" class="col-md-4 col-form-label fw-bold">Contract Value</label>
-                            <div class="col-md-8">
-                                <input type="number" step="0.01" name="contract_value"
-                                    value="{{ old('contract_value', $lead->contract_value) }}"
-                                    class="form-control" required id="contractValue">
+                        {{-- Contract Value --}}
+                        <div class="row mb-4 align-items-center">
+                            <label for="contractValue" class="col-md-3 col-form-label fw-semibold text-md-end">Contract Value</label>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" step="0.01" name="contract_value"
+                                        value="{{ old('contract_value', $lead->contract_value) }}"
+                                        class="form-control" required id="contractValue">
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Contributions Table -->
+                        {{-- Contribution Table --}}
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Contributions</label>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-secondary mb-0">
+                                    <i class="bi bi-piggy-bank me-1"></i> Contributions
+                                </h6>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
+                                    <i class="bi bi-plus-circle me-1"></i> Add Contribution
+                                </button>
+                            </div>
+
                             <div class="table-responsive">
-                                <table class="table table-bordered text-center align-middle">
+                                <table class="table table-bordered table-hover align-middle text-center">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Amount</th>
-                                            <th>Method</th>
-                                            <th>Check #</th>
-                                            <th>Notes</th>
-                                            <th>Action</th>
+                                            <th><i class="bi bi-calendar-date"></i> Date</th>
+                                            <th><i class="bi bi-currency-dollar"></i> Amount</th>
+                                            <th><i class="bi bi-credit-card"></i> Method</th>
+                                            <th><i class="bi bi-hash"></i> Check #</th>
+                                            <th><i class="bi bi-card-text"></i> Notes</th>
+                                            <th><i class="bi bi-tools"></i></th>
                                         </tr>
                                     </thead>
                                     <tbody id="aportTable">
@@ -392,35 +406,36 @@
                                             <tr>
                                                 <td>
                                                     <input type="date" name="finanzas[{{ $index }}][date]"
-                                                        class="form-control @error("finanzas.$index.date") is-invalid @enderror"
-                                                        value="{{ old("finanzas.$index.date", $aporte['date']) }}">
+                                                        class="form-control" value="{{ old("finanzas.$index.date", $aporte['date']) }}">
                                                 </td>
                                                 <td>
-                                                    <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
-                                                        class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror"
-                                                        value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">$</span>
+                                                        <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
+                                                            class="form-control aporte-value"
+                                                            value="{{ old("finanzas.$index.amount", $aporte['amount']) }}" data-existing="1">
+                                                    </div>
                                                 </td>
                                                 <td>
-                                                    <select name="finanzas[{{ $index }}][method]"
-                                                        class="form-select method-select @error("finanzas.$index.method") is-invalid @enderror">
+                                                    <select name="finanzas[{{ $index }}][method]" class="form-select method-select">
                                                         <option value="">Select</option>
-                                                        <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
-                                                        <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
-                                                        <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
+                                                        <option value="Cash" {{ $aporte['method'] === 'Cash' ? 'selected' : '' }}>Cash</option>
+                                                        <option value="Check" {{ $aporte['method'] === 'Check' ? 'selected' : '' }}>Check</option>
+                                                        <option value="Transfer" {{ $aporte['method'] === 'Transfer' ? 'selected' : '' }}>Transfer</option>
                                                     </select>
                                                 </td>
                                                 <td>
                                                     <input type="text" name="finanzas[{{ $index }}][check_number]"
-                                                        class="form-control check-number-input @error("finanzas.$index.check_number") is-invalid @enderror"
-                                                        value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
+                                                        class="form-control check-number-input"
+                                                        value="{{ $aporte['check_number'] ?? '' }}">
                                                 </td>
                                                 <td>
-                                                    <textarea name="finanzas[{{ $index }}][notes]"
-                                                        class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror"
-                                                        placeholder="Add notes..." rows="1">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
+                                                    <textarea name="finanzas[{{ $index }}][notes]" rows="1"
+                                                            class="form-control form-control-sm"
+                                                            placeholder="Add notes...">{{ $aporte['notes'] }}</textarea>
                                                 </td>
                                                 <td>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row" title="Remove">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </td>
@@ -429,130 +444,131 @@
                                     </tbody>
                                 </table>
                             </div>
-
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
-                                <i class="bi bi-plus-circle"></i> Add Contribution
-                            </button>
                         </div>
 
-                        <!-- Balance -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Balance:</label>
-                            <div id="balanceDisplay" class="h5 text-success">$0.00</div>
+                        {{-- Balance Display --}}
+                        <div class="row mb-4">
+                            <label class="col-md-3 col-form-label fw-semibold text-md-end">Balance</label>
+                            <div class="col-md-6">
+                                <div id="balanceDisplay" class="h5 text-success mb-0">$0.00</div>
+                            </div>
                         </div>
 
-                        <!-- Submit -->
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-success px-4 mt-3">
+                        {{-- Submit --}}
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-success px-4">
                                 <i class="bi bi-save me-1"></i> Save Financials
                             </button>
                         </div>
+
                     </form>
                 </div>
             </div>
         </div>
 
-        
+
+                
         <!-- Expense -->
         <div class="tab-pane fade show" id="expenses">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h4 class="mb-4"><i class="bi bi-currency-dollar me-2"></i> Add Expense</h4>
 
-                    <form method="POST" action="{{ route('leads.expenses.update', $lead->id) }}">
-                        @csrf
-                    
-                        <div class="table-responsive">
-                            <table class="table table-bordered align-middle text-nowrap">
-                                <thead class="table-light text-center">
-                                    <tr>
-                                        <th style="min-width: 120px;">Date</th>
-                                        <th style="min-width: 180px;">Type</th>
-                                        <th style="min-width: 200px;">Amount</th>
-                                        <th style="min-width: 80px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="expensesTable">
-                                    @foreach($lead->expenses ?? [] as $index => $expense)
-                                        <tr>
-                                            <td>
-                                                <input type="date" name="expenses[{{ $index }}][expense_date]" 
-                                                       value="{{ $expense->expense_date->format('Y-m-d') }}" 
-                                                       class="form-control" required>
-                                            </td>
-                                            <td>
-                                                <select class="form-select expense-type" data-index="{{ $index }}">
-                                                    <option value="">Select Type</option>
-                                                    <option value="material" {{ $expense->material ? 'selected' : '' }}>Material</option>
-                                                    <option value="labor_cost" {{ $expense->labor_cost ? 'selected' : '' }}>Labor</option>
-                                                    <option value="commission_percentage" {{ $expense->commission_percentage ? 'selected' : '' }}>Commission</option>
-                                                    <option value="permit" {{ $expense->permit ? 'selected' : '' }}>Permit</option>
-                                                    <option value="supplement" {{ $expense->supplement ? 'selected' : '' }}>Supplement</option>
-                                                    <option value="other_expenses" {{ $expense->other_expenses ? 'selected' : '' }}>Other</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][material]" 
-                                                       value="{{ $expense->material }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->material ? '' : 'd-none' }}" 
-                                                       placeholder="Material ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][labor_cost]" 
-                                                       value="{{ $expense->labor_cost }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->labor_cost ? '' : 'd-none' }}" 
-                                                       placeholder="Labor ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][commission_percentage]" 
-                                                       value="{{ $expense->commission_percentage }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->commission_percentage ? '' : 'd-none' }}" 
-                                                       placeholder="Commission (%)">
-                                                
-                                                <input type="text" name="expenses[{{ $index }}][permit]" 
-                                                       value="{{ $expense->permit }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->permit ? '' : 'd-none' }}" 
-                                                       placeholder="Permit">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][supplement]" 
-                                                       value="{{ $expense->supplement }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->supplement ? '' : 'd-none' }}" 
-                                                       placeholder="Supplement ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][other_expenses]" 
-                                                       value="{{ $expense->other_expenses }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->other_expenses ? '' : 'd-none' }}" 
-                                                       placeholder="Other ($)">
-                                            </td>
-                                            <td class="text-center">
-                                                <meta name="csrf-token" content="{{ csrf_token() }}">
+            <form action="{{ route('lead-expenses.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
 
-                                                <button type="button"
-                                                    class="btn btn-outline-danger btn-sm remove-expense"
-                                                    data-id="{{ $expense->id }}"
-                                                    data-url="{{ route('leads.expenses.destroy', [$lead->id, $expense->id]) }}">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                                
-                                            
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="addExpenseRow">
-                                <i class="bi bi-plus-circle"></i> Add Expense
-                            </button>
-                    
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-save"></i> Save Expenses
-                            </button>
-                        </div>
-                    </form>
-                    
-                </div>
-            </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for ($i = 0; $i < 1; $i++)
+                        <tr>
+                            <td>
+                                <input type="date" name="expenses[{{ $i }}][expense_date]" class="form-control">
+                            </td>
+                            <td>
+                                <select name="expenses[{{ $i }}][type]" class="form-select expense-type">
+                                    <option value="">Select</option>
+                                    <option value="material">Material</option>
+                                    <option value="labor">Labor</option>
+                                    <option value="commission">Commission</option>
+                                    <option value="permit">Permit</option>
+                                    <option value="supplement">Supplement</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                
+                            </td>
+                            <td>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" name="expenses[{{ $i }}][amount]" class="form-control amount-field" placeholder="$">
+                                    <span class="input-group-text commission-label d-none">%</span>
+                                </div>
+                            </td>
+                            
+                        </tr>
+                        @endfor
+                    </tbody>
+                </table>
+
+                <button type="submit" class="btn btn-success">Save Expenses</button>
+            </form>
+
+            <hr>
+
+            <h5 class="mt-4">
+                <i class="bi bi-cash-coin me-1 text-primary"></i> Registered Expenses
+            </h5>
+            
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th><i class="bi bi-calendar-event"></i> Date</th>
+                        <th><i class="bi bi-tag"></i> Type</th>
+                        <th><i class="bi bi-currency-dollar"></i> Amount</th>
+                        <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($lead->expenses as $expense)
+                    <tr>
+                        <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                        <td>
+                            <span class="badge bg-secondary text-capitalize">
+                                {{ str_replace('_', ' ', $expense->type) }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($expense->type === 'commission')
+                                {{ number_format($expense->amount, 2) }}%
+                            @else
+                                ${{ number_format($expense->amount, 2) }}
+                            @endif
+                        </td>
+                        <td class="text-end">
+                            <form action="{{ route('lead-expenses.destroy', $expense->id) }}" method="POST" class="delete-expense-form d-inline">
+                                @csrf
+                                @method('DELETE')
+                                
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                                
+                                
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No expenses registered.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            
+
         </div>
 
 
@@ -614,11 +630,14 @@
                         <td>{{ number_format($quote->profit, 2) }}</td>
                         <td>{{ number_format($quote->quote_total, 2) }}</td>
                         <td>
-                            <form action="{{ route('quotes.destroy', $quote->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this quote?')">
+                            <form id="delete-quote-form-{{ $quote->id }}" action="{{ route('quotes.destroy', $quote->id) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $quote->id }})" title="Delete this quote">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
                             </form>
+                            
                         </td>
                     </tr>
                     @endforeach
@@ -756,287 +775,282 @@
 
 {{-- Script Contribution --}}
 <script>
-
-
-    const toggleCheckNumber = (select) => {
-        const tr = select.closest('tr');
-        const checkInput = tr.querySelector('.check-number-input');
-        if (checkInput) {
+    document.addEventListener('DOMContentLoaded', function () {
+    
+        const updateBalance = () => {
+            const contractValue = parseFloat(document.getElementById('contractValue')?.value) || 0;
+            let total = 0;
+    
+            document.querySelectorAll('.aporte-value').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+    
+            document.getElementById('balanceDisplay').textContent = `$${total.toFixed(2)}`;
+        };
+    
+        const toggleCheckNumber = (select) => {
+            const tr = select.closest('tr');
+            const checkInput = tr.querySelector('.check-number-input');
+            if (!checkInput) return;
+    
             if (select.value === 'Check') {
                 checkInput.removeAttribute('disabled');
             } else {
                 checkInput.value = '';
                 checkInput.setAttribute('disabled', true);
             }
-        }
-    };
-
-    document.addEventListener('DOMContentLoaded', function () {
-        updateBalance();
-
-        document.getElementById('contractValue').addEventListener('input', updateBalance);
-
-        document.querySelectorAll('.aporte-value').forEach(input => {
-            input.addEventListener('input', updateBalance);
-        });
-
-        document.querySelectorAll('.method-select').forEach(select => {
-            toggleCheckNumber(select);
-            select.addEventListener('change', () => toggleCheckNumber(select));
-        });
-
-        document.getElementById('addRow').addEventListener('click', function () {
+        };
+    
+        const bindEventsToRow = (row) => {
+            row.querySelector('.aporte-value')?.addEventListener('input', updateBalance);
+            const methodSelect = row.querySelector('.method-select');
+            if (methodSelect) {
+                toggleCheckNumber(methodSelect);
+                methodSelect.addEventListener('change', () => toggleCheckNumber(methodSelect));
+            }
+        };
+    
+        const addContributionRow = () => {
             const tableBody = document.querySelector('#aportTable');
             const rowIndex = tableBody.querySelectorAll('tr').length;
-
+    
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td><input type="date" name="finanzas[${rowIndex}][date]" class="form-control" required /></td>
-                <td><input type="number" step="0.01" name="finanzas[${rowIndex}][amount]" class="form-control aporte-value" required /></td>
                 <td>
-                    <select name="finanzas[${rowIndex}][method]" class="form-control method-select">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" step="0.01" name="finanzas[${rowIndex}][amount]" class="form-control aporte-value" required />
+                    </div>
+                </td>
+                <td>
+                    <select name="finanzas[${rowIndex}][method]" class="form-select method-select">
                         <option value="">Select</option>
                         <option value="Cash">Cash</option>
                         <option value="Check">Check</option>
                         <option value="Transfer">Transfer</option>
                     </select>
                 </td>
-                <td>
-                    <input type="text" name="finanzas[${rowIndex}][check_number]" class="form-control check-number-input" disabled />
-                </td>
+                <td><input type="text" name="finanzas[${rowIndex}][check_number]" class="form-control check-number-input" disabled /></td>
                 <td><input type="text" name="finanzas[${rowIndex}][notes]" class="form-control" /></td>
-                <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
-            `;
-
-            tableBody.appendChild(newRow);
-
-            newRow.querySelector('.aporte-value').addEventListener('input', updateBalance);
-            const methodSelect = newRow.querySelector('.method-select');
-            methodSelect.addEventListener('change', () => toggleCheckNumber(methodSelect));
-
-            updateBalance();
-        });
-
-        document.addEventListener('click', function (e) {
-            if (e.target.classList.contains('remove-row') || e.target.closest('.remove-row')) {
-                e.target.closest('tr').remove();
-                updateBalance();
-            }
-        });
-    });
-</script>
-
-
-
-
-
-
-
-{{-- Expenses --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        let rowIndex = document.querySelectorAll('#expensesTable tr').length;
-    
-        function toggleAmountFields(select) {
-            const row = select.closest('tr');
-            const index = select.dataset.index;
-            const selected = select.value;
-    
-            row.querySelectorAll('.amount-field').forEach(input => {
-                input.classList.add('d-none');
-            });
-    
-            const visibleInput = row.querySelector(`[name="expenses[${index}][${selected}]"]`);
-            if (visibleInput) {
-                visibleInput.classList.remove('d-none');
-            }
-        }
-    
-        function bindEventsToRow(row) {
-            const select = row.querySelector('.expense-type');
-            if (!select) return;
-    
-            select.addEventListener('change', function () {
-                toggleAmountFields(this);
-            });
-    
-            toggleAmountFields(select); // Inicializar
-        }
-    
-        document.querySelectorAll('#expensesTable tr').forEach(row => bindEventsToRow(row));
-    
-        document.getElementById('addExpenseRow').addEventListener('click', function () {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>
-                    <input type="date" name="expenses[${rowIndex}][expense_date]" class="form-control" required>
-                </td>
-                <td>
-                    <select class="form-select expense-type" data-index="${rowIndex}">
-                        <option value="">Select Type</option>
-                        <option value="material">Material</option>
-                        <option value="labor_cost">Labor</option>
-                        <option value="commission_percentage">Commission</option>
-                        <option value="permit">Permit</option>
-                        <option value="supplement">Supplement</option>
-                        <option value="other_expenses">Other</option>
-                    </select>
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="expenses[${rowIndex}][material]" class="form-control amount-field d-none" placeholder="Material ($)">
-                    <input type="number" step="0.01" name="expenses[${rowIndex}][labor_cost]" class="form-control amount-field d-none" placeholder="Labor ($)">
-                    <input type="number" step="0.01" name="expenses[${rowIndex}][commission_percentage]" class="form-control amount-field d-none" placeholder="Commission (%)">
-                    <input type="text" name="expenses[${rowIndex}][permit]" class="form-control amount-field d-none" placeholder="Permit">
-                    <input type="number" step="0.01" name="expenses[${rowIndex}][supplement]" class="form-control amount-field d-none" placeholder="Supplement ($)">
-                    <input type="number" step="0.01" name="expenses[${rowIndex}][other_expenses]" class="form-control amount-field d-none" placeholder="Other ($)">
-                </td>
                 <td class="text-center">
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-row" title="Remove">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             `;
     
-            document.getElementById('expensesTable').appendChild(newRow);
+            tableBody.appendChild(newRow);
             bindEventsToRow(newRow);
-            rowIndex++;
-        });
+            updateBalance();
+        };
+    
+        // Inicialización
+        updateBalance();
+        document.getElementById('contractValue')?.addEventListener('input', updateBalance);
+    
+        document.querySelectorAll('#aportTable tr').forEach(row => bindEventsToRow(row));
+    
+        document.getElementById('addRow')?.addEventListener('click', addContributionRow);
     
         document.addEventListener('click', function (e) {
             if (e.target.closest('.remove-row')) {
-                e.target.closest('tr').remove();
+                e.target.closest('tr')?.remove();
+                updateBalance();
+            }
+        });
+    
+    });
+
+ 
+    document.addEventListener('DOMContentLoaded', function () {
+        const tableBody = document.getElementById('aportTable');
+
+        // Delegación de evento para remover filas
+        tableBody.addEventListener('click', function (e) {
+            if (e.target.closest('.remove-row')) {
+                const row = e.target.closest('tr');
+                row.remove();
+                updateBalance(); // Si estás usando el balance, actualízalo
             }
         });
     });
-</script>
 
-{{-- Eliminar Expenses --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.remove-expense').forEach(function (button) {
-            button.addEventListener('click', function () {
-                const expenseId = this.getAttribute('data-id');
-                const deleteUrl = this.getAttribute('data-url');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This expense will be permanently deleted.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch(deleteUrl, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                button.closest('tr').remove();
-                                Swal.fire('Deleted!', data.success, 'success');
-                            } else {
-                                Swal.fire('Error', data.error || 'Could not delete expense.', 'error');
-                            }
-                        })
-                        .catch(() => {
-                            Swal.fire('Error', 'An error occurred while deleting.', 'error');
-                        });
-                    }
-                });
-            });
-        });
-    });
 
 </script>
     
+
+{{-- Expenses --}}
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Toggle amount field visibility
+            function toggleAmountField() {
+                const select = document.querySelector('select[name="expenses[0][type]"]');
+                const input = document.querySelector('input[name="expenses[0][amount]"]');
+                const percentLabel = document.querySelector('.commission-label');
+                if (!select || !input) return;
+
+                if (select.value === '') {
+                    input.classList.add('d-none');
+                    input.value = '';
+                    percentLabel?.classList.add('d-none');
+                } else {
+                    input.classList.remove('d-none');
+                    if (select.value === 'commission') {
+                        percentLabel?.classList.remove('d-none');
+                        input.placeholder = "%";
+                    } else {
+                        percentLabel?.classList.add('d-none');
+                        input.placeholder = "$";
+                    }
+                }
+            }
+
+            // Bind toggle to each selector
+            document.querySelectorAll('.expense-type').forEach(function (select) {
+                select.addEventListener('change', function () {
+                    toggleAmountField(this);
+                });
+                toggleAmountField(select); // initialize
+            });
+
+            // SweetAlert delete confirmation
+            document.querySelectorAll('.delete-expense-form').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    Swal.fire({
+                        title: 'Delete expense?',
+                        text: 'This action cannot be undone.',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, delete it!',
+                        cancelButtonText: 'Cancel',
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#6c757d'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            fetch(form.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json'
+                                },
+                                body: new URLSearchParams(new FormData(form))
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    form.closest('tr').remove();
+                                    Swal.fire('Deleted!', 'Expense has been removed.', 'success');
+                                } else {
+                                    Swal.fire('Error!', 'Could not delete expense.', 'error');
+                                }
+                            })
+                            .catch(() => {
+                                Swal.fire('Error!', 'Network error.', 'error');
+                            });
+                        }
+                    });
+                });
+            });
+
+        });
+</script>
+
+{{-- Quote --}}
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById(`delete-quote-form-${id}`).submit();
+            }
+        });
+    }
+</script>
+
+
+
+
 
 
 
 {{-- Total expenses / paid / nex profit --}}
 <script>
-    let expensesChart = null;
-    
-    const renderExpensesChart = (expenses, profit) => {
-        const ctx = document.getElementById('expensesOnlyChart')?.getContext('2d');
-        if (!ctx) return;
-    
-        if (expensesChart) expensesChart.destroy();
-    
-        expensesChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Expenses', 'Net Profit'],
-                datasets: [{
-                    data: [expenses, profit],
-                    backgroundColor: ['#dc3545', '#198754']
-                }]
-            },
-            options: {
-                cutout: '70%',
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'Expenses vs Profit' }
-                }
-            }
-        });
-    };
-    
-    const updateExpenseSummary = () => {
+   
+        const updateExpenseSummary = () => {
         const contractValue = parseFloat(document.getElementById('contractValue')?.value) || 0;
-        let totalExpenses = 0;
-    
-        document.querySelectorAll('#expensesTable tr').forEach(row => {
+        const baseExpenses = parseFloat('{{ $lead->total_expenses }}') || 0;
+        const basePaid = parseFloat('{{ $lead->total_paid }}') || 0;
+
+        let dynamicExpenses = 0;
+
+        document.querySelectorAll('form[action*="lead-expenses"] tbody tr').forEach(row => {
             const type = row.querySelector('.expense-type')?.value;
             if (!type) return;
-    
-            const input = row.querySelector(`[name*="[${type}]"]`);
+
+            const input = row.querySelector('input[name*="[amount]"]');
             if (!input || input.classList.contains('d-none')) return;
-    
+
             const val = parseFloat(input.value) || 0;
-            if (type === 'commission_percentage') {
-                totalExpenses += contractValue * (val / 100);
+            if (type === 'commission') {
+                dynamicExpenses += contractValue * (val / 100);
             } else {
-                totalExpenses += val;
+                dynamicExpenses += val;
             }
         });
-    
-        let totalPaid = 0;
-        document.querySelectorAll('.aporte-value').forEach(input => {
-            totalPaid += parseFloat(input.value) || 0;
+
+        let dynamicPaid = 0;
+        document.querySelectorAll('.aporte-value:not([data-existing="1"])').forEach(input => {
+            dynamicPaid += parseFloat(input.value) || 0;
         });
-    
+
+
+        const totalExpenses = baseExpenses + dynamicExpenses;
+        const totalPaid = basePaid + dynamicPaid;
         const netProfit = totalPaid - totalExpenses;
-    
+
         document.getElementById('totalExpensesDisplayBelow').textContent = `$${totalExpenses.toFixed(2)}`;
         document.getElementById('totalPaidDisplayBelow').textContent = `$${totalPaid.toFixed(2)}`;
-    
+
         const netEl = document.getElementById('netProfitDisplayBelow');
         netEl.textContent = `$${netProfit.toFixed(2)}`;
         netEl.className = 'h5 fw-bold ' + (netProfit >= 0 ? 'text-success' : 'text-danger');
-    
+
         renderExpensesChart(totalExpenses, netProfit);
     };
-    
-    document.addEventListener('input', function (e) {
-        if (
-            e.target.closest('#expensesTable') ||
-            e.target.classList.contains('aporte-value') ||
-            e.target.id === 'contractValue'
-        ) {
-            updateExpenseSummary();
-        }
-    });
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        updateExpenseSummary(); // al cargar
-    });
+
+        
+        document.addEventListener('input', function (e) {
+            if (
+                e.target.closest('form[action*="lead-expenses"]') ||
+                e.target.classList.contains('aporte-value') ||
+                e.target.id === 'contractValue'
+            ) {
+                updateExpenseSummary();
+            }
+        });
+
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            updateExpenseSummary(); // al cargar
+        });
 </script>
+
+
+
+
+
 
 <!-- Script Eliminar documento-->
 <script>

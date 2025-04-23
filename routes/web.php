@@ -86,9 +86,11 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
         Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');
         Route::delete('/leads/{lead}/finanzas/{finanza}', [LeadFinanzaController::class, 'destroy'])->name('lead.finanzas.destroy');
-    // Expenses Panel 
-        Route::post('/leads/{lead}/expenses', [LeadExpensesController::class, 'update'])->name('leads.expenses.update');
-        Route::delete('/leads/{lead}/expenses/{expense}', [LeadExpensesController::class, 'destroy'])->name('leads.expenses.destroy');
+
+        Route::post('/lead-expenses', [LeadExpensesController::class, 'store'])->name('lead-expenses.store');
+        Route::delete('/lead-expenses/{id}', [LeadExpensesController::class, 'destroy'])->name('lead-expenses.destroy');
+
+        
     // Quotes 
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');

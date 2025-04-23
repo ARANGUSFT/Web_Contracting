@@ -64,8 +64,7 @@
     <div class="container">
         <div class="auth-container mx-auto">
             <div class="auth-header">
-                <img src="{{ asset('assets/img/logo.png') }}" alt="Logo" class="logo-img">
-                <h4 class="mb-0">{{ config('app.name', 'Laravel') }}</h4>
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img" height="100px" width="300px">
             </div>
             <div class="auth-body">
                 {{ $slot }}

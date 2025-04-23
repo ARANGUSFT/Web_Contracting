@@ -165,8 +165,15 @@ class LeadController extends Controller
     public function show($id) 
     {
         // Obtener el Lead con sus relaciones
-        $lead = Lead::with(['messages.user', 'messages.team', 'images', 'files'])->findOrFail($id);
-    
+        $lead = Lead::with([
+            'messages.user',
+            'messages.team',
+            'images',
+            'files',
+            'expenses',     // ✅ gastos
+            'finanzas'      // ✅ pagos
+        ])->findOrFail($id);
+            
         // Obtener mensajes del chat
         $messages = $lead->messages->sortBy('created_at');
     

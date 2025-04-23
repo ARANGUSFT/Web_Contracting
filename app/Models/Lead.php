@@ -76,24 +76,40 @@ class Lead extends Model
     }
 
 
-        public function user()
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
     public function expenses()
     {
-        return $this->hasMany(lead_expenses::class);
+        return $this->hasMany(LeadExpenses::class);
     }
+
+
 
     public function quotes()
     {
         return $this->hasMany(Quote::class);
     }
 
-    
+    // Suma todos los gastos registrados
+public function getTotalExpensesAttribute()
+{
+    return $this->expenses->sum('amount');
+}
 
+// Suma todos los pagos realizados
+public function getTotalPaidAttribute()
+{
+    return $this->finanzas->sum('amount');
+}
 
+// Calcula ganancia neta
+public function getNetProfitAttribute()
+{
+    return $this->total_paid - $this->total_expenses;
+}
 
 
 }
