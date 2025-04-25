@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Team\ProfileTeamController;
 use App\Http\Controllers\Auth\TeamLoginController;
 
 use Illuminate\Support\Facades\Route;
@@ -8,12 +9,19 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TeamController;
 
 use App\Http\Controllers\Seller\SellerDashboardController; 
+use App\Http\Controllers\Guest\GuestDashboardController;
+use App\Http\Controllers\Manager\ManagerDashboardController;
+use App\Http\Controllers\Crew\CrewDashboardController;
+use App\Http\Controllers\ProjectManager\ProjectDashboardController;
+use App\Http\Controllers\CompanyAdmin\CompanyAdminDashboardController;
+
 use App\Http\Controllers\LeadMessageController;
 use App\Http\Controllers\LeadImageController;
 use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +54,7 @@ Route::get('/leads/{lead_id}/chat', function ($lead_id) {
 
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")
 Route::middleware(['auth:web'])->group(function () {
-        // Perfil de usuario (admin)
+    // Perfil de usuario (admin)
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/company-documents/{index}', [ProfileController::class, 'deleteCompanyDocument'])->name('company-documents.delete');
@@ -86,11 +94,8 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
         Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');
         Route::delete('/leads/{lead}/finanzas/{finanza}', [LeadFinanzaController::class, 'destroy'])->name('lead.finanzas.destroy');
-
         Route::post('/lead-expenses', [LeadExpensesController::class, 'store'])->name('lead-expenses.store');
         Route::delete('/lead-expenses/{id}', [LeadExpensesController::class, 'destroy'])->name('lead-expenses.destroy');
-
-        
     // Quotes 
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
@@ -98,7 +103,7 @@ Route::middleware(['auth:web,team'])->group(function () {
 });
 
 
-
+  
 
     // 🔹 Rutas de Autenticación para "users" (Administradores)
     require __DIR__.'/auth.php';
@@ -111,8 +116,11 @@ Route::middleware(['auth:web,team'])->group(function () {
 
 
 
+
+
+
 // 🔹 Panel de Vendedores (Solo para usuarios autenticados en "team")
-Route::middleware(['auth:team'])->group(function () {
+Route::prefix('seller')->middleware('auth:team')->group(function () {
     // Perfil Seller
         Route::get('/seller/dashboard', [SellerDashboardController::class, 'index'])->name('seller.dashboard');
         Route::get('/seller/leads/{id}', [SellerDashboardController::class, 'show'])->name('seller.leads.show');
@@ -126,4 +134,61 @@ Route::middleware(['auth:team'])->group(function () {
         Route::match(['put', 'post'], '/seller/leads/{id}', [SellerDashboardController::class, 'update'])->name('seller.leads.update');
     // Actualizar estado (l,p,a,c,i)
         Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
+
+
+        // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('seller.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('seller.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('seller.profile.password.update');
+});
+
+
+// 🔹 Panel de Invitados (guest)
+Route::prefix('guest')->middleware(['auth:team', 'team.active'])->group(function () {
+    Route::get('/dashboard', [GuestDashboardController::class, 'index'])->name('guest.dashboard');
+
+    // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('guest.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('guest.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('guest.profile.password.update');
+});
+
+// 🔹 Panel de Manager
+Route::prefix('manager')->middleware(['auth:team', 'team.active'])->group(function () {
+    Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('manager.dashboard');
+
+    // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('manager.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('manager.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('manager.profile.password.update');
+});
+
+// 🔹 Panel de Crew
+Route::prefix('crew')->middleware(['auth:team', 'team.active'])->group(function () {
+    Route::get('/dashboard', [CrewDashboardController::class, 'index'])->name('crew.dashboard');
+
+    // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('crew.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('crew.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('crew.profile.password.update');
+});
+
+// 🔹 Panel de Project Manager
+Route::prefix('project')->middleware(['auth:team', 'team.active'])->group(function () {
+    Route::get('/dashboard', [ProjectDashboardController::class, 'index'])->name('project.dashboard');
+
+    // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('project.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('project.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('project.profile.password.update');
+});
+
+// 🔹 Panel de Company Admin
+Route::prefix('admin')->middleware(['auth:team', 'team.active'])->group(function () {
+    Route::get('/dashboard', [CompanyAdminDashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Perfil
+    Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('admin.profile.edit');
+    Route::put('/profile', [ProfileTeamController::class, 'update'])->name('admin.profile.update');
+    Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('admin.profile.password.update');
 });

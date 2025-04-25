@@ -12,6 +12,19 @@
             <div class="alert alert-danger text-center">{{ session('error') }}</div>
         @endif
 
+        @if ($errors->has('email'))
+            <div class="alert alert-danger">
+                {{ $errors->first('email') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
+
         <form method="POST" action="{{ route('team.login') }}" onsubmit="return validateForm()">
             @csrf
             <div class="mb-3">

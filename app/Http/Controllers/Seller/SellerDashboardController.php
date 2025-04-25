@@ -38,7 +38,7 @@ class SellerDashboardController extends Controller
             5 => ['name' => 'Invoiced', 'color' => 'bg-danger'] // Red
         ];
     
-        return view('seller.dashboard', compact('leads', 'statusMap', 'statusCounts'));
+        return view('manageTeam.seller.dashboard', compact('leads', 'statusMap', 'statusCounts'));
     }
     
 
@@ -47,7 +47,7 @@ class SellerDashboardController extends Controller
     // Renderiza el form
     public function create()
     {
-        return view('seller.createLeads');
+        return view('manageTeam.seller.createLeads');
     }
     public function store(Request $request)
     {
@@ -84,7 +84,7 @@ class SellerDashboardController extends Controller
     
         $lead->save();
     
-        return redirect()->route('seller.dashboard')->with('success', 'Lead creado con éxito y asignado correctamente.');
+        return redirect()->route('manageTeam.seller.dashboard')->with('success', 'Lead creado con éxito y asignado correctamente.');
     }
     
 
@@ -115,7 +115,7 @@ class SellerDashboardController extends Controller
             5 => ['name' => 'Invoiced', 'color' => 'bg-danger']
         ];
     
-        return view('seller.lead_details', compact('lead', 'messages', 'images', 'statusMap'));
+        return view('manageTeam.seller.lead_details', compact('lead', 'messages', 'images', 'statusMap'));
     }
 
     
@@ -149,7 +149,7 @@ class SellerDashboardController extends Controller
         $user = Auth::guard('team')->user();
         $lead = Lead::where('id', $id)->where('team_id', $user->id)->firstOrFail();
 
-        return view('seller.lead_edit', compact('lead'));
+        return view('manageTeam.seller.lead_edit', compact('lead'));
     }
     // Funcionalidad de actualizar
     public function update(Request $request, $id)
@@ -170,7 +170,7 @@ class SellerDashboardController extends Controller
         // Actualizar datos
         $lead->update($request->all());
 
-        return redirect()->route('seller.leads.show', $lead->id)->with('success', 'Lead updated successfully.');
+        return redirect()->route('manageTeam.seller.leads.show', $lead->id)->with('success', 'Lead updated successfully.');
     }
 
 

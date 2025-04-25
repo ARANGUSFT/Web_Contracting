@@ -21,10 +21,29 @@ class TeamLoginController extends Controller
         ]);
 
         if (Auth::guard('team')->attempt($credentials)) {
-            return redirect()->route('seller.dashboard'); // Redirigir al panel de vendedores
-        }
+            $user = Auth::guard('team')->user();
 
-        return back()->with('error', 'Credenciales incorrectas.');
+            // ✅ Bloquear si está inactivo
+            if (!$user->is_active) {
+                Auth::guard('team')->logout();
+                return redirect()->route('team.login')->withErrors([
+                    'email' => 'Your account is inactive.',
+                ]);
+            }
+        
+            return match ($user->role) {
+                'sales' => redirect()->route('seller.dashboard'),
+                'guest' => redirect()->route('guest.dashboard'),
+                'manager' => redirect()->route('manager.dashboard'), // si existe
+                'company_admin' => redirect()->route('admin.dashboard'), // si existe
+                'project_manager' => redirect()->route('project.dashboard'), // si existe
+                'crew' => redirect()->route('crew.dashboard'), // si existe
+                default => abort(403, 'Role not authorized.'),
+            };
+        }
+        
+
+        return back()->with('error', 'Wrong credentials.');
     }
 
     public function logout()

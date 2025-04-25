@@ -11,12 +11,9 @@ class TeamController extends Controller
 {
     public function index()
     {
-        // Mostrar solo los vendedores creados por el admin logueado
-        $teams = Team::where('user_id', auth()->id())->get();
-    
+        $teams = Team::all();
         return view('manageTeam.main', compact('teams'));
     }
-    
 
     public function create()
     {
@@ -50,7 +47,7 @@ class TeamController extends Controller
         // Enviar notificación con credenciales
         $user->notify(new UserCredentialsNotification($user->email, $password, $loginUrl));
     
-        return redirect()->route('teams.index')->with('success', 'Team member created successfully. An email has been sent with the credentials.');
+        return redirect()->route('teams.index')->with('success', 'Team member created successfully. Se ha enviado un correo con las credenciales.');
     }
     
     

@@ -27,8 +27,10 @@ class LeadController extends Controller
 
         $leads = $query->paginate(10)->appends(['seller_id' => $sellerId]);
 
-        $teams = Team::where('user_id', auth()->id())->get();
-
+        $teams = Team::where('user_id', auth()->id())->get()->filter(function ($team) {
+            return $team->role === 'sales';
+        });
+        
         // Contadores por estado (solo para este admin)
         $statusCounts = [
             'leads' => Lead::where('estado', 1)->where('user_id', auth()->id())->count(),
