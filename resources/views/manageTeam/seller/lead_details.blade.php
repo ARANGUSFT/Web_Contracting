@@ -381,109 +381,109 @@
         </div>
 
         
-        <!-- Expense -->
-        <div class="tab-pane fade show" id="expenses">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h4 class="mb-4"><i class="bi bi-currency-dollar me-2"></i> Add Expense</h4>
+      <!-- Expense -->
+       <div class="tab-pane fade show" id="expenses">
 
-                    <form method="POST" action="{{ route('leads.expenses.update', $lead->id) }}">
-                        @csrf
-                    
-                        <div class="table-responsive">
-                            <table class="table table-bordered align-middle text-nowrap">
-                                <thead class="table-light text-center">
-                                    <tr>
-                                        <th style="min-width: 120px;">Date</th>
-                                        <th style="min-width: 180px;">Type</th>
-                                        <th style="min-width: 200px;">Amount</th>
-                                        <th style="min-width: 80px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="expensesTable">
-                                    @foreach($lead->expenses ?? [] as $index => $expense)
-                                        <tr>
-                                            <td>
-                                                <input type="date" name="expenses[{{ $index }}][expense_date]" 
-                                                       value="{{ $expense->expense_date->format('Y-m-d') }}" 
-                                                       class="form-control" required>
-                                            </td>
-                                            <td>
-                                                <select class="form-select expense-type" data-index="{{ $index }}">
-                                                    <option value="">Select Type</option>
-                                                    <option value="material" {{ $expense->material ? 'selected' : '' }}>Material</option>
-                                                    <option value="labor_cost" {{ $expense->labor_cost ? 'selected' : '' }}>Labor</option>
-                                                    <option value="commission_percentage" {{ $expense->commission_percentage ? 'selected' : '' }}>Commission</option>
-                                                    <option value="permit" {{ $expense->permit ? 'selected' : '' }}>Permit</option>
-                                                    <option value="supplement" {{ $expense->supplement ? 'selected' : '' }}>Supplement</option>
-                                                    <option value="other_expenses" {{ $expense->other_expenses ? 'selected' : '' }}>Other</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][material]" 
-                                                       value="{{ $expense->material }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->material ? '' : 'd-none' }}" 
-                                                       placeholder="Material ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][labor_cost]" 
-                                                       value="{{ $expense->labor_cost }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->labor_cost ? '' : 'd-none' }}" 
-                                                       placeholder="Labor ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][commission_percentage]" 
-                                                       value="{{ $expense->commission_percentage }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->commission_percentage ? '' : 'd-none' }}" 
-                                                       placeholder="Commission (%)">
-                                                
-                                                <input type="text" name="expenses[{{ $index }}][permit]" 
-                                                       value="{{ $expense->permit }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->permit ? '' : 'd-none' }}" 
-                                                       placeholder="Permit">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][supplement]" 
-                                                       value="{{ $expense->supplement }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->supplement ? '' : 'd-none' }}" 
-                                                       placeholder="Supplement ($)">
-                                                
-                                                <input type="number" step="0.01" name="expenses[{{ $index }}][other_expenses]" 
-                                                       value="{{ $expense->other_expenses }}" 
-                                                       class="form-control amount-field mt-2 {{ $expense->other_expenses ? '' : 'd-none' }}" 
-                                                       placeholder="Other ($)">
-                                            </td>
-                                            <td class="text-center">
-                                                <meta name="csrf-token" content="{{ csrf_token() }}">
+        <form action="{{ route('lead-expenses.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="lead_id" value="{{ $lead->id }}">
 
-                                                <button type="button"
-                                                    class="btn btn-outline-danger btn-sm remove-expense"
-                                                    data-id="{{ $expense->id }}"
-                                                    data-url="{{ route('leads.expenses.destroy', [$lead->id, $expense->id]) }}">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                                
-                                            
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <button type="button" class="btn btn-outline-primary btn-sm" id="addExpenseRow">
-                                <i class="bi bi-plus-circle"></i> Add Expense
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for ($i = 0; $i < 1; $i++)
+                    <tr>
+                        <td>
+                            <input type="date" name="expenses[{{ $i }}][expense_date]" class="form-control">
+                        </td>
+                        <td>
+                            <select name="expenses[{{ $i }}][type]" class="form-select expense-type">
+                                <option value="">Select</option>
+                                <option value="material">Material</option>
+                                <option value="labor">Labor</option>
+                                <option value="commission">Commission</option>
+                                <option value="permit">Permit</option>
+                                <option value="supplement">Supplement</option>
+                                <option value="other">Other</option>
+                            </select>
+                            
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="expenses[{{ $i }}][amount]" class="form-control amount-field" placeholder="$">
+                                <span class="input-group-text commission-label d-none">%</span>
+                            </div>
+                        </td>
+                        
+                    </tr>
+                    @endfor
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-success">Save Expenses</button>
+        </form>
+
+        <hr>
+
+        <h5 class="mt-4">
+            <i class="bi bi-cash-coin me-1 text-primary"></i> Registered Expenses
+        </h5>
+        
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th><i class="bi bi-calendar-event"></i> Date</th>
+                    <th><i class="bi bi-tag"></i> Type</th>
+                    <th><i class="bi bi-currency-dollar"></i> Amount</th>
+                    <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($lead->expenses as $expense)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                    <td>
+                        <span class="badge bg-secondary text-capitalize">
+                            {{ str_replace('_', ' ', $expense->type) }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($expense->type === 'commission')
+                            {{ number_format($expense->amount, 2) }}%
+                        @else
+                            ${{ number_format($expense->amount, 2) }}
+                        @endif
+                    </td>
+                    <td class="text-end">
+                        <form action="{{ route('lead-expenses.destroy', $expense->id) }}" method="POST" class="delete-expense-form d-inline">
+                            @csrf
+                            @method('DELETE')
+                            
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash3"></i>
                             </button>
-                    
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-save"></i> Save Expenses
-                            </button>
-                        </div>
-                    </form>
-                    
-                </div>
-            </div>
-        </div>
+                            
+                            
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No expenses registered.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+        
 
-
+       </div>
+ 
 
         <!-- Quote -->
         <div class="tab-pane fade show" id="quote">
@@ -543,11 +543,14 @@
                         <td>{{ number_format($quote->profit, 2) }}</td>
                         <td>{{ number_format($quote->quote_total, 2) }}</td>
                         <td>
-                            <form action="{{ route('quotes.destroy', $quote->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this quote?')">
+                            <form id="delete-quote-form-{{ $quote->id }}" action="{{ route('quotes.destroy', $quote->id) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $quote->id }})" title="Delete this quote">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
                             </form>
+                            
                         </td>
                     </tr>
                     @endforeach
@@ -555,7 +558,6 @@
             </table>
 
         </div>
-
 
 
     </div>

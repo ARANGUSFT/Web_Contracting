@@ -14,11 +14,31 @@
         <div class="collapse navbar-collapse" id="navbarMenu">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 @if(Auth::guard('web')->check()) 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('leads.index') }}">
-                            <i class="bi bi-kanban"></i> Project MG
-                        </a>
-                    </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="projectDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-kanban"></i> Project MG
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="projectDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('jobs.create') }}">
+                                <i class="bi bi-plus-circle"></i> Submit New Job
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ route('emergency.form') }}">
+                                <i class="bi bi-exclamation-triangle"></i> Emergency
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a class="dropdown-item text-primary fw-bold" href="#">
+                                <i class="bi bi-calendar-event"></i> Calendar
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('leads.index') }}">
                             <i class="bi bi-building"></i> CRM
@@ -108,14 +128,14 @@
                             (Auth::guard('team')->user()->role === 'crew' ? route('crew.profile.edit') :
                             (Auth::guard('team')->user()->role === 'project_manager' ? route('project.profile.edit') :
                             (Auth::guard('team')->user()->role === 'company_admin' ? route('admin.profile.edit') : '#')))))) }}">
-                            👤 Perfil
+                             - Profile
                         </a>
                     </li>
                     
                     <li>
                         <form method="POST" action="{{ Auth::guard('web')->check() ? route('logout') : route('team.logout') }}">
                             @csrf
-                            <button type="submit" class="dropdown-item text-danger">🚪 Cerrar Sesión</button>
+                            <button type="submit" class="dropdown-item text-danger">- Log Out</button>
                         </form>
                     </li>
                 </ul>

@@ -29,7 +29,7 @@ class LeadImageController extends Controller
             $path = $request->file('image')->store('lead_images', 'public');
 
             if (!$path) {
-                throw new \Exception("Error al guardar la imagen en almacenamiento.");
+                throw new \Exception("Error saving image to storage.");
             }
 
             $userId = auth('web')->check() ? auth('web')->id() : null;
@@ -46,19 +46,19 @@ class LeadImageController extends Controller
                 'image_path' => $path,
             ]);
 
-            Log::info("Imagen subida correctamente: " . $path);
+            Log::info("Image uploaded correctly: " . $path);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Imagen subida correctamente.',
+                'message' => 'Image uploaded correctly.',
                 'image' => $image
             ]);
         } catch (\Exception $e) {
-            Log::error("Error al subir la imagen: " . $e->getMessage());
+            Log::error("Error uploading the image: " . $e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'error' => 'Error al subir la imagen: ' . $e->getMessage()
+                'error' => 'Error uploading the image: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -76,16 +76,16 @@ class LeadImageController extends Controller
                 Storage::disk('public')->delete($image->image_path);
                 Log::info("Imagen eliminada del disco: {$image->image_path}");
             } else {
-                Log::warning("Imagen no encontrada en disco: {$image->image_path}");
+                Log::warning("Image not found: {$image->image_path}");
             }
 
             $image->delete();
 
-            return redirect()->back()->with('success', 'Imagen eliminada correctamente.');
+            return redirect()->back()->with('success', 'Image removed successfully.');
         } catch (\Exception $e) {
-            Log::error("Error al eliminar imagen: " . $e->getMessage());
+            Log::error("Error while deleting image: " . $e->getMessage());
 
-            return redirect()->back()->with('error', 'Error al eliminar la imagen: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error while deleting image: ' . $e->getMessage());
         }
     }
 

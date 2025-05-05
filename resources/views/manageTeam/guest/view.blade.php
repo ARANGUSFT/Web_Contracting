@@ -37,7 +37,7 @@
     <div class="card shadow-lg p-4">
         <div class="d-flex justify-content-between align-items-center">
 
-            <a href="{{ route('leads.index') }}" class="btn btn-secondary">
+            <a href="{{ route('guest.dashboard') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
 
@@ -75,10 +75,10 @@
         
 
 
-        <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST" class="mb-3">
+        <form id="statusForm" action="{{ route('manager.assignstatus', $lead->id) }}" method="POST" class="mb-3">
             @csrf
             <input type="hidden" name="status" id="selectedStatus">
-
+        
             <label class="form-label fw-semibold text-muted">📌 Status:</label>
             <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
                 {{-- Botón Retroceder --}}
@@ -87,14 +87,14 @@
                         &#8592; Back
                     </button>
                 @endif
-
+        
                 {{-- Estados en fila --}}
                 @foreach ($statusList as $key => $status)
                     <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}">
                         {{ $status['label'] }}
                     </div>
                 @endforeach
-
+        
                 {{-- Botón Avanzar --}}
                 @if ($currentIndex < count($statusList) - 1)
                     <button type="button" class="btn btn-outline-primary" onclick="changeStatus({{ $statusKeys[$currentIndex + 1] }})">
@@ -150,15 +150,7 @@
         <li class="nav-item">
             <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#contribution">Contribution</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#expenses">Expenses</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-bs-toggle="tab" href="#quote">Quote</a>
-        </li>
+ 
     </ul>
 
 
@@ -353,298 +345,7 @@
         </div>
 
 
-        <!-- Contributions Tab -->
-        <div class="tab-pane fade show" id="contribution">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h4 class="mb-4 text-primary">
-                        <i class="bi bi-receipt me-2"></i> Financial Contributions
-                    </h4>
-
-                    <form method="POST" action="{{ route('leads.finanzas.update', $lead->id) }}">
-                        @csrf
-                        @method('PUT')
-
-                        {{-- Contract Value --}}
-                        <div class="row mb-4 align-items-center">
-                            <label for="contractValue" class="col-md-3 col-form-label fw-semibold text-md-end">Contract Value</label>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" step="0.01" name="contract_value"
-                                        value="{{ old('contract_value', $lead->contract_value) }}"
-                                        class="form-control" required id="contractValue">
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Contribution Table --}}
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="fw-bold text-secondary mb-0">
-                                    <i class="bi bi-piggy-bank me-1"></i> Contributions
-                                </h6>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
-                                    <i class="bi bi-plus-circle me-1"></i> Add Contribution
-                                </button>
-                            </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle text-center">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th><i class="bi bi-calendar-date"></i> Date</th>
-                                            <th><i class="bi bi-currency-dollar"></i> Amount</th>
-                                            <th><i class="bi bi-credit-card"></i> Method</th>
-                                            <th><i class="bi bi-hash"></i> Check #</th>
-                                            <th><i class="bi bi-card-text"></i> Notes</th>
-                                            <th><i class="bi bi-tools"></i></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="aportTable">
-                                        @foreach($lead->finanzas ?? [] as $index => $aporte)
-                                            <tr>
-                                                <td>
-                                                    <input type="date" name="finanzas[{{ $index }}][date]"
-                                                        class="form-control" value="{{ old("finanzas.$index.date", $aporte['date']) }}">
-                                                </td>
-                                                <td>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text">$</span>
-                                                        <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
-                                                            class="form-control aporte-value"
-                                                            value="{{ old("finanzas.$index.amount", $aporte['amount']) }}" data-existing="1">
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <select name="finanzas[{{ $index }}][method]" class="form-select method-select">
-                                                        <option value="">Select</option>
-                                                        <option value="Cash" {{ $aporte['method'] === 'Cash' ? 'selected' : '' }}>Cash</option>
-                                                        <option value="Check" {{ $aporte['method'] === 'Check' ? 'selected' : '' }}>Check</option>
-                                                        <option value="Transfer" {{ $aporte['method'] === 'Transfer' ? 'selected' : '' }}>Transfer</option>
-                                                    </select>
-                                                </td>
-                                                <td>
-                                                    <input type="text" name="finanzas[{{ $index }}][check_number]"
-                                                        class="form-control check-number-input"
-                                                        value="{{ $aporte['check_number'] ?? '' }}">
-                                                </td>
-                                                <td>
-                                                    <textarea name="finanzas[{{ $index }}][notes]" rows="1"
-                                                            class="form-control form-control-sm"
-                                                            placeholder="Add notes...">{{ $aporte['notes'] }}</textarea>
-                                                </td>
-                                                <td>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row" title="Remove">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {{-- Balance Display --}}
-                        <div class="row mb-4">
-                            <label class="col-md-3 col-form-label fw-semibold text-md-end">Balance</label>
-                            <div class="col-md-6">
-                                <div id="balanceDisplay" class="h5 text-success mb-0">$0.00</div>
-                            </div>
-                        </div>
-
-                        {{-- Submit --}}
-                        <div class="d-flex justify-content-end">
-                            <button type="submit" class="btn btn-success px-4">
-                                <i class="bi bi-save me-1"></i> Save Financials
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-        </div>
-
-
-                
-        <!-- Expense -->
-        <div class="tab-pane fade show" id="expenses">
-
-            <form action="{{ route('lead-expenses.store') }}" method="POST">
-                @csrf
-                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
-
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for ($i = 0; $i < 1; $i++)
-                        <tr>
-                            <td>
-                                <input type="date" name="expenses[{{ $i }}][expense_date]" class="form-control">
-                            </td>
-                            <td>
-                                <select name="expenses[{{ $i }}][type]" class="form-select expense-type">
-                                    <option value="">Select</option>
-                                    <option value="material">Material</option>
-                                    <option value="labor">Labor</option>
-                                    <option value="commission">Commission</option>
-                                    <option value="permit">Permit</option>
-                                    <option value="supplement">Supplement</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                
-                            </td>
-                            <td>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" name="expenses[{{ $i }}][amount]" class="form-control amount-field" placeholder="$">
-                                    <span class="input-group-text commission-label d-none">%</span>
-                                </div>
-                            </td>
-                            
-                        </tr>
-                        @endfor
-                    </tbody>
-                </table>
-
-                <button type="submit" class="btn btn-success">Save Expenses</button>
-            </form>
-
-            <hr>
-
-            <h5 class="mt-4">
-                <i class="bi bi-cash-coin me-1 text-primary"></i> Registered Expenses
-            </h5>
-            
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th><i class="bi bi-calendar-event"></i> Date</th>
-                        <th><i class="bi bi-tag"></i> Type</th>
-                        <th><i class="bi bi-currency-dollar"></i> Amount</th>
-                        <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($lead->expenses as $expense)
-                    <tr>
-                        <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
-                        <td>
-                            <span class="badge bg-secondary text-capitalize">
-                                {{ str_replace('_', ' ', $expense->type) }}
-                            </span>
-                        </td>
-                        <td>
-                            @if($expense->type === 'commission')
-                                {{ number_format($expense->amount, 2) }}%
-                            @else
-                                ${{ number_format($expense->amount, 2) }}
-                            @endif
-                        </td>
-                        <td class="text-end">
-                            <form action="{{ route('lead-expenses.destroy', $expense->id) }}" method="POST" class="delete-expense-form d-inline">
-                                @csrf
-                                @method('DELETE')
-                                
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                                
-                                
-                            </form>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4" class="text-center text-muted">No expenses registered.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-            
-
-        </div>
-
-
-        <!-- Quote -->
-        <div class="tab-pane fade show" id="quote">
-
-            <!-- Form to create a quote -->
-            <form method="POST" action="{{ route('quotes.store') }}">
-                @csrf
-                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <label>Sq</label>
-                        <input type="number" name="sq" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label>Material Cost per Sq</label>
-                        <input type="number" step="0.01" name="material_cost_per_sq" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label>Labor Cost per Sq</label>
-                        <input type="number" step="0.01" name="labor_cost_per_sq" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label>Other Costs</label>
-                        <input type="number" step="0.01" name="other_costs" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label>Profit Percentage (%)</label>
-                        <input type="number" step="0.01" name="percentage" class="form-control" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary mt-3">Save Quote</button>
-            </form>
-
-            <!-- Quote table -->
-            <h5 class="mt-4">Previous Quotes</h5>
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Sq</th>
-                        <th>Material Total</th>
-                        <th>Labor Total</th>
-                        <th>Other Costs</th>
-                        <th>Profit</th>
-                        <th>Total</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($lead->quotes as $quote)
-                    <tr>
-                        <td>{{ $quote->sq }}</td>
-                        <td>{{ number_format($quote->material_total, 2) }}</td>
-                        <td>{{ number_format($quote->labor_total, 2) }}</td>
-                        <td>{{ number_format($quote->other_costs, 2) }}</td>
-                        <td>{{ number_format($quote->profit, 2) }}</td>
-                        <td>{{ number_format($quote->quote_total, 2) }}</td>
-                        <td>
-                            <form id="delete-quote-form-{{ $quote->id }}" action="{{ route('quotes.destroy', $quote->id) }}" method="POST" class="d-inline-block">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $quote->id }})" title="Delete this quote">
-                                    <i class="fas fa-trash-alt"></i> Delete
-                                </button>
-                            </form>
-                            
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-        </div>
+       
 
 
     </div>
@@ -1150,32 +851,31 @@
 </style>
 
 <script>
-    function changeStatus(newStatus) {
-        const currentStatus = document.getElementById('selectedStatus').value;
+   function changeStatus(newStatus) {
+    const currentStatus = document.getElementById('selectedStatus').value;
 
-        if (currentStatus == newStatus) {
-            alert('You are already on this status.');
-            return;
-        }
-
-        Swal.fire({
-            title: 'Change Status',
-            text: 'Are you sure you want to change the status?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, change it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('selectedStatus').value = newStatus;
-                document.getElementById('statusForm').submit();
-            }
-        });
+    if (currentStatus == newStatus) {
+        alert('You are already on this status.');
+        return;
     }
-</script>
 
+    Swal.fire({
+        title: 'Change Status',
+        text: 'Are you sure you want to change the status?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('selectedStatus').value = newStatus;
+            document.getElementById('statusForm').submit();
+        }
+    });
+}
+</script>
 
 <style>
     .status-box {

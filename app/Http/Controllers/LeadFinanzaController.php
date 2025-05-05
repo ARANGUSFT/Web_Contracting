@@ -10,16 +10,19 @@ class LeadFinanzaController extends Controller
 {
     private function getCurrentUser()
     {
-        return Auth::guard('web')->check() ? Auth::guard('web')->user() : Auth::guard('team')->user();
+        return Auth::guard('web')->check()
+            ? ['type' => 'user', 'instance' => Auth::guard('web')->user()]
+            : ['type' => 'team', 'instance' => Auth::guard('team')->user()];
     }
 
     public function update(Request $request, $leadId)
     {
-        $user = $this->getCurrentUser();
+        $current = $this->getCurrentUser();
+        $user = $current['instance'];
         $lead = Lead::findOrFail($leadId);
 
-        if ($lead->user_id !== $user->id && $lead->team_id !== $user->id) {
-            abort(403);
+        if (!$this->canManageLead($lead, $user, $current['type'])) {
+            abort(403, 'No tienes permisos para modificar la información financiera de este lead.');
         }
 
         // Reglas básicas
@@ -54,7 +57,9 @@ class LeadFinanzaController extends Controller
         // Guardar aportes nuevos
         foreach ($request->input('finanzas', []) as $data) {
             $lead->finanzas()->create([
-                'user_id' => $user->id,
+                'user_id' => Auth::guard('web')->check() ? $user->id : null,   // Solo si es un admin
+                'team_id' => Auth::guard('team')->check() ? $user->id : null,  // Solo si es un team
+                'lead_id' => $lead->id,
                 'date' => $data['date'],
                 'amount' => $data['amount'],
                 'method' => $data['method'] ?? null,
@@ -62,9 +67,19 @@ class LeadFinanzaController extends Controller
                 'notes' => $data['notes'] ?? null,
             ]);
         }
+        
 
         return redirect()->back()->with('success', 'Financial data updated successfully.');
     }
 
-    
+    private function canManageLead($lead, $user, $type)
+    {
+        if ($type === 'user') {
+            return $lead->user_id === $user->id;
+        } else {
+            return $lead->team_id === $user->id || in_array($user->role, ['manager', 'company_admin', 'project_manager']);
+        }
+    }
+
+
 }

@@ -37,7 +37,7 @@
     <div class="card shadow-lg p-4">
         <div class="d-flex justify-content-between align-items-center">
 
-            <a href="{{ route('leads.index') }}" class="btn btn-secondary">
+            <a href="{{ route('manager.dashboard') }}" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
 
@@ -75,10 +75,10 @@
         
 
 
-        <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST" class="mb-3">
+        <form id="statusForm" action="{{ route('manager.assignstatus', $lead->id) }}" method="POST" class="mb-3">
             @csrf
             <input type="hidden" name="status" id="selectedStatus">
-
+        
             <label class="form-label fw-semibold text-muted">📌 Status:</label>
             <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
                 {{-- Botón Retroceder --}}
@@ -87,14 +87,14 @@
                         &#8592; Back
                     </button>
                 @endif
-
+        
                 {{-- Estados en fila --}}
                 @foreach ($statusList as $key => $status)
                     <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}">
                         {{ $status['label'] }}
                     </div>
                 @endforeach
-
+        
                 {{-- Botón Avanzar --}}
                 @if ($currentIndex < count($statusList) - 1)
                     <button type="button" class="btn btn-outline-primary" onclick="changeStatus({{ $statusKeys[$currentIndex + 1] }})">
@@ -1150,32 +1150,31 @@
 </style>
 
 <script>
-    function changeStatus(newStatus) {
-        const currentStatus = document.getElementById('selectedStatus').value;
+   function changeStatus(newStatus) {
+    const currentStatus = document.getElementById('selectedStatus').value;
 
-        if (currentStatus == newStatus) {
-            alert('You are already on this status.');
-            return;
-        }
-
-        Swal.fire({
-            title: 'Change Status',
-            text: 'Are you sure you want to change the status?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, change it!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById('selectedStatus').value = newStatus;
-                document.getElementById('statusForm').submit();
-            }
-        });
+    if (currentStatus == newStatus) {
+        alert('You are already on this status.');
+        return;
     }
-</script>
 
+    Swal.fire({
+        title: 'Change Status',
+        text: 'Are you sure you want to change the status?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, change it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('selectedStatus').value = newStatus;
+            document.getElementById('statusForm').submit();
+        }
+    });
+}
+</script>
 
 <style>
     .status-box {

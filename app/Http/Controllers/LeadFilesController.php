@@ -23,9 +23,9 @@ class LeadFilesController extends Controller
         $lead = Lead::findOrFail($leadId);
         $user = $current['instance'];
 
-        // Validación de permisos (user_id o team_id deben coincidir)
-        if ($lead->user_id !== $user->id && $lead->team_id !== $user->id) {
-            abort(403);
+        // Nueva validación de permisos:
+        if (!$this->canManageLead($lead, $user, $current['type'])) {
+            abort(403, 'No tienes permisos para modificar este lead.');
         }
 
         $request->validate([
@@ -46,7 +46,6 @@ class LeadFilesController extends Controller
             'file_path' => "lead_files/{$lead->id}/{$request->type}/{$originalName}",
         ];
 
-        // Asignar correctamente user_id o team_id
         if ($current['type'] === 'user') {
             $data['user_id'] = $user->id;
         } else {
@@ -64,16 +63,23 @@ class LeadFilesController extends Controller
         $file = LeadFile::findOrFail($id);
         $user = $current['instance'];
 
-        if (
-            ($file->lead->user_id !== $user->id) &&
-            ($file->lead->team_id !== $user->id)
-        ) {
-            abort(403);
+        if (!$this->canManageLead($file->lead, $user, $current['type'])) {
+            abort(403, 'No tienes permisos para eliminar este documento.');
         }
 
         Storage::disk('public')->delete($file->file_path);
         $file->delete();
 
         return redirect()->back()->with('success', 'File successfully deleted');
+    }
+
+    private function canManageLead($lead, $user, $type)
+    {
+        if ($type === 'user') {
+            return $lead->user_id === $user->id;
+        } else {
+            // Si es team (vendedor o manager)
+            return $lead->team_id === $user->id || in_array($user->role, ['manager', 'company_admin', 'project_manager']);
+        }
     }
 }

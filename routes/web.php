@@ -7,6 +7,9 @@ use App\Http\Controllers\Auth\TeamLoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\EmergenciesController;
+use App\Http\Controllers\JobRequestController;
+
 
 use App\Http\Controllers\Seller\SellerDashboardController; 
 use App\Http\Controllers\Guest\GuestDashboardController;
@@ -21,6 +24,8 @@ use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
+
+
 
 
 /*
@@ -59,6 +64,12 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/company-documents/{index}', [ProfileController::class, 'deleteCompanyDocument'])->name('company-documents.delete');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Project MG
+        Route::get('/jobs/create', [JobRequestController::class, 'create'])->name('jobs.create'); 
+        Route::post('/jobs/store', [JobRequestController::class, 'store'])->name('jobs.store'); 
+    
+        Route::post('/emergency', [EmergenciesController::class, 'store'])->name('emergency.store');
+        Route::get('/emergency', [EmergenciesController::class, 'form'])->name('emergency.form');
     // CRUD de Leads
         Route::resource('/leads', LeadController::class);
         Route::get('/listleads', [LeadController::class, 'index'])->name('leads.index');
@@ -94,6 +105,7 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
         Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');
         Route::delete('/leads/{lead}/finanzas/{finanza}', [LeadFinanzaController::class, 'destroy'])->name('lead.finanzas.destroy');
+    // Expenses 
         Route::post('/lead-expenses', [LeadExpensesController::class, 'store'])->name('lead-expenses.store');
         Route::delete('/lead-expenses/{id}', [LeadExpensesController::class, 'destroy'])->name('lead-expenses.destroy');
     // Quotes 
@@ -136,7 +148,7 @@ Route::prefix('seller')->middleware('auth:team')->group(function () {
         Route::post('/seller/leads/{id}/update-status', [SellerDashboardController::class, 'updateStatus'])->name('seller.leads.updateStatus');
 
 
-        // Perfil
+    // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('seller.profile.edit');
     Route::put('/profile', [ProfileTeamController::class, 'update'])->name('seller.profile.update');
     Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('seller.profile.password.update');
@@ -146,6 +158,8 @@ Route::prefix('seller')->middleware('auth:team')->group(function () {
 // 🔹 Panel de Invitados (guest)
 Route::prefix('guest')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [GuestDashboardController::class, 'index'])->name('guest.dashboard');
+    Route::get('/view/guest/{id}', [GuestDashboardController::class, 'show'])->name('guest.view');
+    Route::post('/guest/{lead}/assignstatus', [GuestDashboardController::class, 'assignStatusManage'])->name('guest.assignstatus');
 
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('guest.profile.edit');
@@ -156,6 +170,9 @@ Route::prefix('guest')->middleware(['auth:team', 'team.active'])->group(function
 // 🔹 Panel de Manager
 Route::prefix('manager')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('manager.dashboard');
+    Route::get('/view/manage/{id}', [ManagerDashboardController::class, 'show'])->name('manager.manage');
+    Route::post('/manager/manage/{lead}/assignstatus', [ManagerDashboardController::class, 'assignStatusManage'])->name('manager.assignstatus');
+
 
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('manager.profile.edit');
