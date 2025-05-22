@@ -15,29 +15,13 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 @if(Auth::guard('web')->check()) 
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="projectDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-kanban"></i> Project MG
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="projectDropdown">
-                        <li>
-                            <a class="dropdown-item" href="{{ route('jobs.create') }}">
-                                <i class="bi bi-plus-circle"></i> Submit New Job
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('emergency.form') }}">
-                                <i class="bi bi-exclamation-triangle"></i> Emergency
-                            </a>
-                        </li>
-                        
-                        <li>
-                            <a class="dropdown-item text-primary fw-bold" href="#">
-                                <i class="bi bi-calendar-event"></i> Calendar
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('calendar.view') }}">
+                            <i class="bi bi-kanban"></i> Project Manager
+                        </a>
+                    </li>
+                
                 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('leads.index') }}">

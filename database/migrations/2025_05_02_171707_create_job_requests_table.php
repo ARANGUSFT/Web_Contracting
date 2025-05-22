@@ -63,9 +63,10 @@ return new class extends Migration
             $table->boolean('documentationattachment')->default(false);
 
             // Files
-            $table->string('aerial_measurement')->nullable();
-            $table->string('material_order')->nullable();
-            $table->string('file_upload')->nullable();
+            $table->json('aerial_measurement')->nullable();
+            $table->json('material_order')->nullable();
+            $table->json('file_upload')->nullable();
+            
 
 
             $table->timestamps();

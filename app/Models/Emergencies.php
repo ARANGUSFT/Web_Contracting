@@ -32,4 +32,5 @@ class Emergencies extends Model
         'contract_upload_path' => 'array',
         'file_picture_upload_path' => 'array',
     ];
+    
 }
