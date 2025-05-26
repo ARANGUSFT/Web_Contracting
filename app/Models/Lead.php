@@ -93,23 +93,29 @@ class Lead extends Model
         return $this->hasMany(Quote::class);
     }
 
-    // Suma todos los gastos registrados
-public function getTotalExpensesAttribute()
-{
-    return $this->expenses->sum('amount');
-}
+        // Suma todos los gastos registrados
+    public function getTotalExpensesAttribute()
+    {
+        return $this->expenses->sum('amount');
+    }
 
-// Suma todos los pagos realizados
-public function getTotalPaidAttribute()
-{
-    return $this->finanzas->sum('amount');
-}
+    // Suma todos los pagos realizados
+    public function getTotalPaidAttribute()
+    {
+        return $this->finanzas->sum('amount');
+    }
 
-// Calcula ganancia neta
-public function getNetProfitAttribute()
-{
-    return $this->total_paid - $this->total_expenses;
-}
+    // Calcula ganancia neta
+    public function getNetProfitAttribute()
+    {
+        return $this->total_paid - $this->total_expenses;
+    }
+
+    public function approval()
+    {
+        return $this->hasOne(lead_approvals::class);
+    }
+
 
 
 }

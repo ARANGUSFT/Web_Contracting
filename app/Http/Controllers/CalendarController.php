@@ -6,6 +6,8 @@ use App\Models\Emergencies;
 use App\Models\JobRequest;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\Lead_approvals;
+
 
 class CalendarController extends Controller
 {
@@ -29,12 +31,25 @@ class CalendarController extends Controller
                 'start' => Carbon::parse($e->date_submitted)->toDateString(),
                 'url'   => route('emergency.show', $e->id),
                 'type'  => 'Emergency',
-                'color' => '#dc3545', // Rojo (ejemplo para emergencias)
+                'color' => '#e30a0a', // Rojo (ejemplo para emergencias)
             ];
         });
 
+
+        // 🔹 Eventos de Leads Aprobados
+        $approvalEvents = Lead_approvals::all()->map(function ($approval) {
+            return [
+                'title' => 'Approved Lead - ' . $approval->lead_name,
+                'start' => Carbon::parse($approval->installation_date)->toDateString(),
+                'url'   => route('leads.show', $approval->lead_id), // asegúrate que exista esta ruta
+                'type'  => 'Lead Approval',
+                'color' => '#670ebb', // Azul (ejemplo para leads aprobados)
+            ];
+        });
+
+
         // 🔹 Unir ambos arreglos
-        $merged = $jobEvents->merge($emergencyEvents);
+        $merged = $jobEvents->merge($emergencyEvents)->merge($approvalEvents);
 
         // 🔹 Respuesta JSON
         return response()->json([

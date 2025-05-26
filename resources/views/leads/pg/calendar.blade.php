@@ -6,13 +6,14 @@
         <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-center border-bottom">
             <h4 class="mb-3 mb-md-0 text-primary"><i class="bi bi-calendar-week me-2"></i> Job & Emergency Calendar</h4>
             <div class="d-flex gap-2">
-                <a href="{{ route('jobs.create') }}" class="btn btn-outline-primary btn-sm">
+                <a href="{{ route('jobs.create') }}" class="btn btn-success btn-sm">
                     <i class="bi bi-plus-circle me-1"></i> New Job
                 </a>
-                <a href="{{ route('emergency.form') }}" class="btn btn-outline-warning btn-sm">
+                <a href="{{ route('emergency.form') }}" class="btn btn-danger btn-sm">
                     <i class="bi bi-exclamation-triangle me-1"></i> New Emergency
                 </a>
             </div>
+            
         </div>
         <div class="card-body bg-light">
             <div id="calendar" class="bg-white p-3 rounded shadow-sm border"></div>

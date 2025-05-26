@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Lead;
 use App\Models\Team; // Asegúrate de importar el modelo Team
+use App\Models\Lead_approvals;
+
 use App\Notifications\LeadAssignedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -61,21 +63,21 @@ class LeadController extends Controller
     
     
 
-    public function updateStatus(Request $request, $id)
-    {
-        $lead = Lead::findOrFail($id);
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $lead = Lead::findOrFail($id);
     
-        // Validar el estado enviado
-        $request->validate([
-            'estado' => 'required|integer|between:1,6'
-        ]);
+    //     // Validar el estado enviado
+    //     $request->validate([
+    //         'estado' => 'required|integer|between:1,6'
+    //     ]);
     
-        // Guardar nuevo estado
-        $lead->estado = $request->estado;
-        $lead->save();
+    //     // Guardar nuevo estado
+    //     $lead->estado = $request->estado;
+    //     $lead->save();
     
-        return response()->json(['success' => true, 'message' => 'Estado actualizado con éxito']);
-    }
+    //     return response()->json(['success' => true, 'message' => 'Estado actualizado con éxito']);
+    // }
 
 
 
@@ -90,6 +92,54 @@ class LeadController extends Controller
     
         return back()->with('success', 'Lead status updated successfully.');
     }
+
+
+    
+
+
+    public function submitApprovedData(Request $request, $id)
+    {
+        $request->validate([
+            'lead_name' => 'required|string|max:255',
+            'lead_address' => 'required|string|max:255',
+            'lead_phone' => 'required|string|max:20',
+            'installation_date' => 'required|date',
+            'extra_info' => 'nullable|string|max:1000',
+        ]);
+    
+        // Obtener el lead y su usuario relacionado
+        $lead = Lead::with('user')->findOrFail($id);
+        $user = $lead->user;
+    
+        // Validar que el usuario exista
+        if (!$user) {
+            return back()->withErrors('El lead no tiene un usuario asignado.');
+        }
+    
+        Lead_approvals::create([
+            'lead_id' => $id,
+            'company_name' => $user->company_name,
+            'company_representative' => $user->name . ' ' . $user->last_name,
+            'company_phone' => $user->phone,
+            'lead_name' => $request->lead_name,
+            'lead_address' => $request->lead_address,
+            'lead_phone' => $request->lead_phone,
+            'installation_date' => $request->installation_date,
+            'extra_info' => $request->extra_info,
+        ]);
+    
+        $lead->approved_data_submitted = true;
+        $lead->estado = 4; // Cambiar estado a Completed
+        $lead->save();
+    
+        return back()->with('success', 'Lead approval data submitted successfully and status updated to Completed.');
+    }
+    
+
+
+
+
+
     
 
 

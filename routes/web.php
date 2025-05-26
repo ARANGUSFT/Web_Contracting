@@ -84,18 +84,21 @@ Route::middleware(['auth:web'])->group(function () {
         Route::delete('/emergency/{emergency}', [EmergenciesController::class, 'destroy'])->name('emergency.destroy');
 
 
-        // 📅 Calendar
+    // 📅 Calendar
         Route::get('/calendar', fn () => view('leads.pg.calendar'))->name('calendar.view');
         Route::get('/calendar/data', [CalendarController::class, 'calendarData'])->name('calendar.data');
+        // Formulario approved
+        Route::post('/leads/{id}/submit-approved-data', [LeadController::class, 'submitApprovedData'])->name('leads.submitApprovedData');
 
     // CRUD de Leads
         Route::resource('/leads', LeadController::class);
         Route::get('/listleads', [LeadController::class, 'index'])->name('leads.index');
         // Estados Lead
-        Route::post('/leads/{id}/update-status', [LeadController::class, 'updateStatus'])->name('leads.updateStatus');
+        // Route::post('/leads/{id}/update-status', [LeadController::class, 'updateStatus'])->name('leads.updateStatus');
         Route::post('/leads/{lead}/assignstatus', [LeadController::class, 'assignStatus'])->name('leads.assignstatus');
         // Asignado Lead
         Route::put('/leads/{id}/assign', [LeadController::class, 'assignSales'])->name('leads.assignSales');
+        
         // Actualziar Lead
         Route::get('/leads/{lead}/edit', [LeadController::class, 'edit'])->name('leads.edit');
         Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');

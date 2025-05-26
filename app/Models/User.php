@@ -91,6 +91,12 @@ class User extends Authenticatable
         return $this->hasMany(Quote::class);
     }
 
+    public function approval()
+    {
+        return $this->hasOne(lead_approvals::class);
+    }
+
+
 
     
 }
