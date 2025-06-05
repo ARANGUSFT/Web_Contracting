@@ -100,6 +100,31 @@
         </div>
     </div>
 
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold">
+            <i class="bi bi-people-fill me-2"></i> Assigned Team Members
+        </div>
+        <div class="card-body">
+            @forelse ($emergency->teamMembers as $member)
+                <div class="d-flex align-items-center justify-content-between border-bottom py-2">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-circle fs-4 text-secondary me-3"></i>
+                        <div>
+                            <div class="fw-semibold">{{ $member->name }}</div>
+                            <div class="text-muted small">{{ ucfirst(str_replace('_', ' ', $member->role)) }}</div>
+                        </div>
+                    </div>
+                    <span class="badge bg-secondary text-uppercase">{{ $member->role }}</span>
+                </div>
+            @empty
+                <div class="text-muted fst-italic">No team members assigned to this emergency.</div>
+            @endforelse
+        </div>
+    </div>
+    
+    
+    
+
     <!-- Attached Documents Card -->
     <div class="card shadow-sm mb-4 border-info">
         <div class="card-header bg-info text-white fw-bold">

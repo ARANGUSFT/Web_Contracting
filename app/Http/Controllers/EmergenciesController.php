@@ -6,6 +6,7 @@ use App\Models\Calendar;
 use App\Models\Emergencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Team;
 
 
 class EmergenciesController extends Controller
@@ -28,6 +29,11 @@ class EmergenciesController extends Controller
             'aerial_measurement.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
             'contract_upload.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
             'file_picture_upload.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
+
+                
+            // ✅ Asignación de equipo
+            'assigned_team_members' => 'nullable|array',
+            'assigned_team_members.*' => 'exists:team,id',
         ]);
 
         $aerialPaths = [];
@@ -47,7 +53,16 @@ class EmergenciesController extends Controller
             }
         }
 
-        $emergency = Emergencies::create([ ...$validated, 'terms_conditions' => $request->has('terms_conditions'), 'requirements' => $request->has('requirements'), 'aerial_measurement_path' => $aerialPaths, 'contract_upload_path' => $contractPaths, 'file_picture_upload_path' => $filePicturePaths, ]); 
+        $emergency = Emergencies::create([
+            ...$validated,
+            'terms_conditions' => $request->has('terms_conditions'),
+            'requirements' => $request->has('requirements'),
+            'aerial_measurement_path' => $aerialPaths,
+            'contract_upload_path' => $contractPaths,
+            'file_picture_upload_path' => $filePicturePaths,
+        ]);        
+        
+        $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
 
         // Crear evento en el calendario
         Calendar::create([
@@ -62,23 +77,31 @@ class EmergenciesController extends Controller
         
     }
 
+    
     public function form()
     {
         $user = auth()->user();
-        return view('leads.pg.form.emergency', compact('user'));
+        $teamMembers = Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+    
+        return view('leads.pg.form.emergency', compact('user', 'teamMembers'));
     }
+    
 
     public function show($id)
     {
-        $emergency = Emergencies::findOrFail($id);
+        $emergency = Emergencies::with('teamMembers')->findOrFail($id);
     
         return view('leads.pg.showE', compact('emergency'));
     }
+    
 
     public function edit(Emergencies $emergency)
     {
-        return view('leads.pg.update.editEmerg', compact('emergency'));
+        $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+    
+        return view('leads.pg.update.editEmerg', compact('emergency', 'teamMembers'));
     }
+    
 
     public function update(Request $request, Emergencies $emergency)
     {
@@ -95,35 +118,42 @@ class EmergenciesController extends Controller
             'job_zip_code' => 'required|string',
             'terms_conditions' => 'nullable|boolean',
             'requirements' => 'nullable|boolean',
+
+            'assigned_team_members' => 'nullable|array',
+            'assigned_team_members.*' => 'exists:team,id',
+
             'aerial_measurement.*' => 'sometimes|file|mimes:pdf,jpg,jpeg,png',
             'contract_upload.*' => 'sometimes|file|mimes:pdf,jpg,jpeg,png',
             'file_picture_upload.*' => 'sometimes|file|mimes:pdf,jpg,jpeg,png',
         ]);
-    
+
         $emergency->fill($validated);
         $emergency->terms_conditions = $request->has('terms_conditions');
         $emergency->requirements = $request->has('requirements');
-    
-        // Añadir nuevos archivos sin borrar los anteriores
+
         $emergency->aerial_measurement_path = array_merge(
             $emergency->aerial_measurement_path ?? [],
             $this->handleMultipleFiles($request, 'aerial_measurement', 'emergencies/aerial')
         );
-    
+
         $emergency->contract_upload_path = array_merge(
             $emergency->contract_upload_path ?? [],
             $this->handleMultipleFiles($request, 'contract_upload', 'emergencies/contracts')
         );
-    
+
         $emergency->file_picture_upload_path = array_merge(
             $emergency->file_picture_upload_path ?? [],
             $this->handleMultipleFiles($request, 'file_picture_upload', 'emergencies/files')
         );
-    
+
         $emergency->save();
-    
+
+        // 🔁 Actualizar los miembros del equipo asignados
+        $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
+
         return redirect()->route('emergency.show', $emergency->id)->with('success', 'Emergency updated successfully.');
     }
+
     
     private function handleMultipleFiles(Request $request, string $inputName, string $folder)
     {

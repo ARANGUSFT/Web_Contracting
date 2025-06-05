@@ -129,7 +129,7 @@ class LeadController extends Controller
         ]);
     
         $lead->approved_data_submitted = true;
-        $lead->estado = 4; // Cambiar estado a Completed
+        $lead->estado = 3; // Cambiar estado a Completed
         $lead->save();
     
         return back()->with('success', 'Lead approval data submitted successfully and status updated to Completed.');

@@ -8,6 +8,10 @@ use App\Models\Lead;
 use App\Models\Team;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\JobRequest;
+use App\Models\Emergencies;
+use App\Models\Lead_approvals;
+
 
 class ManagerDashboardController extends Controller
 {
@@ -105,7 +109,142 @@ class ManagerDashboardController extends Controller
     
         return back()->with('success', 'Lead status updated successfully.');
     }
+
+    public function calendar()
+    {
+        $user = Auth::guard('team')->user();
     
+        $events = [];
+    
+        // JOB REQUESTS
+        $jobs = $user->jobRequests()->with('teamMembers')->get();
+    
+        foreach ($jobs as $job) {
+            $events[] = [
+                'id' => $job->id,
+                'title' => 'Job: ' . $job->job_number_name,
+                'start' => $job->install_date_requested,
+                'url' => route('jobs.show', $job->id),
+                'type' => 'Job',
+                'company' => $job->company_name,
+                'rep' => $job->company_rep,
+                'rep_phone' => $job->company_rep_phone,
+                'rep_email' => $job->company_rep_email,
+                'customer' => $job->customer_first_name . ' ' . $job->customer_last_name,
+                'customer_phone' => $job->customer_phone_number,
+                'address' => $job->job_address_street_address . ' ' . $job->job_address_street_address_line_2 . ', ' . $job->job_address_city . ', ' . $job->job_address_state . ' ' . $job->job_address_zip_code,
+                'materials' => [
+                    'starter' => $job->starter_bundles_ordered,
+                    'hip' => $job->hip_and_ridge_ordered,
+                    'field' => $job->field_shingle_bundles_ordered,
+                    'modified' => $job->modified_bitumen_cap_rolls_ordered,
+                ],
+                'delivery_date' => $job->delivery_date,
+                'inspections' => [
+                    'mid_roof' => $job->mid_roof_inspection,
+                    'siding' => $job->siding_being_replaced,
+                    'layers' => $job->asphalt_shingle_layers_to_remove,
+                    're_deck' => $job->re_deck,
+                ],
+                'special_instructions' => $job->special_instructions,
+                'team' => $job->teamMembers->map(fn($t) => $t->name . ' (' . ucfirst(str_replace('_', ' ', $t->role)) . ')')->toArray(),
+                'color' => '#24c122',
+            ];
+        }
+    
+        // EMERGENCIES
+        $emergencies = $user->emergencies()->with('teamMembers')->get();
+    
+        foreach ($emergencies as $emergency) {
+            $events[] = [
+                'id' => $emergency->id,
+                'title' => 'Emergency: ' . $emergency->job_number_name,
+                'start' => $emergency->date_submitted,
+                'url' => route('emergency.show', $emergency->id),
+                'type' => 'Emergency',
+                'company' => $emergency->company_name,
+                'email' => $emergency->company_contact_email,
+                'address' => "{$emergency->job_address} {$emergency->job_address_line2}, {$emergency->job_city}, {$emergency->job_state} {$emergency->job_zip_code}",
+                'supplement' => $emergency->type_of_supplement,
+                'terms' => $emergency->terms_conditions ? 'Accepted' : 'Not Accepted',
+                'requirements' => $emergency->requirements ? 'Accepted' : 'Not Accepted',
+                'team' => $emergency->teamMembers->map(fn($t) => $t->name . ' (' . ucfirst(str_replace('_', ' ', $t->role)) . ')')->toArray(),
+                'color' => '#dc3545',
+            ];
+        }
+
+        // 🔹 Eventos de Leads Aprobados
+            $approvalEvents = Lead_approvals::all()->map(function ($approval) {
+                return [
+                    'title' => 'Approved Lead - ' . $approval->lead_name,
+                    'start' => \Carbon\Carbon::parse($approval->installation_date)->toDateString(),
+                    'url' => route('manager.manage', $approval->lead_id),
+                    'type'  => 'Lead Approval',
+                    'color' => '#670ebb',
+                ];
+            });
+
+            // 🔹 Combinar
+            $events = array_merge($events, $approvalEvents->toArray());
+
+
+    
+        return view('manageTeam.calendar', compact('events', 'user'));
+    }
+
+
+    public function assignStatus(Request $request, $id)
+    {
+        $request->validate(['status' => 'required|integer|between:1,6']);
+    
+        $lead = Lead::findOrFail($id);
+        $lead->estado = $request->status;
+        $lead->last_touched_at = now(); // 👈 actualiza la última modificación
+        $lead->save();
+    
+        return back()->with('success', 'Lead status updated successfully.');
+    }
+
+
+    public function submitApprovedData(Request $request, $id)
+    {
+        $request->validate([
+            'lead_name' => 'required|string|max:255',
+            'lead_address' => 'required|string|max:255',
+            'lead_phone' => 'required|string|max:20',
+            'installation_date' => 'required|date',
+            'extra_info' => 'nullable|string|max:1000',
+        ]);
+    
+        // Obtener el lead y su usuario relacionado
+        $lead = Lead::with('user')->findOrFail($id);
+        $user = $lead->user;
+    
+        // Validar que el usuario exista
+        if (!$user) {
+            return back()->withErrors('El lead no tiene un usuario asignado.');
+        }
+    
+        Lead_approvals::create([
+            'lead_id' => $id,
+            'company_name' => $user->company_name,
+            'company_representative' => $user->name . ' ' . $user->last_name,
+            'company_phone' => $user->phone,
+            'lead_name' => $request->lead_name,
+            'lead_address' => $request->lead_address,
+            'lead_phone' => $request->lead_phone,
+            'installation_date' => $request->installation_date,
+            'extra_info' => $request->extra_info,
+        ]);
+    
+        $lead->approved_data_submitted = true;
+        $lead->estado = 4; // Cambiar estado a Completed
+        $lead->save();
+    
+        return back()->with('success', 'Lead approval data submitted successfully and status updated to Completed.');
+    }
+    
+
 
    
 }

@@ -69,4 +69,10 @@ class JobRequest extends Model
         'material_order'     => 'array',
         'file_upload'        => 'array',
     ];
+
+    public function teamMembers()
+{
+    return $this->belongsToMany(Team::class, 'job_request_team', 'job_request_id', 'team_id');
+}
+
 }

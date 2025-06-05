@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Team\ProfileTeamController;
 use App\Http\Controllers\Auth\TeamLoginController;
 
+// Contratista
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TeamController;
@@ -11,7 +12,7 @@ use App\Http\Controllers\EmergenciesController;
 use App\Http\Controllers\JobRequestController;
 use App\Http\Controllers\CalendarController;
 
-
+// Roles
 use App\Http\Controllers\Seller\SellerDashboardController; 
 use App\Http\Controllers\Guest\GuestDashboardController;
 use App\Http\Controllers\Manager\ManagerDashboardController;
@@ -19,12 +20,15 @@ use App\Http\Controllers\Crew\CrewDashboardController;
 use App\Http\Controllers\ProjectManager\ProjectDashboardController;
 use App\Http\Controllers\CompanyAdmin\CompanyAdminDashboardController;
 
+// Acciones
 use App\Http\Controllers\LeadMessageController;
 use App\Http\Controllers\LeadImageController;
 use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\CalendarAllController;
+
 
 
 
@@ -90,6 +94,7 @@ Route::middleware(['auth:web'])->group(function () {
         // Formulario approved
         Route::post('/leads/{id}/submit-approved-data', [LeadController::class, 'submitApprovedData'])->name('leads.submitApprovedData');
 
+
     // CRUD de Leads
         Route::resource('/leads', LeadController::class);
         Route::get('/listleads', [LeadController::class, 'index'])->name('leads.index');
@@ -133,6 +138,7 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::get('/quotes/create', [QuoteController::class, 'create'])->name('quotes.create');
         Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
         Route::delete('/quotes/{quote}', [QuoteController::class, 'destroy'])->name('quotes.destroy');
+  
 });
 
 
@@ -193,7 +199,9 @@ Route::prefix('manager')->middleware(['auth:team', 'team.active'])->group(functi
     Route::get('/dashboard', [ManagerDashboardController::class, 'index'])->name('manager.dashboard');
     Route::get('/view/manage/{id}', [ManagerDashboardController::class, 'show'])->name('manager.manage');
     Route::post('/manager/manage/{lead}/assignstatus', [ManagerDashboardController::class, 'assignStatusManage'])->name('manager.assignstatus');
-
+    Route::get('/calendar', [ManagerDashboardController::class, 'calendar'])->name('manager.calendar');
+    Route::post('/leads/{lead}/assignstatus', [ManagerDashboardController::class, 'assignStatus'])->name('manager.assignstatus');
+    Route::post('/leads/{id}/submit-approved-data', [ManagerDashboardController::class, 'submitApprovedData'])->name('manager.submitApprovedData');
 
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('manager.profile.edit');
@@ -204,7 +212,8 @@ Route::prefix('manager')->middleware(['auth:team', 'team.active'])->group(functi
 // 🔹 Panel de Crew
 Route::prefix('crew')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [CrewDashboardController::class, 'index'])->name('crew.dashboard');
-
+    Route::get('/calendar', [CrewDashboardController::class, 'calendar'])->name('crew.calendar');
+    
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('crew.profile.edit');
     Route::put('/profile', [ProfileTeamController::class, 'update'])->name('crew.profile.update');
@@ -214,12 +223,14 @@ Route::prefix('crew')->middleware(['auth:team', 'team.active'])->group(function 
 // 🔹 Panel de Project Manager
 Route::prefix('project')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [ProjectDashboardController::class, 'index'])->name('project.dashboard');
+    Route::get('/calendar', [ProjectDashboardController::class, 'calendar'])->name('project.calendar');
 
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('project.profile.edit');
     Route::put('/profile', [ProfileTeamController::class, 'update'])->name('project.profile.update');
     Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('project.profile.password.update');
 });
+
 
 // 🔹 Panel de Company Admin
 Route::prefix('admin')->middleware(['auth:team', 'team.active'])->group(function () {

@@ -116,6 +116,33 @@
                     </div>
                 </div>
 
+                @php
+                $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+            @endphp
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Assign Team Members</label>
+                <div class="row">
+                    @foreach($teamMembers as $member)
+                        <div class="col-md-6">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input"
+                                    type="checkbox"
+                                    name="assigned_team_members[]"
+                                    value="{{ $member->id }}"
+                                    id="emergency_member_{{ $member->id }}">
+                                <label class="form-check-label" for="emergency_member_{{ $member->id }}">
+                                    {{ $member->name }}
+                                    <small class="text-muted">({{ ucfirst(str_replace('_', ' ', $member->role)) }})</small>
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            
+                
+
                 <!-- Sección 2: Términos y Condiciones -->
                 <div class="mb-4">
                     <h6 class="border-bottom pb-2 mb-3 text-primary">

@@ -32,5 +32,14 @@ class Emergencies extends Model
         'contract_upload_path' => 'array',
         'file_picture_upload_path' => 'array',
     ];
+
+    // app/Models/Emergency.php
+
+    public function teamMembers()
+    {
+        return $this->belongsToMany(Team::class, 'emergency_team', 'emergency_id', 'team_id');
+    }
+    
+
     
 }

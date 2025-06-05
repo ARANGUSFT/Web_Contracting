@@ -70,6 +70,35 @@
 
         <hr>
 
+
+
+        <div class="card mb-4">
+            <div class="card-header bg-light fw-bold">
+                <i class="bi bi-person-check-fill me-2"></i> Assign Team Members
+            </div>
+            <div class="card-body">
+                @foreach($teamMembers as $member)
+                    <div class="form-check mb-2">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            name="assigned_team_members[]"
+                            value="{{ $member->id }}"
+                            id="member_{{ $member->id }}"
+                            {{ $emergency->teamMembers->contains($member->id) ? 'checked' : '' }}
+                        >
+                        <label class="form-check-label" for="member_{{ $member->id }}">
+                            {{ $member->name }} <span class="text-muted">({{ ucfirst(str_replace('_', ' ', $member->role)) }})</span>
+                        </label>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+
+        <hr>
+        
+
     {{-- File Uploads --}}
      
     {{-- Campo oculto para archivos a eliminar --}}

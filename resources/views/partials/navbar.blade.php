@@ -71,18 +71,36 @@
                                 <i class="bi bi-bar-chart"></i> Manager Panel
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('manager.calendar') }}">
+                                <i class="bi bi-calendar-event"></i> My Schedule
+                            </a>
+                        </li>
+
                     @elseif($teamUser->role === 'crew')
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('crew.dashboard') }}">
                                 <i class="bi bi-tools"></i> Crew Area
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('crew.calendar') }}">
+                                <i class="bi bi-calendar-event"></i> My Schedule
+                            </a>
+                        </li>
+
                     @elseif($teamUser->role === 'project_manager')
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('project.dashboard') }}">
                                 <i class="bi bi-diagram-3"></i> Project Manager
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('project.calendar') }}">
+                                <i class="bi bi-calendar-event"></i> My Schedule
+                            </a>
+                        </li>
+                    
                     @elseif($teamUser->role === 'company_admin')
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('admin.dashboard') }}">

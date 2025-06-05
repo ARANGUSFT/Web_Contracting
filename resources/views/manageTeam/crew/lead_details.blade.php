@@ -1,0 +1,884 @@
+@extends('layouts.app')
+
+@section('content')
+
+
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+        <h2 class="text-primary m-0">
+            <i class="bi bi-person-circle"></i> Customer Details
+        </h2>
+    </div>
+
+
+    @if(session('success'))
+        <div class="alert alert-success mt-3">
+            <i class="bi bi-check-circle"></i> {{ session('success') }}
+        </div>
+    @endif
+
+
+    <div class="card shadow-lg p-4">
+        <div class="d-flex justify-content-between align-items-center">
+
+            <a href="{{ route('seller.dashboard') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+
+            <h4 class="text-primary">{{ $lead->first_name }} {{ $lead->last_name }}</h4>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- Textual Info -->
+                <div class="text-end me-2">
+                    <h5 class="fw-bold mb-0" id="totalAmountText">$0.00</h5>
+                    <div class="text-danger fw-bold">Balance Due</div>
+                    <div class="text-danger small" id="balanceDueText">$0.00</div>
+                </div>
+            
+                <!-- Chart with percentage -->
+                <div class="position-relative" style="width: 70px; height: 70px;">
+                    <canvas id="balanceChart" class="balance-chart"></canvas>
+                    <div class="position-absolute top-50 start-50 translate-middle fw-bold small" id="chartPercentageText">0%</div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <p><strong>📞 Phone:</strong> <a href="tel:{{ $lead->phone }}">{{ $lead->phone }}</a></p>
+        <p><strong>📧 Email:</strong> <a href="mailto:{{ $lead->email }}">{{ $lead->email }}</a></p>
+        <p><strong>📅 Created At:</strong> {{ $lead->created_at->format('d M, Y') }}</p>
+
+        @php
+            $status = $statusMap[$lead->estado] ?? ['name' => 'Unknown', 'color' => 'bg-secondary'];
+        @endphp
+
+        <p><strong>📌 Status:</strong> 
+            <span class="badge {{ $status['color'] }}">{{ $status['name'] }}</span>
+        </p>
+        <p class="small text-muted mb-2">
+            <i class="bi bi-geo-alt text-warning"></i>
+            {{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}
+        </p>
+    </div>
+
+
+
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs mt-4" id="leadTabs">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#chat">Chat</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#photos">Photos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#documents">Documents</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#contribution">Contribution</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#expenses">Expenses</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#quote">Quote</a>
+        </li>
+    </ul>
+
+    <div class="tab-content p-4 bg-white shadow-lg rounded">
+        
+        <!-- Chat Tab -->
+        <div class="tab-pane fade show active" id="chat">
+            <h4 class="mb-3"><i class="bi bi-chat-dots me-2"></i> Conversation</h4>
+
+            <div id="chat-box" class="border rounded shadow-sm p-3 mb-4" style="height: 350px; overflow-y: auto; background-color: #f2f6fb;">
+                @foreach($messages as $msg)
+                    @php
+                        $isSeller = isset($msg->team);
+                        $senderName = $isSeller ? $msg->team->name : ($msg->user->name ?? 'Usuario');
+                        $isMine = $msg->user_id == auth()->id();
+
+                        $alignment = $isMine ? 'justify-content-end' : 'justify-content-start';
+                        $bubbleClass = $isMine ? 'bg-primary text-white' : 'bg-white text-dark';
+                        $nameColor = $isMine ? 'text-light' : 'text-muted';
+                        $timeAlign = $isMine ? 'text-end' : 'text-start';
+                    @endphp
+
+                    <div class="d-flex {{ $alignment }} mb-3">
+                        <div class="p-3 rounded shadow-sm {{ $bubbleClass }}" style="max-width: 80%;">
+                            <div class="fw-bold small {{ $nameColor }}">{{ $senderName }}</div>
+                            <div class="small">{{ $msg->message }}</div>
+                            <div class="small text-muted {{ $timeAlign }} mt-1" style="font-size: 0.75rem;">
+                                {{ $msg->created_at->format('d/m/Y H:i') }}
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <form id="chatForm" method="POST" action="{{ route('lead.messages.store') }}">
+                @csrf
+                <input type="hidden" id="lead_id" name="lead_id" value="{{ $lead->id }}">
+                <div class="input-group">
+                    <input type="text" id="message" name="message" class="form-control rounded-start-pill" placeholder="Write a message..." required>
+                    <button class="btn btn-success rounded-end-pill px-4" type="submit">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+
+        <!-- Photos Tab -->
+        <div class="tab-pane fade" id="photos">
+            <h4><i class="bi bi-images"></i> Photos</h4>
+
+            <!-- Formulario de subida -->
+            <form id="uploadForm">
+                @csrf
+                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+                <div class="mb-3">
+                    <input type="file" name="image" id="imageInput" class="form-control" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Upload Imagen</button>
+            </form>
+
+            <hr>
+
+            <!-- Galería de imágenes -->
+            <div class="row g-3" id="gallery-box">
+                @foreach ($images as $image)
+                    <div class="col-md-4" id="image-{{ $image->id }}">
+                        <div class="card shadow">
+                            <img src="{{ asset('storage/' . $image->image_path) }}" class="gallery-item img-fluid" onclick="showPreview('{{ asset('storage/' . $image->image_path) }}')">
+                            <div class="card-body text-center">
+        
+                                <a href="{{ asset('storage/' . $image->image_path) }}" download class="btn btn-outline-primary btn-sm mt-2">
+                                    Download 📥
+                                </a>
+                                <form action="{{ route('lead.images.destroy', $image->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm mt-2">
+                                        Delete ❌
+                                    </button>
+                                </form>
+                                
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+      
+        <!-- Documents Section -->
+        <div class="tab-pane fade" id="documents">
+            <h4><i class="bi bi-folder"></i> Documents</h4>
+
+            <div class="accordion" id="documentsAccordion">
+                @php
+                    $documentTypes = [
+                        ['title' => 'Job Paperwork', 'type' => 'files'],
+                        ['title' => 'Other', 'type' => 'finanzas'],
+                        ['title' => 'Packets', 'type' => 'anexos'],
+                        ['title' => 'Roof Report', 'type' => 'contratos'],
+                    ];
+
+                    $iconsByExtension = [
+                        'pdf' => 'bi-file-earmark-pdf text-danger',
+                        'xls' => 'bi-file-earmark-spreadsheet text-success',
+                        'xlsx' => 'bi-file-earmark-spreadsheet text-success',
+                        'doc' => 'bi-file-earmark-word text-primary',
+                        'docx' => 'bi-file-earmark-word text-primary',
+                        'default' => 'bi-file-earmark text-secondary',
+                    ];
+                @endphp
+
+                @foreach($documentTypes as $index => $docType)
+                    @php
+                        $files = $lead->files()->where('type', $docType['type'])->get();
+                    @endphp
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ $index }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $index }}">
+                                <i class="bi bi-folder-fill me-2"></i> {{ $docType['title'] }} ({{ $files->count() }})
+                            </button>
+                        </h2>
+                        <div id="collapse{{ $index }}" class="accordion-collapse collapse" data-bs-parent="#documentsAccordion">
+                            <div class="accordion-body">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Documento</th>
+                                            <th>Type</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($files as $file)
+                                            @php
+                                                $path = $file->file_path;
+                                                $original_name = basename($path);
+                                                $extension = pathinfo($path, PATHINFO_EXTENSION);
+                                                $iconClass = $iconsByExtension[$extension] ?? $iconsByExtension['default'];
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $original_name }}</td>
+                                                <td>
+                                                    <i class="bi {{ $iconClass }}"></i> {{ strtoupper($extension) }}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ asset('storage/' . $path) }}" download class="btn btn-sm btn-outline-primary">
+                                                        Download <i class="bi bi-download"></i>
+                                                    </a>
+                                                    <form action="{{ route('leads.files.destroy', $file->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            Delete <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+
+                                <form action="{{ route('leads.files.store', $lead->id) }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <input type="hidden" name="type" value="{{ $docType['type'] }}">
+                                    <input type="file" name="file" class="form-control mb-2" required>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-upload"></i> Subir {{ $docType['title'] }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Toast de éxito -->
+        @if(session('success'))
+            <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+                <div class="toast align-items-center text-white bg-success border-0 show" role="alert">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            {{ session('success') }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            </div>
+        @endif
+        
+
+        <!-- Contributions Tab -->
+        <div class="tab-pane fade show" id="contribution">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h4 class="mb-4">
+                        <i class="bi bi-receipt me-2"></i> Contribution
+                    </h4>
+
+                    <form method="POST" action="{{ route('leads.finanzas.update', $lead->id) }}">
+                        @csrf
+                        @method('PUT')
+
+                        <!-- Contract Value -->
+                        <div class="mb-4 row align-items-center">
+                            <label for="contractValue" class="col-md-4 col-form-label fw-bold">Contract Value</label>
+                            <div class="col-md-8">
+                                <input type="number" step="0.01" name="contract_value"
+                                    value="{{ old('contract_value', $lead->contract_value) }}"
+                                    class="form-control" required id="contractValue">
+                            </div>
+                        </div>
+
+                        <!-- Contributions Table -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Contributions</label>
+                            <div class="table-responsive">
+                                <table class="table table-bordered text-center align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Amount</th>
+                                            <th>Method</th>
+                                            <th>Check #</th>
+                                            <th>Notes</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="aportTable">
+                                        @foreach($lead->finanzas ?? [] as $index => $aporte)
+                                            <tr>
+                                                <td>
+                                                    <input type="date" name="finanzas[{{ $index }}][date]"
+                                                        class="form-control @error("finanzas.$index.date") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.date", $aporte['date']) }}">
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" name="finanzas[{{ $index }}][amount]"
+                                                        class="form-control aporte-value @error("finanzas.$index.amount") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.amount", $aporte['amount']) }}">
+                                                </td>
+                                                <td>
+                                                    <select name="finanzas[{{ $index }}][method]"
+                                                        class="form-select method-select @error("finanzas.$index.method") is-invalid @enderror">
+                                                        <option value="">Select</option>
+                                                        <option value="Cash" {{ old("finanzas.$index.method", $aporte['method']) === 'Cash' ? 'selected' : '' }}>💵 Cash</option>
+                                                        <option value="Check" {{ old("finanzas.$index.method", $aporte['method']) === 'Check' ? 'selected' : '' }}>🧾 Check</option>
+                                                        <option value="Transfer" {{ old("finanzas.$index.method", $aporte['method']) === 'Transfer' ? 'selected' : '' }}>💳 Transfer</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="finanzas[{{ $index }}][check_number]"
+                                                        class="form-control check-number-input @error("finanzas.$index.check_number") is-invalid @enderror"
+                                                        value="{{ old("finanzas.$index.check_number", $aporte['check_number'] ?? '') }}">
+                                                </td>
+                                                <td>
+                                                    <textarea name="finanzas[{{ $index }}][notes]"
+                                                        class="form-control form-control-sm @error("finanzas.$index.notes") is-invalid @enderror"
+                                                        placeholder="Add notes..." rows="1">{{ old("finanzas.$index.notes", $aporte['notes']) }}</textarea>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addRow">
+                                <i class="bi bi-plus-circle"></i> Add Contribution
+                            </button>
+                        </div>
+
+                        <!-- Balance -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Balance:</label>
+                            <div id="balanceDisplay" class="h5 text-success">$0.00</div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success px-4 mt-3">
+                                <i class="bi bi-save me-1"></i> Save Financials
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        
+      <!-- Expense -->
+       <div class="tab-pane fade show" id="expenses">
+
+        <form action="{{ route('lead-expenses.store') }}" method="POST">
+            @csrf
+            <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for ($i = 0; $i < 1; $i++)
+                    <tr>
+                        <td>
+                            <input type="date" name="expenses[{{ $i }}][expense_date]" class="form-control">
+                        </td>
+                        <td>
+                            <select name="expenses[{{ $i }}][type]" class="form-select expense-type">
+                                <option value="">Select</option>
+                                <option value="material">Material</option>
+                                <option value="labor">Labor</option>
+                                <option value="commission">Commission</option>
+                                <option value="permit">Permit</option>
+                                <option value="supplement">Supplement</option>
+                                <option value="other">Other</option>
+                            </select>
+                            
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="expenses[{{ $i }}][amount]" class="form-control amount-field" placeholder="$">
+                                <span class="input-group-text commission-label d-none">%</span>
+                            </div>
+                        </td>
+                        
+                    </tr>
+                    @endfor
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn btn-success">Save Expenses</button>
+        </form>
+
+        <hr>
+
+        <h5 class="mt-4">
+            <i class="bi bi-cash-coin me-1 text-primary"></i> Registered Expenses
+        </h5>
+        
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th><i class="bi bi-calendar-event"></i> Date</th>
+                    <th><i class="bi bi-tag"></i> Type</th>
+                    <th><i class="bi bi-currency-dollar"></i> Amount</th>
+                    <th class="text-end"><i class="bi bi-gear"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($lead->expenses as $expense)
+                <tr>
+                    <td>{{ \Carbon\Carbon::parse($expense->expense_date)->format('M d, Y') }}</td>
+                    <td>
+                        <span class="badge bg-secondary text-capitalize">
+                            {{ str_replace('_', ' ', $expense->type) }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($expense->type === 'commission')
+                            {{ number_format($expense->amount, 2) }}%
+                        @else
+                            ${{ number_format($expense->amount, 2) }}
+                        @endif
+                    </td>
+                    <td class="text-end">
+                        <form action="{{ route('lead-expenses.destroy', $expense->id) }}" method="POST" class="delete-expense-form d-inline">
+                            @csrf
+                            @method('DELETE')
+                            
+                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                            
+                            
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No expenses registered.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+        
+
+       </div>
+ 
+
+        <!-- Quote -->
+        <div class="tab-pane fade show" id="quote">
+
+            <!-- Form to create a quote -->
+            <form method="POST" action="{{ route('quotes.store') }}">
+                @csrf
+                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <label>Sq</label>
+                        <input type="number" name="sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Material Cost per Sq</label>
+                        <input type="number" step="0.01" name="material_cost_per_sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Labor Cost per Sq</label>
+                        <input type="number" step="0.01" name="labor_cost_per_sq" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label>Other Costs</label>
+                        <input type="number" step="0.01" name="other_costs" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label>Profit Percentage (%)</label>
+                        <input type="number" step="0.01" name="percentage" class="form-control" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">Save Quote</button>
+            </form>
+
+            <!-- Quote table -->
+            <h5 class="mt-4">Previous Quotes</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Sq</th>
+                        <th>Material Total</th>
+                        <th>Labor Total</th>
+                        <th>Other Costs</th>
+                        <th>Profit</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lead->quotes as $quote)
+                    <tr>
+                        <td>{{ $quote->sq }}</td>
+                        <td>{{ number_format($quote->material_total, 2) }}</td>
+                        <td>{{ number_format($quote->labor_total, 2) }}</td>
+                        <td>{{ number_format($quote->other_costs, 2) }}</td>
+                        <td>{{ number_format($quote->profit, 2) }}</td>
+                        <td>{{ number_format($quote->quote_total, 2) }}</td>
+                        <td>
+                            <form id="delete-quote-form-{{ $quote->id }}" action="{{ route('quotes.destroy', $quote->id) }}" method="POST" class="d-inline-block">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmDelete({{ $quote->id }})" title="Delete this quote">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>
+                            </form>
+                            
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+<!-- Modal para vista previa de imágenes -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-labelledby="imagePreviewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imagePreviewLabel">Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body d-flex justify-content-center align-items-center">
+                <img id="previewImage" class="img-fluid rounded shadow" alt="Vista previa de la imagen">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+        #chat-box::-webkit-scrollbar {
+        width: 6px;
+    }
+    #chat-box::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.2);
+        border-radius: 3px;
+    }
+
+</style>
+
+
+
+<!--Actulizar pestana sin refrescar pagina-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Restaurar la última pestaña activa
+        const lastTab = localStorage.getItem('activeLeadTab');
+        if (lastTab) {
+            const trigger = document.querySelector(`a[data-bs-toggle="tab"][href="${lastTab}"]`);
+            if (trigger) {
+                const tab = new bootstrap.Tab(trigger);
+                tab.show();
+            }
+        }
+    
+        // Guardar pestaña activa al cambiar
+        const tabLinks = document.querySelectorAll('#leadTabs a[data-bs-toggle="tab"]');
+        tabLinks.forEach(link => {
+            link.addEventListener('shown.bs.tab', function (e) {
+                localStorage.setItem('activeLeadTab', e.target.getAttribute('href'));
+            });
+        });
+    });
+</script>
+    
+
+<script>
+
+
+    
+
+    const toggleCheckNumber = (select) => {
+        const tr = select.closest('tr');
+        const checkInput = tr.querySelector('.check-number-input');
+        if (checkInput) {
+            if (select.value === 'Check') {
+                checkInput.removeAttribute('disabled');
+            } else {
+                checkInput.value = '';
+                checkInput.setAttribute('disabled', true);
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBalance();
+
+        document.getElementById('contractValue').addEventListener('input', updateBalance);
+
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            input.addEventListener('input', updateBalance);
+        });
+
+        document.querySelectorAll('.method-select').forEach(select => {
+            toggleCheckNumber(select);
+            select.addEventListener('change', () => toggleCheckNumber(select));
+        });
+
+        document.getElementById('addRow').addEventListener('click', function () {
+            const tableBody = document.querySelector('#aportTable');
+            const rowIndex = tableBody.querySelectorAll('tr').length;
+
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="date" name="finanzas[${rowIndex}][date]" class="form-control" required /></td>
+                <td><input type="number" step="0.01" name="finanzas[${rowIndex}][amount]" class="form-control aporte-value" required /></td>
+                <td>
+                    <select name="finanzas[${rowIndex}][method]" class="form-control method-select">
+                        <option value="">Select</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Check">Check</option>
+                        <option value="Transfer">Transfer</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="finanzas[${rowIndex}][check_number]" class="form-control check-number-input" disabled />
+                </td>
+                <td><input type="text" name="finanzas[${rowIndex}][notes]" class="form-control" /></td>
+                <td><button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+            `;
+
+            tableBody.appendChild(newRow);
+
+            newRow.querySelector('.aporte-value').addEventListener('input', updateBalance);
+            const methodSelect = newRow.querySelector('.method-select');
+            methodSelect.addEventListener('change', () => toggleCheckNumber(methodSelect));
+
+            updateBalance();
+        });
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('remove-row') || e.target.closest('.remove-row')) {
+                e.target.closest('tr').remove();
+                updateBalance();
+            }
+        });
+    });
+</script>
+
+<script>
+    let chart;
+    
+    const renderChart = (paid, remaining) => {
+        const ctx = document.getElementById('balanceChart').getContext('2d');
+        if (chart) chart.destroy();
+    
+        chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Remaining'],
+                datasets: [{
+                    data: [paid, remaining],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    };
+    
+    const updateBalance = () => {
+        const aporteInputs = document.querySelectorAll('.aporte-value');
+        let total = 0;
+        aporteInputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            total += value;
+        });
+    
+        const contractValue = parseFloat(document.getElementById('contractValue').value) || 0;
+        const balance = contractValue - total;
+        const percentage = contractValue > 0 ? (total / contractValue) * 100 : 0;
+    
+        // Actualizar textos
+        document.getElementById('balanceDisplay').textContent = `$${balance.toFixed(2)}`;
+        document.getElementById('totalAmountText').textContent = `$${contractValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('balanceDueText').textContent = `$${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+        document.getElementById('chartPercentageText').textContent = `${percentage.toFixed(0)}%`;
+    
+        // Cambiar color del porcentaje según el progreso
+        const percentEl = document.getElementById('chartPercentageText');
+        if (percentage >= 100) {
+            percentEl.classList.add('text-success');
+            percentEl.classList.remove('text-danger');
+        } else {
+            percentEl.classList.add('text-danger');
+            percentEl.classList.remove('text-success');
+        }
+    
+        renderChart(total, Math.max(0, balance));
+    };
+    
+    document.addEventListener('DOMContentLoaded', function () {
+        updateBalance();
+    
+        document.getElementById('contractValue').addEventListener('input', updateBalance);
+        document.querySelectorAll('.aporte-value').forEach(input => {
+            input.addEventListener('input', updateBalance);
+        });
+    });
+</script>
+    
+
+<style>
+    .balance-chart {
+        width: 70px !important;
+        height: 70px !important;
+    }
+    #chartPercentageText {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #dc3545; /* default red */
+    }
+</style>
+
+
+
+
+
+
+ <!-- Script Imagenes-->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let leadId = document.querySelector('input[name="lead_id"]').value;
+
+        // Manejo de subida de imágenes
+        document.getElementById("uploadForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+            
+            let formData = new FormData(this);
+
+            fetch("{{ route('lead.images.store') }}", {
+                method: "POST",
+                body: formData,
+                headers: { "X-CSRF-TOKEN": "{{ csrf_token() }}" }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Imagen subida correctamente.");
+                    location.reload(); // Recargar la galería
+                } else {
+                    alert("Error al subir la imagen.");
+                }
+            })
+            .catch(error => console.error("Error enviando imagen:", error));
+        });
+    });
+
+    // modal view
+    function showPreview(imageSrc) {
+        if (!imageSrc) return;
+        const modal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        document.getElementById("previewImage").src = imageSrc;
+        modal.show();
+    }
+
+    // Eliminar imagen con AJAX
+    function deleteImage(imageId) {
+        if (!confirm("¿Estás seguro de que quieres eliminar esta imagen?")) return;
+
+        fetch(`/lead-images/${imageId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById(`image-${imageId}`).remove();
+                alert("Imagen eliminada correctamente.");
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => console.error("Error al eliminar imagen:", error));
+    }
+</script>
+
+ <!-- Script Eliminar documento-->
+<script>
+            function deleteDocument(filePath, fileType) {
+                if (confirm('¿Estás seguro de que deseas eliminar este archivo?')) {
+                    document.getElementById('deleteFileType').value = fileType;
+                    document.getElementById('deleteFilePath').value = filePath;
+                    document.getElementById('deleteDocumentForm').submit();
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const toastElList = [].slice.call(document.querySelectorAll('.toast'))
+                toastElList.map(function (toastEl) {
+                    new bootstrap.Toast(toastEl).show()
+                })
+            });
+</script>
+
+
+<style>
+    body { background: #2270be; }
+    .card { border-radius: 10px; background: white; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); }
+
+    /* Estilo para la galería */
+    .gallery-item {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .gallery-item:hover {
+        transform: scale(1.05);
+    }
+
+    /* Asegurar que la imagen en el modal se centre y se ajuste */
+    #previewImage {
+        max-width: 100%;
+        max-height: 90vh;
+        display: block;
+        margin: auto;
+    }
+</style>
+
+@endsection

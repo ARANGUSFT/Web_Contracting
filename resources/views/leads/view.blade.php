@@ -81,7 +81,7 @@
         
             <label class="form-label fw-semibold text-muted">📌 Status:</label>
             <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
-                @if ($currentIndex > 0 && $lead->estado < 4)
+                @if ($currentIndex > 0 && $lead->estado < 3)
                     <button type="button" class="btn btn-outline-secondary" onclick="changeStatus({{ $statusKeys[$currentIndex - 1] }})">
                         &#8592; Back
                     </button>
@@ -101,7 +101,7 @@
             </div>
         </form>
         
-        @if ($lead->estado == 3)
+        @if ($lead->estado == 2)
             <div class="card border-success mt-4 shadow-sm w-75 mx-auto">
                 <div class="card-header bg-success text-white py-2 px-3">
                     <h6 class="mb-0"><i class="bi bi-check-circle-fill me-2"></i>Approved Lead - Submit Information</h6>
@@ -761,8 +761,8 @@
 
 {{-- Alerta approved --}}
 <script>
-    const approvedStatus = 3;
-    const completedStatus = 4;
+    const approvedStatus = 2;
+    const completedStatus = 3;
     const currentStatus = {{ $lead->estado }};
     const approvedDataSubmitted = {{ $lead->approved_data_submitted ? 'true' : 'false' }};
 

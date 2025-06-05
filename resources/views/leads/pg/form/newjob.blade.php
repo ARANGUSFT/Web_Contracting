@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
 <a href="{{ route('calendar.view') }}" class="btn btn-light btn-sm position-absolute top-3 end-3">
     <i class="bi bi-arrow-left"></i> Back
 </a>
@@ -209,6 +210,24 @@
                                                     name="job_address_zip_code" required>
                                                 <div class="invalid-feedback">Please enter a valid zip code.</div>
                                             </div>
+                                            <div class="mb-3">
+                                                <label for="assigned_team_members" class="form-label fw-semibold">Asignar a miembros del equipo</label>
+                                                <select name="assigned_team_members[]" id="assigned_team_members" class="form-select" multiple size="6">
+                                                    @php
+                                                        $grouped = $teamMembers->groupBy('role');
+                                                    @endphp
+                                            
+                                                    @foreach($grouped as $role => $members)
+                                                        <optgroup label="{{ ucfirst(str_replace('_', ' ', $role)) }}">
+                                                            @foreach($members as $member)
+                                                                <option value="{{ $member->id }}">{{ $member->name }}</option>
+                                                            @endforeach
+                                                        </optgroup>
+                                                    @endforeach
+                                                </select>
+                                                <small class="form-text text-muted">Usa Ctrl (Windows) o Cmd (Mac) para seleccionar varios.</small>
+                                            </div>
+                                                                                  
                                         </div>
                                     </div>
                                     <div class="card-footer bg-transparent border-0 d-flex justify-content-between pt-0">

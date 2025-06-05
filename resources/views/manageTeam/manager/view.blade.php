@@ -71,38 +71,110 @@
         <p><strong>🕒 Last Touched:</strong> 
             {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
         </p>
+
         
         
-
-
+        
         <form id="statusForm" action="{{ route('manager.assignstatus', $lead->id) }}" method="POST" class="mb-3">
             @csrf
             <input type="hidden" name="status" id="selectedStatus">
         
             <label class="form-label fw-semibold text-muted">📌 Status:</label>
             <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
-                {{-- Botón Retroceder --}}
-                @if ($currentIndex > 0)
+                @if ($currentIndex > 0 && $lead->estado < 3)
                     <button type="button" class="btn btn-outline-secondary" onclick="changeStatus({{ $statusKeys[$currentIndex - 1] }})">
                         &#8592; Back
                     </button>
                 @endif
         
-                {{-- Estados en fila --}}
                 @foreach ($statusList as $key => $status)
                     <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}">
                         {{ $status['label'] }}
                     </div>
                 @endforeach
         
-                {{-- Botón Avanzar --}}
                 @if ($currentIndex < count($statusList) - 1)
-                    <button type="button" class="btn btn-outline-primary" onclick="changeStatus({{ $statusKeys[$currentIndex + 1] }})">
+                    <button type="button" class="btn btn-outline-primary" onclick="handleNextClick({{ $statusKeys[$currentIndex + 1] }})">
                         Next &#8594;
                     </button>
                 @endif
             </div>
         </form>
+        
+        @if ($lead->estado == 2)
+            <div class="card border-success mt-4 shadow-sm w-75 mx-auto">
+                <div class="card-header bg-success text-white py-2 px-3">
+                    <h6 class="mb-0"><i class="bi bi-check-circle-fill me-2"></i>Approved Lead - Submit Information</h6>
+                </div>
+                <div class="card-body p-3">
+                    <form action="{{ route('manager.submitApprovedData', $lead->id) }}" method="POST">
+                        @csrf
+        
+                        <div class="row g-2">
+                            <!-- Company Info -->
+                            <div class="col-md-6">
+                                <p class="text-primary fw-bold small mb-1">🏢 Company Information</p>
+                            
+                                <div class="mb-2">
+                                    <input type="text" name="company_name" 
+                                           value="{{ $lead->user->company_name ?? '' }}" 
+                                           placeholder="Company Name" 
+                                           class="form-control form-control-sm" 
+                                           readonly>
+                                </div>
+                            
+                                <div class="mb-2">
+                                    <input type="text" name="company_representative" 
+                                           value="{{ $lead->user->name ?? '' }} {{ $lead->user->last_name ?? '' }}" 
+                                           placeholder="Representative" 
+                                           class="form-control form-control-sm" 
+                                           readonly>
+                                </div>
+                            
+                                <div class="mb-2">
+                                    <input type="text" name="company_phone" 
+                                           value="{{ $lead->user->phone ?? '' }}" 
+                                           placeholder="Phone" 
+                                           class="form-control form-control-sm" 
+                                           readonly>
+                                </div>
+                            </div>
+                            
+        
+                            <!-- Lead Info -->
+                            <div class="col-md-6">
+                                <p class="text-success fw-bold small mb-1">🙍‍♂️ Lead Information</p>
+                                <div class="mb-2">
+                                    <input type="text" name="lead_name" value="{{ $lead->first_name }}" placeholder="Lead Name" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="text" name="lead_address" value="{{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}" placeholder="Address" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="text" name="lead_phone" value="{{ $lead->phone }}" placeholder="Lead Phone" class="form-control form-control-sm" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="date" name="installation_date" value="{{ $lead->installation_date }}" class="form-control form-control-sm" required>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <!-- Extra Info -->
+                        <div class="mb-2 mt-2">
+                            <textarea name="extra_info" class="form-control form-control-sm" rows="2" placeholder="Additional Notes"></textarea>
+                        </div>
+        
+                        <div class="text-end mt-2">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-send-fill me-1"></i>Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+
+
 
         <hr>
         <div class="row mt-4">
@@ -680,7 +752,52 @@
     }
 </style>
 
+{{-- Alerta approved --}}
+<script>
+    const approvedStatus = 2;
+    const completedStatus = 3;
+    const currentStatus = {{ $lead->estado }};
+    const approvedDataSubmitted = {{ $lead->approved_data_submitted ? 'true' : 'false' }};
 
+    function handleNextClick(nextStatus) {
+        // Evita avanzar a Completed si no se ha enviado la data de aprobación
+        if (currentStatus === approvedStatus && !approvedDataSubmitted && nextStatus === completedStatus) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Action Required',
+                text: 'Please complete and submit the additional information form before proceeding to Completed status.',
+                confirmButtonText: 'Got it',
+            });
+            return;
+        }
+
+        // Bloquea retroceder desde Completed
+        if (currentStatus >= completedStatus && nextStatus < currentStatus) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Action Denied',
+                text: 'You cannot return to a previous status after reaching Completed.',
+                confirmButtonText: 'Understood',
+            });
+            return;
+        }
+
+        // Confirmación antes de avanzar
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to change the status?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, change it',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('selectedStatus').value = nextStatus;
+                document.getElementById('statusForm').submit();
+            }
+        });
+    }
+</script>
 
 <!--Actulizar pestana sin refrescar pagina-->
 <script>

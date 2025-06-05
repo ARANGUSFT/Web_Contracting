@@ -251,6 +251,55 @@
                 </div>
             </div>
             
+
+ {{-- Documentation --}}
+<div class="info-card card">
+    <div class="card-body">
+        <h5 class="section-title">
+            <i class="bi bi-files me-2"></i> Documentation
+        </h5>
+        
+        <div class="mb-4">
+            <div class="info-item">
+                <strong><i class="bi bi-chat-square-text me-2"></i>Special Instructions:</strong>
+                <div class="mt-2 p-3 bg-light rounded">{{ $job->special_instructions }}</div>
+            </div>
+            <div class="info-item">
+                <strong><i class="bi bi-check-circle me-2"></i>Material Verification:</strong> 
+                <span class="badge-status bg-{{ $job->material_verification ? 'success' : 'secondary' }}">
+                    {{ $job->material_verification ? 'Verified' : 'Pending' }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong><i class="bi bi-exclamation-triangle me-2"></i>Stop Work Request:</strong> 
+                <span class="badge-status bg-{{ $job->stop_work_request ? 'danger' : 'secondary' }}">
+                    {{ $job->stop_work_request ? 'Active' : 'None' }}
+                </span>
+            </div>
+        </div>
+
+        {{-- Assigned Team Members --}}
+        <div class="info-item mt-4">
+                    <strong><i class="bi bi-people-fill me-2"></i>Assigned Team Members:</strong>
+                    @if($job->teamMembers->isEmpty())
+                        <div class="mt-2 text-muted">No team members assigned.</div>
+                    @else
+                        <div class="mt-3">
+                            @foreach($job->teamMembers as $member)
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="bi bi-person-circle text-primary me-2 fs-5"></i>
+                                    <div>
+                                        <div class="fw-semibold">{{ $member->name }}</div>
+                                        <span class="badge bg-secondary">{{ ucfirst(str_replace('_', ' ', $member->role)) }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
          
             
             <h5 class="text-primary fw-bold mb-4">

@@ -43,5 +43,18 @@ class Team extends Authenticatable
         return $this->hasMany(Quote::class);
     }
 
+        public function jobRequests()
+    {
+        return $this->belongsToMany(JobRequest::class, 'job_request_team', 'team_id', 'job_request_id');
+    }
+
+    // ✅ Correcto:
+    public function emergencies()
+    {
+        return $this->belongsToMany(Emergencies::class, 'emergency_team', 'team_id', 'emergency_id');
+    }
+
+
+
 
 }

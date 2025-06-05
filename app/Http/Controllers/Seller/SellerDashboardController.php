@@ -49,6 +49,7 @@ class SellerDashboardController extends Controller
     {
         return view('manageTeam.seller.createLeads');
     }
+    
     public function store(Request $request)
     {
         $validatedData = $request->validate([

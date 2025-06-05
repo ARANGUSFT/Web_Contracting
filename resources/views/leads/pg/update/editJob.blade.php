@@ -214,6 +214,31 @@
             </ul>
         @endif
     </div>
+    
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Assign Team Members</label>
+        <div class="row">
+            @foreach($teamMembers as $member)
+                <div class="col-md-6">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               name="assigned_team_members[]" 
+                               value="{{ $member->id }}"
+                               id="team_member_{{ $member->id }}"
+                               {{ $job->teamMembers->contains($member->id) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="team_member_{{ $member->id }}">
+                            {{ $member->name }}
+                            <small class="text-muted">({{ ucfirst(str_replace('_', ' ', $member->role)) }})</small>
+                        </label>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    
+    
+    
 
 
     {{-- File Upload --}}

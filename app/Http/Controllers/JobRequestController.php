@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Calendar;
 use Illuminate\Http\Request;
 use App\Models\JobRequest;
+use App\Models\Team;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -62,26 +63,36 @@ class JobRequestController extends Controller
             'stop_work_request' => 'nullable|boolean',
             'documentationattachment' => 'nullable|boolean',
     
-            // Archivos (soporte múltiple)
+            // Roles asignados
+            'assigned_team_members' => 'nullable|array',
+            'assigned_team_members.*' => 'exists:team,id',
+    
+            // Archivos
             'aerial_measurement.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'material_order.*'     => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'file_upload.*'        => 'nullable|file|mimes:pdf,jpg,jpeg,png',
         ]);
     
-        // Manejo de múltiples archivos
+        // Manejo de archivos
         $validated['aerial_measurement'] = $this->handleMultipleFiles($request, 'aerial_measurement', 'job_requests/aerials');
         $validated['material_order']     = $this->handleMultipleFiles($request, 'material_order', 'job_requests/materials');
         $validated['file_upload']        = $this->handleMultipleFiles($request, 'file_upload', 'job_requests/files');
     
-        // Manejo de checkboxes booleanos
+        // Checkboxes
         $validated['material_verification']    = $request->has('material_verification');
         $validated['stop_work_request']        = $request->has('stop_work_request');
         $validated['documentationattachment']  = $request->has('documentationattachment');
     
-        // Guardar job y evento de calendario
+        // Guardar el job y asignar team members
         try {
             $job = JobRequest::create($validated);
     
+            // Guardar miembros asignados
+            if ($request->has('assigned_team_members')) {
+                $job->teamMembers()->sync($request->input('assigned_team_members'));
+            }
+    
+            // Crear entrada en el calendario
             Calendar::create([
                 'title'        => 'Job: ' . $validated['job_number_name'],
                 'start'        => $validated['install_date_requested'],
@@ -94,12 +105,15 @@ class JobRequestController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => 'Error al guardar el registro: ' . $e->getMessage()]);
         }
-    }    
-
+    }
+    
     public function create()
     {
         $user = auth()->user();
-        return view('leads.pg.form.newjob', compact('user'));
+    
+        $teamMembers = Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+    
+        return view('leads.pg.form.newjob', compact('user', 'teamMembers'));
     }
 
     public function show($id)
@@ -110,8 +124,11 @@ class JobRequestController extends Controller
 
     public function edit(JobRequest $job)
     {
-        return view('leads.pg.update.editJob', compact('job'));
+        $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+        return view('leads.pg.update.editJob', compact('job', 'teamMembers'));
     }
+    
+    
     
     public function update(Request $request, JobRequest $job)
     {
@@ -154,6 +171,10 @@ class JobRequestController extends Controller
             'detached_shed_roof'                => 'nullable|string',
     
             'special_instructions'              => 'nullable|string',
+
+            // ...otros campos...
+            'assigned_team_members' => 'nullable|array',
+            'assigned_team_members.*' => 'exists:team,id',
     
             'aerial_measurement.*'              => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'material_order.*'                  => 'nullable|file|mimes:pdf,jpg,jpeg,png',
@@ -190,7 +211,8 @@ class JobRequestController extends Controller
         $validated['documentationattachment']  = $request->boolean('documentationattachment');
     
         $job->update($validated);
-    
+        $job->teamMembers()->sync($request->input('assigned_team_members', []));
+
         return redirect()->route('jobs.show', $job->id)->with('success', 'Job updated successfully.');
     }
     
