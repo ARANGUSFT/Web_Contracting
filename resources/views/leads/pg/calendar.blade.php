@@ -40,61 +40,68 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const calendarEl = document.getElementById('calendar');
-    let allEvents = [];
-
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,listMonth'
-        },
-        events: function(fetchInfo, successCallback, failureCallback) {
-            fetch("{{ route('calendar.data') }}")
-                .then(res => res.json())
-                .then(data => {
-                    allEvents = data.events;
-                    successCallback(data.events);
-                })
-                .catch(error => {
-                    console.error('Error loading events:', error);
-                    failureCallback(error);
-                });
-        },
-        eventClick: function(info) {
-            if (info.event.url) {
-                window.location.href = info.event.url;
-            }
-        },
-        dateClick: function(info) {
-            const clickedDate = info.dateStr;
-            const eventsForDate = allEvents.filter(ev => ev.start.startsWith(clickedDate));
-            let content = "";
-
-            if (eventsForDate.length === 0) {
-                content = "<p class='text-muted'>No events for this date.</p>";
-            } else {
-                content = "<ul class='list-group'>";
-                eventsForDate.forEach(ev => {
-                    content += `<li class="list-group-item">
-                        <strong>${ev.title}</strong><br>
-                        <a href="${ev.url}" class="text-decoration-none text-primary">View details</a>
-                    </li>`;
-                });
-                content += "</ul>";
-            }
-
-            document.getElementById("modalDate").innerText = clickedDate;
-            document.getElementById("modalContent").innerHTML = content;
-
-            const modal = new bootstrap.Modal(document.getElementById('calendarModal'));
-            modal.show();
-        },
-        height: "auto"
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+        let allEvents = [];
+    
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listMonth'
+            },
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch("{{ route('calendar.data') }}")
+                    .then(res => res.json())
+                    .then(data => {
+                        const events = Array.isArray(data.events) ? data.events : [];
+                        allEvents = events;
+                        successCallback(events);
+                    })
+                    .catch(error => {
+                        console.error('Error loading events:', error);
+                        failureCallback(error);
+                    });
+            },
+            eventClick: function(info) {
+                if (info.event.url) {
+                    window.location.href = info.event.url;
+                }
+            },
+            dateClick: function(info) {
+                const clickedDate = info.dateStr;
+                const eventsForDate = allEvents.filter(ev => ev.start.startsWith(clickedDate));
+                let content = "";
+    
+                if (eventsForDate.length === 0) {
+                    content = "<p class='text-muted'>No events for this date.</p>";
+                } else {
+                    content = "<ul class='list-group'>";
+                    eventsForDate.forEach(ev => {
+                        content += `<li class="list-group-item">
+                            <strong>${ev.title}</strong><br>
+                            <a href="${ev.url}" class="text-decoration-none text-primary">View details</a>
+                        </li>`;
+                    });
+                    content += "</ul>";
+                }
+    
+                document.getElementById("modalDate").innerText = clickedDate;
+                document.getElementById("modalContent").innerHTML = content;
+    
+                const modal = new bootstrap.Modal(document.getElementById('calendarModal'));
+                modal.show();
+            },
+            height: "auto"
+        });
+    
+        calendar.render();
+    
+        // Si necesitas recargar desde otro lado: window.refreshCalendar()
+        window.refreshCalendar = function() {
+            calendar.refetchEvents();
+        };
     });
-
-    calendar.render();
-});
-</script>
+    </script>
+    

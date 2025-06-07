@@ -11,6 +11,14 @@
             <a href="{{ route('emergency.edit', $emergency->id) }}" class="btn btn-primary">
                 <i class="bi bi-pencil-square me-2"></i> Edit Job
             </a>
+            <form id="delete-emergency-form-{{ $emergency->id }}" action="{{ route('emergency.destroy', $emergency->id) }}" method="POST" class="d-inline">
+                @csrf
+                @method('DELETE')
+                <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $emergency->id }})">
+                    <i class="bi bi-trash me-1"></i> Delete Emergency
+                </button>
+            </form>
+            
             
         </div>
         <h2 class="text-primary mb-0">
@@ -125,92 +133,128 @@
     
     
 
-    <!-- Attached Documents Card -->
-    <div class="card shadow-sm mb-4 border-info">
-        <div class="card-header bg-info text-white fw-bold">
-            <i class="bi bi-paperclip me-2"></i> Attached Documents
-        </div>
-        <div class="card-body">
-            @if (is_array($emergency->aerial_measurement_path) && count($emergency->aerial_measurement_path))
-                <div class="mb-4">
-                    <h5 class="text-info mb-3">
-                        <i class="bi bi-cloud-arrow-down me-2"></i> Aerial Measurements
-                    </h5>
-                    <div class="list-group">
-                        @foreach ($emergency->aerial_measurement_path as $file)
-                            <a href="{{ asset('storage/' . $file) }}" target="_blank" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-file-earmark-arrow-down me-2"></i> 
-                                    {{ basename($file) }}
-                                </div>
-                                <span class="badge bg-primary rounded-pill">Download</span>
-                            </a>
-                        @endforeach
-                    </div>
+ <!-- Attached Documents Card -->
+<div class="card shadow-sm mb-4 border-info">
+    <div class="card-header bg-info text-white fw-bold">
+        <i class="bi bi-paperclip me-2"></i> Attached Documents
+    </div>
+    <div class="card-body">
+        @if (is_array($emergency->aerial_measurement_path) && count($emergency->aerial_measurement_path))
+            <div class="mb-4">
+                <h5 class="text-info mb-3">
+                    <i class="bi bi-cloud-arrow-down me-2"></i> Aerial Measurements
+                </h5>
+                <div class="list-group">
+                    @foreach ($emergency->aerial_measurement_path as $file)
+                        @php
+                            $filePath = is_array($file) ? $file['path'] : $file;
+                            $fileName = is_array($file) ? $file['name'] : basename($file);
+                        @endphp
+                        <a href="{{ asset('storage/' . $filePath) }}" target="_blank" 
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-earmark-arrow-down me-2"></i> 
+                                {{ $fileName }}
+                            </div>
+                            <span class="badge bg-primary rounded-pill">Download</span>
+                        </a>
+                    @endforeach
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if (is_array($emergency->contract_upload_path) && count($emergency->contract_upload_path))
-                <div class="mb-4">
-                    <h5 class="text-info mb-3">
-                        <i class="bi bi-journal-text me-2"></i> Contracts
-                    </h5>
-                    <div class="list-group">
-                        @foreach ($emergency->contract_upload_path as $file)
-                            <a href="{{ asset('storage/' . $file) }}" target="_blank" 
-                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="bi bi-file-earmark-pdf me-2"></i> 
-                                    {{ basename($file) }}
-                                </div>
-                                <span class="badge bg-primary rounded-pill">Download</span>
-                            </a>
-                        @endforeach
-                    </div>
+        @if (is_array($emergency->contract_upload_path) && count($emergency->contract_upload_path))
+            <div class="mb-4">
+                <h5 class="text-info mb-3">
+                    <i class="bi bi-journal-text me-2"></i> Contracts
+                </h5>
+                <div class="list-group">
+                    @foreach ($emergency->contract_upload_path as $file)
+                        @php
+                            $filePath = is_array($file) ? $file['path'] : $file;
+                            $fileName = is_array($file) ? $file['name'] : basename($file);
+                        @endphp
+                        <a href="{{ asset('storage/' . $filePath) }}" target="_blank" 
+                           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-file-earmark-pdf me-2"></i> 
+                                {{ $fileName }}
+                            </div>
+                            <span class="badge bg-primary rounded-pill">Download</span>
+                        </a>
+                    @endforeach
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if (is_array($emergency->file_picture_upload_path) && count($emergency->file_picture_upload_path))
-                <div class="mb-4">
-                    <h5 class="text-info mb-3">
-                        <i class="bi bi-images me-2"></i> Additional Pictures
-                    </h5>
-                    <div class="row">
-                        @foreach ($emergency->file_picture_upload_path as $file)
-                            <div class="col-md-4 col-lg-3 mb-3">
-                                <div class="card h-100">
-                                    @if(Str::endsWith($file, ['.jpg', '.jpeg', '.png']))
-                                        <img src="{{ asset('storage/' . $file) }}" 
-                                             class="card-img-top img-thumbnail" 
-                                             alt="Image" 
-                                             style="height: 150px; object-fit: cover;">
-                                    @else
-                                        <div class="card-body text-center py-4">
-                                            <i class="bi bi-file-earmark-text display-4 text-muted"></i>
-                                        </div>
-                                    @endif
-                                    <div class="card-footer bg-white border-top-0 text-center">
-                                        <a href="{{ asset('storage/' . $file) }}" 
-                                           target="_blank" 
-                                           class="btn btn-sm btn-outline-info w-100">
-                                            <i class="bi bi-eye me-1"></i> View
-                                        </a>
+        @if (is_array($emergency->file_picture_upload_path) && count($emergency->file_picture_upload_path))
+            <div class="mb-4">
+                <h5 class="text-info mb-3">
+                    <i class="bi bi-images me-2"></i> Additional Pictures
+                </h5>
+                <div class="row">
+                    @foreach ($emergency->file_picture_upload_path as $file)
+                        @php
+                            $filePath = is_array($file) ? $file['path'] : $file;
+                            $fileName = is_array($file) ? $file['name'] : basename($file);
+                        @endphp
+                        <div class="col-md-4 col-lg-3 mb-3">
+                            <div class="card h-100">
+                                @if(Str::endsWith($filePath, ['.jpg', '.jpeg', '.png']))
+                                    <img src="{{ asset('storage/' . $filePath) }}" 
+                                         class="card-img-top img-thumbnail" 
+                                         alt="{{ $fileName }}" 
+                                         style="height: 150px; object-fit: cover;">
+                                @else
+                                    <div class="card-body text-center py-4">
+                                        <i class="bi bi-file-earmark-text display-4 text-muted"></i>
                                     </div>
+                                @endif
+                                <div class="card-footer bg-white border-top-0 text-center">
+                                    <div class="small text-muted text-truncate" title="{{ $fileName }}">
+                                        {{ $fileName }}
+                                    </div>
+                                    <a href="{{ asset('storage/' . $filePath) }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-info w-100 mt-1">
+                                        <i class="bi bi-eye me-1"></i> View
+                                    </a>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                        </div>
+                    @endforeach
                 </div>
-            @endif
+            </div>
+        @endif
 
-            @if(!is_array($emergency->aerial_measurement_path) && !is_array($emergency->contract_upload_path) && !is_array($emergency->file_picture_upload_path))
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i> No documents attached to this request.
-                </div>
-            @endif
-        </div>
+        @if(!is_array($emergency->aerial_measurement_path) && !is_array($emergency->contract_upload_path) && !is_array($emergency->file_picture_upload_path))
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle me-2"></i> No documents attached to this request.
+            </div>
+        @endif
     </div>
+</div>
+
     
 </div>
+
+
+
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will permanently delete the emergency.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-emergency-form-' + id).submit();
+            }
+        });
+    }
+    </script>
 @endsection

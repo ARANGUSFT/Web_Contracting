@@ -113,13 +113,21 @@ class ManagerDashboardController extends Controller
     public function calendar()
     {
         $user = Auth::guard('team')->user();
-    
         $events = [];
     
         // JOB REQUESTS
         $jobs = $user->jobRequests()->with('teamMembers')->get();
-    
         foreach ($jobs as $job) {
+            $files = collect([
+                $job->aerial_measurement ?? [],
+                $job->material_order ?? [],
+                $job->file_upload ?? [],
+            ])
+            ->flatten()
+            ->filter()
+            ->values()
+            ->all();
+    
             $events[] = [
                 'id' => $job->id,
                 'title' => 'Job: ' . $job->job_number_name,
@@ -132,30 +140,33 @@ class ManagerDashboardController extends Controller
                 'rep_email' => $job->company_rep_email,
                 'customer' => $job->customer_first_name . ' ' . $job->customer_last_name,
                 'customer_phone' => $job->customer_phone_number,
-                'address' => $job->job_address_street_address . ' ' . $job->job_address_street_address_line_2 . ', ' . $job->job_address_city . ', ' . $job->job_address_state . ' ' . $job->job_address_zip_code,
+                'address' => "{$job->job_address_street_address} {$job->job_address_street_address_line_2}, {$job->job_address_city}, {$job->job_address_state} {$job->job_address_zip_code}",
                 'materials' => [
                     'starter' => $job->starter_bundles_ordered,
                     'hip' => $job->hip_and_ridge_ordered,
                     'field' => $job->field_shingle_bundles_ordered,
                     'modified' => $job->modified_bitumen_cap_rolls_ordered,
                 ],
-                'delivery_date' => $job->delivery_date,
-                'inspections' => [
-                    'mid_roof' => $job->mid_roof_inspection,
-                    'siding' => $job->siding_being_replaced,
-                    'layers' => $job->asphalt_shingle_layers_to_remove,
-                    're_deck' => $job->re_deck,
-                ],
                 'special_instructions' => $job->special_instructions,
                 'team' => $job->teamMembers->map(fn($t) => $t->name . ' (' . ucfirst(str_replace('_', ' ', $t->role)) . ')')->toArray(),
+                'files' => $files,
                 'color' => '#24c122',
             ];
         }
     
         // EMERGENCIES
         $emergencies = $user->emergencies()->with('teamMembers')->get();
-    
         foreach ($emergencies as $emergency) {
+            $files = collect([
+                $job->aerial_measurement ?? [],
+                $job->material_order ?? [],
+                $job->file_upload ?? [],
+            ])
+            ->flatten()
+            ->filter()
+            ->values()
+            ->all();
+    
             $events[] = [
                 'id' => $emergency->id,
                 'title' => 'Emergency: ' . $emergency->job_number_name,
@@ -169,28 +180,29 @@ class ManagerDashboardController extends Controller
                 'terms' => $emergency->terms_conditions ? 'Accepted' : 'Not Accepted',
                 'requirements' => $emergency->requirements ? 'Accepted' : 'Not Accepted',
                 'team' => $emergency->teamMembers->map(fn($t) => $t->name . ' (' . ucfirst(str_replace('_', ' ', $t->role)) . ')')->toArray(),
+                'files' => $files,
                 'color' => '#dc3545',
             ];
         }
-
-        // 🔹 Eventos de Leads Aprobados
-            $approvalEvents = Lead_approvals::all()->map(function ($approval) {
-                return [
-                    'title' => 'Approved Lead - ' . $approval->lead_name,
-                    'start' => \Carbon\Carbon::parse($approval->installation_date)->toDateString(),
-                    'url' => route('manager.manage', $approval->lead_id),
-                    'type'  => 'Lead Approval',
-                    'color' => '#670ebb',
-                ];
-            });
-
-            // 🔹 Combinar
-            $events = array_merge($events, $approvalEvents->toArray());
-
-
+    
+        // LEAD APPROVALS
+        $approvalEvents = Lead_approvals::all()->map(function ($approval) {
+            return [
+                'title' => 'Approved Lead - ' . $approval->lead_name,
+                'start' => \Carbon\Carbon::parse($approval->installation_date)->toDateString(),
+                'url' => route('manager.manage', $approval->lead_id),
+                'type' => 'Lead Approval',
+                'color' => '#670ebb',
+            ];
+        });
+    
+        $events = array_merge($events, $approvalEvents->toArray());
     
         return view('manageTeam.calendar', compact('events', 'user'));
     }
+    
+
+    
 
 
     public function assignStatus(Request $request, $id)

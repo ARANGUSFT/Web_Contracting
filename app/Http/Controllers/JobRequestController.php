@@ -179,6 +179,7 @@ class JobRequestController extends Controller
             'aerial_measurement.*'              => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'material_order.*'                  => 'nullable|file|mimes:pdf,jpg,jpeg,png',
             'file_upload.*'                     => 'nullable|file|mimes:pdf,jpg,jpeg,png',
+            
         ]);
     
         foreach (['aerial_measurement', 'material_order', 'file_upload'] as $field) {

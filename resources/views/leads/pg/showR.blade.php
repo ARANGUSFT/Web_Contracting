@@ -106,13 +106,14 @@
                 <a href="{{ route('calendar.view') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left-circle me-2"></i> Back
                 </a>
-                <form action="{{ route('jobs.destroy', $job->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this job? This action cannot be undone.')">
+                <form id="delete-job-form-{{ $job->id }}" action="{{ route('jobs.destroy', $job->id) }}" method="POST" class="d-inline">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger">
+                    <button type="button" class="btn btn-outline-danger" onclick="confirmJobDelete({{ $job->id }})">
                         <i class="bi bi-trash me-2"></i> Delete Job
                     </button>
                 </form>
+                
             </div>
             
         </div>
@@ -371,5 +372,22 @@
     </div>
 
 </div>
+<script>
+    function confirmJobDelete(id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will permanently delete the job and all related data.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('delete-job-form-' + id).submit();
+            }
+        });
+    }
+    </script>
 
 @endsection

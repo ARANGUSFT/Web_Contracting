@@ -29,53 +29,33 @@ class EmergenciesController extends Controller
             'aerial_measurement.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
             'contract_upload.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
             'file_picture_upload.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
-
-                
-            // ✅ Asignación de equipo
             'assigned_team_members' => 'nullable|array',
             'assigned_team_members.*' => 'exists:team,id',
         ]);
-
-        $aerialPaths = [];
-        foreach ($request->file('aerial_measurement', []) as $file) {
-            $aerialPaths[] = $file->store('emergency/aerials', 'public');
-        }
-
-        $contractPaths = [];
-        foreach ($request->file('contract_upload', []) as $file) {
-            $contractPaths[] = $file->store('emergency/contracts', 'public');
-        }
-
-        $filePicturePaths = [];
-        if ($request->hasFile('file_picture_upload')) {
-            foreach ($request->file('file_picture_upload') as $file) {
-                $filePicturePaths[] = $file->store('emergency/files', 'public');
-            }
-        }
-
-        $emergency = Emergencies::create([
-            ...$validated,
-            'terms_conditions' => $request->has('terms_conditions'),
-            'requirements' => $request->has('requirements'),
-            'aerial_measurement_path' => $aerialPaths,
-            'contract_upload_path' => $contractPaths,
-            'file_picture_upload_path' => $filePicturePaths,
-        ]);        
-        
+    
+        $validated['aerial_measurement_path']    = $this->handleMultipleFiles($request, 'aerial_measurement', 'emergency/aerials');
+        $validated['contract_upload_path']       = $this->handleMultipleFiles($request, 'contract_upload', 'emergency/contracts');
+        $validated['file_picture_upload_path']   = $this->handleMultipleFiles($request, 'file_picture_upload', 'emergency/files');
+    
+        $validated['terms_conditions'] = $request->has('terms_conditions');
+        $validated['requirements']     = $request->has('requirements');
+    
+        $emergency = Emergencies::create($validated);     
+    
         $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
-
-        // Crear evento en el calendario
+    
         Calendar::create([
-            'title' => 'Supplement: ' . $validated['job_number_name'],
-            'start' => $validated['date_submitted'],
-            'type' => 'emergency',
+            'title'        => 'Supplement: ' . $validated['job_number_name'],
+            'start'        => $validated['date_submitted'],
+            'type'         => 'emergency',
             'reference_id' => $emergency->id,
-            'color' => '#dc3545', // rojo para emergencias
+            'color'        => '#dc3545',
         ]);
-
+    
         return redirect()->back()->with('success', 'Emergency request submitted successfully.');
-        
     }
+    
+
 
     
     public function form()
@@ -98,10 +78,8 @@ class EmergenciesController extends Controller
     public function edit(Emergencies $emergency)
     {
         $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
-    
         return view('leads.pg.update.editEmerg', compact('emergency', 'teamMembers'));
     }
-    
 
     public function update(Request $request, Emergencies $emergency)
     {
@@ -127,50 +105,52 @@ class EmergenciesController extends Controller
             'file_picture_upload.*' => 'sometimes|file|mimes:pdf,jpg,jpeg,png',
         ]);
 
-        $emergency->fill($validated);
-        $emergency->terms_conditions = $request->has('terms_conditions');
-        $emergency->requirements = $request->has('requirements');
+        // Actualizar campos principales
+    $emergency->fill($validated);
+    $emergency->terms_conditions = $request->has('terms_conditions');
+    $emergency->requirements = $request->has('requirements');
 
-        $emergency->aerial_measurement_path = array_merge(
-            $emergency->aerial_measurement_path ?? [],
-            $this->handleMultipleFiles($request, 'aerial_measurement', 'emergencies/aerial')
-        );
+    // Archivos adjuntos (agregar sin reemplazar los existentes)
+    $emergency->aerial_measurement_path = array_merge(
+        $emergency->aerial_measurement_path ?? [],
+        $this->handleMultipleFiles($request, 'aerial_measurement', 'emergency/aerials')
+    );
 
-        $emergency->contract_upload_path = array_merge(
-            $emergency->contract_upload_path ?? [],
-            $this->handleMultipleFiles($request, 'contract_upload', 'emergencies/contracts')
-        );
+    $emergency->contract_upload_path = array_merge(
+        $emergency->contract_upload_path ?? [],
+        $this->handleMultipleFiles($request, 'contract_upload', 'emergency/contracts')
+    );
 
-        $emergency->file_picture_upload_path = array_merge(
-            $emergency->file_picture_upload_path ?? [],
-            $this->handleMultipleFiles($request, 'file_picture_upload', 'emergencies/files')
-        );
+    $emergency->file_picture_upload_path = array_merge(
+        $emergency->file_picture_upload_path ?? [],
+        $this->handleMultipleFiles($request, 'file_picture_upload', 'emergency/files')
+    );
 
-        $emergency->save();
+    $emergency->save();
 
-        // 🔁 Actualizar los miembros del equipo asignados
-        $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
+    // Actualizar relación muchos a muchos
+    $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
 
-        return redirect()->route('emergency.show', $emergency->id)->with('success', 'Emergency updated successfully.');
-    }
+    return redirect()->route('emergency.show', $emergency->id)->with('success', 'Emergency updated successfully.');
+}
 
     
-    private function handleMultipleFiles(Request $request, string $inputName, string $folder)
+    private function handleMultipleFiles(Request $request, string $key, string $directory): array
     {
-        $storedPaths = [];
+        $result = [];
     
-        if ($request->hasFile($inputName)) {
-            foreach ($request->file($inputName) as $file) {
-                if ($file->isValid()) {
-                    $filename = time() . '_' . $file->getClientOriginalName();
-                    $path = $file->storeAs($folder, $filename, 'public');
-                    $storedPaths[] = $path;
-                }
+        if ($request->hasFile($key)) {
+            foreach ($request->file($key) as $file) {
+                $result[] = [
+                    'path' => $file->store($directory, 'public'),
+                    'name' => $file->getClientOriginalName(),
+                ];
             }
         }
     
-        return $storedPaths;
+        return $result;
     }
+    
     
 
     public function deleteFile(Request $request)
@@ -179,43 +159,43 @@ class EmergenciesController extends Controller
             'emergency_id' => 'required|integer|exists:emergencies,id',
             'file_path' => 'required|string',
         ]);
-
+    
         $emergency = Emergencies::findOrFail($request->emergency_id);
         $filePath = $request->file_path;
-
-        // Tipos de campos donde puede estar el archivo
-        $fields = [
-            'aerial_measurement_path',
-            'contract_upload_path',
-            'file_picture_upload_path',
-        ];
-
+    
+        $fields = ['aerial_measurement_path', 'contract_upload_path', 'file_picture_upload_path'];
         $fileDeleted = false;
-
+    
         foreach ($fields as $field) {
             if (is_array($emergency->$field)) {
                 $files = $emergency->$field;
-
-                // Buscar el archivo y eliminarlo
-                if (($key = array_search($filePath, $files)) !== false) {
+    
+                $filtered = collect($files)->filter(function ($item) use ($filePath) {
+                    if (is_string($item)) {
+                        return $item !== $filePath;
+                    } elseif (is_array($item)) {
+                        return $item['path'] !== $filePath;
+                    }
+                    return true;
+                })->values()->all();
+    
+                if (count($files) !== count($filtered)) {
                     // Borrar físicamente
                     Storage::disk('public')->delete($filePath);
-
-                    // Quitar del array y guardar
-                    unset($files[$key]);
-                    $emergency->$field = array_values($files); // reindexar array
+                    $emergency->$field = $filtered;
                     $fileDeleted = true;
                 }
             }
         }
-
+    
         if ($fileDeleted) {
             $emergency->save();
             return response()->json(['success' => true, 'message' => 'File deleted successfully.']);
-        } else {
-            return response()->json(['success' => false, 'message' => 'File not found in records.'], 404);
         }
+    
+        return response()->json(['success' => false, 'message' => 'File not found in records.'], 404);
     }
+    
     
 
 

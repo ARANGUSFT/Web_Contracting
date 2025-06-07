@@ -77,8 +77,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('/jobs/{job}', [JobRequestController::class, 'update'])->name('jobs.update');
         Route::delete('/jobs/{job}/files/{field}/{file}', [JobRequestController::class, 'deleteFile'])->where('file', '.*')->name('jobs.files.delete');
         Route::delete('/jobs/{job}', [JobRequestController::class, 'destroy'])->name('jobs.destroy');
-
-
+    // Emergency
         Route::post('/emergency', [EmergenciesController::class, 'store'])->name('emergency.store');
         Route::get('/emergency', [EmergenciesController::class, 'form'])->name('emergency.form');
         Route::get('/emergency/{id}', [EmergenciesController::class, 'show'])->name('emergency.show');
@@ -86,8 +85,7 @@ Route::middleware(['auth:web'])->group(function () {
         Route::put('/emergency/{emergency}', [EmergenciesController::class, 'update'])->name('emergency.update');
         Route::delete('/emergency/file/delete', [EmergenciesController::class, 'deleteFile'])->name('emergency.file.delete');
         Route::delete('/emergency/{emergency}', [EmergenciesController::class, 'destroy'])->name('emergency.destroy');
-
-
+        
     // 📅 Calendar
         Route::get('/calendar', fn () => view('leads.pg.calendar'))->name('calendar.view');
         Route::get('/calendar/data', [CalendarController::class, 'calendarData'])->name('calendar.data');

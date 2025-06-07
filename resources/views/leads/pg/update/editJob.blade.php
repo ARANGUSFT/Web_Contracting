@@ -1,6 +1,11 @@
 @extends('layouts.app')
 @section('content')
 
+<a href="{{ route('jobs.show', $job->id) }}" class="btn btn-outline-secondary mb-3">
+    <i class="bi bi-arrow-left me-1"></i> Back to Job Details
+</a>
+
+
 <form action="{{ route('jobs.update', $job->id) }}" method="POST" enctype="multipart/form-data" class="row g-4">
     @csrf
     @method('PUT')
@@ -152,6 +157,28 @@
         </div>
     </div>
 
+    <div class="mb-3">
+        <label class="form-label fw-semibold">Assign Team Members</label>
+        <div class="row">
+            @foreach($teamMembers as $member)
+                <div class="col-md-6">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" 
+                               type="checkbox" 
+                               name="assigned_team_members[]" 
+                               value="{{ $member->id }}"
+                               id="team_member_{{ $member->id }}"
+                               {{ $job->teamMembers->contains($member->id) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="team_member_{{ $member->id }}">
+                            {{ $member->name }}
+                            <small class="text-muted">({{ ucfirst(str_replace('_', ' ', $member->role)) }})</small>
+                        </label>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
 
     {{-- Files --}}
     <div class="col-12"><h3>Files</h3></div>
@@ -215,27 +242,7 @@
         @endif
     </div>
     
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Assign Team Members</label>
-        <div class="row">
-            @foreach($teamMembers as $member)
-                <div class="col-md-6">
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" 
-                               type="checkbox" 
-                               name="assigned_team_members[]" 
-                               value="{{ $member->id }}"
-                               id="team_member_{{ $member->id }}"
-                               {{ $job->teamMembers->contains($member->id) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="team_member_{{ $member->id }}">
-                            {{ $member->name }}
-                            <small class="text-muted">({{ ucfirst(str_replace('_', ' ', $member->role)) }})</small>
-                        </label>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
+   
     
     
     
