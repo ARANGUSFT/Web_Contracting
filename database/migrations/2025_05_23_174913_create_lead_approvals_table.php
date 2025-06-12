@@ -15,6 +15,8 @@ return new class extends Migration
         Schema::create('lead_approvals', function (Blueprint $table) {
             $table->id();
             $table->foreignId('lead_id')->constrained()->onDelete('cascade');
+            // Relación con usuario
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('company_name');
             $table->string('company_representative');
             $table->string('company_phone');

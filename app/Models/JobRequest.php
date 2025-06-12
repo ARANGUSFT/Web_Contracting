@@ -10,6 +10,9 @@ class JobRequest extends Model
     use HasFactory;
 
     protected $fillable = [
+
+        'user_id', 
+
         // General Info
         'install_date_requested',
         'company_name',
@@ -71,8 +74,14 @@ class JobRequest extends Model
     ];
 
     public function teamMembers()
-{
-    return $this->belongsToMany(Team::class, 'job_request_team', 'job_request_id', 'team_id');
-}
+    {
+        return $this->belongsToMany(Team::class, 'job_request_team', 'job_request_id', 'team_id');
+    }
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
 }

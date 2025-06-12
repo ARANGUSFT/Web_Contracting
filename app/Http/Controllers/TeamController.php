@@ -11,9 +11,10 @@ class TeamController extends Controller
 {
     public function index()
     {
-        $teams = Team::all();
+        $teams = Team::where('user_id', auth()->id())->get();
         return view('manageTeam.main', compact('teams'));
     }
+
 
     public function create()
     {

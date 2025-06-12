@@ -55,107 +55,103 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-      const calendarEl = document.getElementById('calendar');
-  
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: 'dayGridMonth',
-          height: "auto",
-          events: @json($events),
-  
-          eventClick: function (info) {
-              const e = info.event;
-              const props = e.extendedProps;
-  
-              if (props.type === 'Lead Approval' && e.url) {
-                  window.location.href = e.url;
-                  info.jsEvent.preventDefault();
-                  return;
-              }
-  
-              document.getElementById('modalEventTitle').textContent = e.title;
-              document.getElementById('modalEventDate').textContent = e.start.toLocaleDateString();
-              document.getElementById('modalEventType').textContent = props.type ?? 'N/A';
-              document.getElementById('modalEventCompany').textContent = props.company ?? 'N/A';
-              document.getElementById('modalEventRep').textContent = props.rep ?? props.email ?? 'N/A';
-              document.getElementById('modalEventCustomer').textContent = props.customer ?? 'N/A';
-              document.getElementById('modalEventAddress').textContent = props.address ?? 'N/A';
-              document.getElementById('modalEventInstructions').textContent = props.special_instructions ?? 'N/A';
-  
-              const materialText = props.materials
-                  ? `Starter: ${props.materials.starter ?? 0}, Hip: ${props.materials.hip ?? 0}, Field: ${props.materials.field ?? 0}, Modified: ${props.materials.modified ?? 0}`
-                  : (props.supplement ?? 'N/A');
-              document.getElementById('modalEventMaterials').textContent = materialText;
-  
-              const teamList = document.getElementById('modalEventTeam');
-              teamList.innerHTML = '';
-              if (props.team?.length) {
-                  props.team.forEach(member => {
-                      teamList.innerHTML += `<li>${member}</li>`;
-                  });
-              } else {
-                  teamList.innerHTML = '<li class="text-muted">No team assigned</li>';
-              }
-  
-              const filesList = document.getElementById('modalEventFiles');
-              filesList.innerHTML = '';
-  
-              const fileGroups = {
-                  'Aerial Measurements': [],
-                  'Material Orders': [],
-                  'Pictures': []
-              };
-  
-              (props.files ?? []).forEach(filePath => {
-                  const path = filePath.toLowerCase();
-                  if (path.includes('aerials')) {
-                      fileGroups['Aerial Measurements'].push(filePath);
-                  } else if (path.includes('materials')) {
-                      fileGroups['Material Orders'].push(filePath);
-                  } else {
-                      fileGroups['Pictures'].push(filePath);
-                  }
-              });
-  
-              Object.entries(fileGroups).forEach(([label, files]) => {
-                  if (!files.length) return;
-  
-                  filesList.innerHTML += `<div class="col-12 mb-2"><strong>${label}</strong></div>`;
-  
-                  files.forEach(filePath => {
-                      const fileName = filePath.split('/').pop();
-                      const ext = fileName.split('.').pop().toLowerCase();
-                      const isImage = ['jpg', 'jpeg', 'png'].includes(ext);
-  
-                      filesList.innerHTML += `
-                          <div class="col-md-4 col-lg-3 mb-3">
-                              <div class="card h-100 shadow-sm">
-                                  ${isImage
-                                      ? `<img src="/storage/${filePath}" class="card-img-top img-thumbnail" alt="${fileName}" style="height:150px;object-fit:cover;">`
-                                      : `<div class="card-body text-center">
-                                          <i class="bi bi-file-earmark-text fs-1 text-secondary mb-2"></i>
-                                          <p class="small text-muted text-truncate" title="${fileName}">${fileName}</p>
-                                        </div>`}
-                                  <div class="card-footer bg-white border-top-0 text-center">
-                                      <a href="/storage/${filePath}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
-                                          <i class="bi bi-eye"></i> View
-                                      </a>
-                                  </div>
-                              </div>
-                          </div>`;
-                  });
-              });
-  
-              if (!props.files || props.files.length === 0) {
-                  filesList.innerHTML = '<div class="col-12 text-muted">No files attached</div>';
-              }
-  
-              new bootstrap.Modal(document.getElementById('eventModal')).show();
-              info.jsEvent.preventDefault();
-          }
-      });
-  
-      calendar.render();
-  });
-  </script>
-  
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('calendar');
+    
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            height: "auto",
+            events: @json($events),
+    
+            eventClick: function (info) {
+                const e = info.event;
+                const props = e.extendedProps;
+    
+                if (props.type === 'Lead Approval' && e.url) {
+                    window.location.href = e.url;
+                    info.jsEvent.preventDefault();
+                    return;
+                }
+    
+                document.getElementById('modalEventTitle').textContent = e.title;
+                document.getElementById('modalEventDate').textContent = e.start.toLocaleDateString();
+                document.getElementById('modalEventType').textContent = props.type ?? 'N/A';
+                document.getElementById('modalEventCompany').textContent = props.company ?? 'N/A';
+                document.getElementById('modalEventRep').textContent = props.rep ?? props.email ?? 'N/A';
+                document.getElementById('modalEventCustomer').textContent = props.customer ?? 'N/A';
+                document.getElementById('modalEventAddress').textContent = props.address ?? 'N/A';
+                document.getElementById('modalEventInstructions').textContent = props.special_instructions ?? 'N/A';
+    
+                const materialText = props.materials
+                    ? `Starter: ${props.materials.starter ?? 0}, Hip: ${props.materials.hip ?? 0}, Field: ${props.materials.field ?? 0}, Modified: ${props.materials.modified ?? 0}`
+                    : (props.supplement ?? 'N/A');
+                document.getElementById('modalEventMaterials').textContent = materialText;
+    
+                const teamList = document.getElementById('modalEventTeam');
+                teamList.innerHTML = '';
+                if (props.team?.length) {
+                    props.team.forEach(member => {
+                        teamList.innerHTML += `<li>${member}</li>`;
+                    });
+                } else {
+                    teamList.innerHTML = '<li class="text-muted">No team assigned</li>';
+                }
+    
+                const filesList = document.getElementById('modalEventFiles');
+                filesList.innerHTML = '';
+    
+                const fileGroups = {};
+    
+                (props.files ?? []).forEach(file => {
+                    const path = typeof file === 'string' ? file : file.path;
+                    const name = typeof file === 'object' && file.name ? file.name : path.split('/').pop();
+                    const label = typeof file === 'object' && file.label ? file.label : 'Other';
+    
+                    if (!fileGroups[label]) fileGroups[label] = [];
+                    fileGroups[label].push({ path, name });
+                });
+    
+                Object.entries(fileGroups).forEach(([label, files]) => {
+                    if (!files.length) return;
+    
+                    filesList.innerHTML += `<div class="col-12 mb-2"><strong>${label}</strong></div>`;
+    
+                    files.forEach(file => {
+                        const fileName = file.name;
+                        const filePath = file.path;
+                        const extMatch = fileName.match(/\.(\w+)$/);
+                        const ext = (extMatch?.[1] || '').toLowerCase();
+                        const isImage = ['jpg', 'jpeg', 'png', 'webp'].includes(ext);
+    
+                        filesList.innerHTML += `
+                            <div class="col-md-4 col-lg-3 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    ${isImage
+                                        ? `<img src="/storage/${filePath}" class="card-img-top img-thumbnail" alt="${fileName}" style="height:150px;object-fit:cover;">`
+                                        : `<div class="card-body text-center">
+                                            <i class="bi bi-file-earmark-text fs-1 text-secondary mb-2"></i>
+                                            <p class="small text-muted text-truncate" title="${fileName}">${fileName}</p>
+                                          </div>`}
+                                    <div class="card-footer bg-white border-top-0 text-center">
+                                        <a href="/storage/${filePath}" target="_blank" class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                });
+    
+                if (!props.files || props.files.length === 0) {
+                    filesList.innerHTML = '<div class="col-12 text-muted">No files attached</div>';
+                }
+    
+                new bootstrap.Modal(document.getElementById('eventModal')).show();
+                info.jsEvent.preventDefault();
+            }
+        });
+    
+        calendar.render();
+    });
+    </script>
+    

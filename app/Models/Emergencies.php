@@ -10,6 +10,7 @@ class Emergencies extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id', 
         'date_submitted',
         'type_of_supplement',
         'company_name',
@@ -39,6 +40,13 @@ class Emergencies extends Model
     {
         return $this->belongsToMany(Team::class, 'emergency_team', 'emergency_id', 'team_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    
     
 
     

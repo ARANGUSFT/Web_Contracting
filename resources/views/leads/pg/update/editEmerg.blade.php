@@ -111,80 +111,81 @@
     {{-- Campo oculto para archivos a eliminar --}}
     <input type="hidden" name="files_to_delete_json" id="filesToDeleteInput">
 
-    {{-- Aerial Measurements --}}
-    <div class="mb-3">
+   {{-- Aerial Measurements --}}
+<div class="mb-3">
     <label>Aerial Measurements</label>
-        <input type="file" name="aerial_measurement[]" multiple class="form-control">
-        @if (!empty($emergency->aerial_measurement_path) && is_array($emergency->aerial_measurement_path))
-            <ul class="list-group mt-2">
-                @foreach ($emergency->aerial_measurement_path as $file)
-                    @php
-                        if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
-                        $filePath = is_array($file) ? $file['path'] : trim($file, '[]"');
-                        $fileName = is_array($file) ? $file['name'] : basename($filePath);
-                    @endphp
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
-                        <button type="button"
-                                class="btn btn-danger btn-sm"
-                                onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
-                            Delete
-                        </button>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-    </div>
+    <input type="file" name="aerial_measurement[]" multiple class="form-control">
+    @if (!empty($emergency->aerial_measurement_path) && is_array($emergency->aerial_measurement_path))
+        <ul class="list-group mt-2">
+            @foreach ($emergency->aerial_measurement_path as $file)
+                @php
+                    if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
+                    $filePath = is_array($file) ? ($file['path'] ?? '') : trim($file, '[]"');
+                    $fileName = is_array($file) ? ($file['name'] ?? basename($filePath)) : basename($filePath);
+                @endphp
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
+                        Delete
+                    </button>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</div>
 
-    {{-- Contract Upload --}}
-    <div class="mb-3">
-        <label>Contract Upload</label>
-        <input type="file" name="contract_upload[]" multiple class="form-control">
-        @if (!empty($emergency->contract_upload_path) && is_array($emergency->contract_upload_path))
-            <ul class="list-group mt-2">
-                @foreach ($emergency->contract_upload_path as $file)
-                    @php
-                        if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
-                        $filePath = is_array($file) ? $file['path'] : trim($file, '[]"');
-                        $fileName = is_array($file) ? $file['name'] : basename($filePath);
-                    @endphp
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
-                        <button type="button"
-                                class="btn btn-danger btn-sm"
-                                onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
-                            Delete
-                        </button>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-    </div>
+{{-- Contract Upload --}}
+<div class="mb-3">
+    <label>Contract Upload</label>
+    <input type="file" name="contract_upload[]" multiple class="form-control">
+    @if (!empty($emergency->contract_upload_path) && is_array($emergency->contract_upload_path))
+        <ul class="list-group mt-2">
+            @foreach ($emergency->contract_upload_path as $file)
+                @php
+                    if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
+                    $filePath = is_array($file) ? ($file['path'] ?? '') : trim($file, '[]"');
+                    $fileName = is_array($file) ? ($file['name'] ?? basename($filePath)) : basename($filePath);
+                @endphp
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
+                        Delete
+                    </button>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</div>
 
-    {{-- File Pictures / Attachments --}}
-    <div class="mb-3">
-        <label>File Pictures / Attachments</label>
-        <input type="file" name="file_picture_upload[]" multiple class="form-control">
-        @if (!empty($emergency->file_picture_upload_path) && is_array($emergency->file_picture_upload_path))
-            <ul class="list-group mt-2">
-                @foreach ($emergency->file_picture_upload_path as $file)
-                    @php
-                        if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
-                        $filePath = is_array($file) ? $file['path'] : trim($file, '[]"');
-                        $fileName = is_array($file) ? $file['name'] : basename($filePath);
-                    @endphp
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
-                        <button type="button"
-                                class="btn btn-danger btn-sm"
-                                onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
-                            Delete
-                        </button>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-    </div>
+{{-- File Pictures / Attachments --}}
+<div class="mb-3">
+    <label>File Pictures / Attachments</label>
+    <input type="file" name="file_picture_upload[]" multiple class="form-control">
+    @if (!empty($emergency->file_picture_upload_path) && is_array($emergency->file_picture_upload_path))
+        <ul class="list-group mt-2">
+            @foreach ($emergency->file_picture_upload_path as $file)
+                @php
+                    if (is_string($file) && Str::startsWith($file, '{')) $file = json_decode($file, true);
+                    $filePath = is_array($file) ? ($file['path'] ?? '') : trim($file, '[]"');
+                    $fileName = is_array($file) ? ($file['name'] ?? basename($filePath)) : basename($filePath);
+                @endphp
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{{ asset('storage/' . $filePath) }}" target="_blank">{{ $fileName }}</a>
+                    <button type="button"
+                            class="btn btn-danger btn-sm"
+                            onclick="deleteFile('{{ $filePath }}', {{ $emergency->id }}, this)">
+                        Delete
+                    </button>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</div>
+
 
         <div class="mt-4">
             <button type="submit" class="btn btn-success">

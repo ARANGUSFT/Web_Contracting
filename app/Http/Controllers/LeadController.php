@@ -126,6 +126,7 @@ class LeadController extends Controller
             'lead_phone' => $request->lead_phone,
             'installation_date' => $request->installation_date,
             'extra_info' => $request->extra_info,
+            'user_id' => auth()->id(), // ✅ Aquí se asocia el usuario autenticado
         ]);
     
         $lead->approved_data_submitted = true;
@@ -134,6 +135,7 @@ class LeadController extends Controller
     
         return back()->with('success', 'Lead approval data submitted successfully and status updated to Completed.');
     }
+    
     
 
 

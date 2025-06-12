@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('job_requests', function (Blueprint $table) {
             $table->id();
 
+            // Relación con usuario
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
             // General Info
             $table->date('install_date_requested');
             $table->string('company_name');

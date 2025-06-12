@@ -11,60 +11,56 @@ use App\Models\Lead_approvals;
 class CalendarController extends Controller
 {
     public function calendarData()
-    {
-        // 🔹 Inicializar colecciones vacías
-        $jobEvents = collect();
-        $emergencyEvents = collect();
-        $approvalEvents = collect();
+{
+    $userId = auth()->id(); // ✅ Obtener ID del usuario autenticado
 
-        // 🔹 Eventos de Job Requests
-        if (JobRequest::count()) {
-            $jobEvents = JobRequest::all()->map(function ($job) {
-                return [
-                    'title' => $job->job_number_name,
-                    'start' => Carbon::parse($job->install_date_requested)->toDateString(),
-                    'url'   => route('jobs.show', $job->id),
-                    'type'  => 'Job Request',
-                    'color' => '#198754', // Verde
-                ];
-            });
-        }
+    // 🔹 Eventos de Job Requests del usuario
+    $jobEvents = JobRequest::where('user_id', $userId)->get()->map(function ($job) {
+        return [
+            'title' => $job->job_number_name,
+            'start' => Carbon::parse($job->install_date_requested)->toDateString(),
+            'url'   => route('jobs.show', $job->id),
+            'type'  => 'Job Request',
+            'color' => '#198754', // Verde
+        ];
+    });
 
-        // 🔹 Eventos de Emergencias
-        if (Emergencies::count()) {
-            $emergencyEvents = Emergencies::all()->map(function ($e) {
-                return [
-                    'title' => 'Emergency - ' . $e->type_of_supplement,
-                    'start' => Carbon::parse($e->date_submitted)->toDateString(),
-                    'url'   => route('emergency.show', $e->id),
-                    'type'  => 'Emergency',
-                    'color' => '#e30a0a', // Rojo
-                ];
-            });
-        }
+    // 🔹 Eventos de Emergencias del usuario
+    $emergencyEvents = Emergencies::where('user_id', $userId)->get()->map(function ($e) {
+        return [
+            'title' => 'Emergency - ' . $e->type_of_supplement,
+            'start' => Carbon::parse($e->date_submitted)->toDateString(),
+            'url'   => route('emergency.show', $e->id),
+            'type'  => 'Emergency',
+            'color' => '#e30a0a', // Rojo
+        ];
+    });
 
-        // 🔹 Eventos de Leads Aprobados
-        if (Lead_approvals::count()) {
-            $approvalEvents = Lead_approvals::all()->map(function ($approval) {
-                return [
-                    'title' => 'Approved Lead - ' . $approval->lead_name,
-                    'start' => Carbon::parse($approval->installation_date)->toDateString(),
-                    'url'   => route('leads.show', $approval->lead_id),
-                    'type'  => 'Lead Approval',
-                    'color' => '#670ebb', // Morado
-                ];
-            });
-        }
+    // 🔹 Eventos de Leads Aprobados (sin filtrar por usuario)
+    $approvalEvents = Lead_approvals::where('user_id', $userId)->get()->map(function ($approval) {
+        return [
+            'title' => 'Approved Lead - ' . $approval->lead_name,
+            'start' => Carbon::parse($approval->installation_date)->toDateString(),
+            'url'   => route('leads.show', $approval->lead_id),
+            'type'  => 'Lead Approval',
+            'color' => '#670ebb', // Morado
+        ];
+    });
 
-        // 🔹 Combinar todos los eventos
-        $merged = $jobEvents->merge($emergencyEvents)->merge($approvalEvents);
+    // 🔹 Combinar todos los eventos en una colección
+    $merged = collect()
+        ->merge($jobEvents)
+        ->merge($emergencyEvents)
+        ->merge($approvalEvents);
 
-        // 🔹 Devolver como JSON
-        return response()->json([
-            'events' => $merged->values(),
-            'job_count' => $jobEvents->count(),
-            'emergency_count' => $emergencyEvents->count(),
-            'lead_approval_count' => $approvalEvents->count(),
-        ]);
-    }
+    // 🔹 Devolver como JSON
+    return response()->json([
+        'events' => $merged->values(),
+        'job_count' => $jobEvents->count(),
+        'emergency_count' => $emergencyEvents->count(),
+        'lead_approval_count' => $approvalEvents->count(),
+    ]);
+}
+
+    
 }

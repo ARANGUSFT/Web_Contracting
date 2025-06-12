@@ -119,14 +119,23 @@ class ManagerDashboardController extends Controller
         $jobs = $user->jobRequests()->with('teamMembers')->get();
         foreach ($jobs as $job) {
             $files = collect([
-                $job->aerial_measurement ?? [],
-                $job->material_order ?? [],
-                $job->file_upload ?? [],
+                ['label' => 'Aerial Measurements', 'data' => $job->aerial_measurement ?? []],
+                ['label' => 'Material Orders', 'data' => $job->material_order ?? []],
+                ['label' => 'Pictures', 'data' => $job->file_upload ?? []],
             ])
-            ->flatten()
-            ->filter()
-            ->values()
-            ->all();
+            ->flatMap(function ($group) {
+                $items = is_array($group['data']) ? $group['data'] : json_decode($group['data'], true) ?? [];
+                return collect($items)->map(function ($file) use ($group) {
+                    $path = is_array($file) ? $file['path'] : trim($file, '[]"');
+                    $name = is_array($file) ? ($file['original_name'] ?? basename($path)) : basename($path);
+                    return [
+                        'path' => $path,
+                        'name' => $name,
+                        'label' => $group['label']
+                    ];
+                });
+            })->all();
+            
     
             $events[] = [
                 'id' => $job->id,
@@ -155,17 +164,26 @@ class ManagerDashboardController extends Controller
         }
     
         // EMERGENCIES
-        $emergencies = $user->emergencies()->with('teamMembers')->get();
+        $emergencies = $user->Emergencies()->with('teamMembers')->get();
         foreach ($emergencies as $emergency) {
             $files = collect([
-                $job->aerial_measurement ?? [],
-                $job->material_order ?? [],
-                $job->file_upload ?? [],
+                ['label' => 'Aerial Measurements', 'data' => $emergency->aerial_measurement_path ?? []],
+                ['label' => 'Contracts', 'data' => $emergency->contract_upload_path ?? []],
+                ['label' => 'Pictures', 'data' => $emergency->file_picture_upload_path ?? []],
             ])
-            ->flatten()
-            ->filter()
-            ->values()
-            ->all();
+            ->flatMap(function ($group) {
+                $items = is_array($group['data']) ? $group['data'] : json_decode($group['data'], true) ?? [];
+                return collect($items)->map(function ($file) use ($group) {
+                    $path = is_array($file) ? $file['path'] : trim($file, '[]"');
+                    $name = is_array($file) ? ($file['original_name'] ?? basename($path)) : basename($path);
+                    return [
+                        'path' => $path,
+                        'name' => $name,
+                        'label' => $group['label']
+                    ];
+                });
+            })->all();
+            
     
             $events[] = [
                 'id' => $emergency->id,

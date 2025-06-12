@@ -13,6 +13,7 @@ class lead_approvals extends Model
 
     protected $fillable = [
         'lead_id',
+        'user_id', 
         'company_name',
         'company_representative',
         'company_phone',

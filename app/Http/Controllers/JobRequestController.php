@@ -82,6 +82,11 @@ class JobRequestController extends Controller
         $validated['material_verification']    = $request->has('material_verification');
         $validated['stop_work_request']        = $request->has('stop_work_request');
         $validated['documentationattachment']  = $request->has('documentationattachment');
+
+
+        
+        // Asociar al usuario autenticado
+        $validated['user_id'] = auth()->id();
     
         // Guardar el job y asignar team members
         try {

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('emergencies', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Asociación con usuarios
             $table->date('date_submitted');
             $table->string('type_of_supplement');
             $table->string('company_name');
