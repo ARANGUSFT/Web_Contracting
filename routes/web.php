@@ -1,5 +1,6 @@
 <?php
-
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Team\ProfileTeamController;
 use App\Http\Controllers\Auth\TeamLoginController;
@@ -59,7 +60,14 @@ Route::get('/leads/{lead_id}/chat', function ($lead_id) {
 })->name('lead.images.gallery')->middleware('auth');
 
 
+Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')->group(function () {
+    Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
+    Route::resource('users', \App\Http\Controllers\AdminUserController::class);
+});
 
+Route::get('/superadmin/login', [AdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
+Route::post('/superadmin/login', [AdminLoginController::class, 'login']);
+Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name('superadmin.logout');
 
 
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")

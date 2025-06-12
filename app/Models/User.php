@@ -32,6 +32,8 @@ class User extends Authenticatable
         'years_experience',
         'password',
         'company_documents',
+        'is_admin', // ✅ Necesario
+
 
     ];
     
@@ -57,6 +59,8 @@ class User extends Authenticatable
         'states_you_can_work' => 'array',
         'all_states' => 'boolean',
         'company_documents' => 'array',
+        'is_admin' => 'boolean', // ✅ Importante para validación de acceso
+
 
     ];
 
