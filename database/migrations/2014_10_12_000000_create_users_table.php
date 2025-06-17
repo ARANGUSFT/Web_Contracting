@@ -35,6 +35,7 @@ return new class extends Migration
             // Login Info
             $table->string('password');
             $table->boolean('is_admin')->default(false); // 🔑 Para acceso al panel
+            $table->boolean('is_active')->default(true); // Estado activo/inactivo del usuario
             $table->rememberToken();
             $table->timestamps();
         });

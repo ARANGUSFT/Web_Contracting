@@ -61,9 +61,24 @@ Route::get('/leads/{lead_id}/chat', function ($lead_id) {
 
 
 Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')->group(function () {
+
     Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
-    Route::resource('users', \App\Http\Controllers\AdminUserController::class);
+    // Rutas personalizadas con el mismo controlador
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    // Nueva ruta usando el mismo controlador
+    Route::get('/contractors', [AdminUserController::class, 'contractors'])->name('users.contractors');
+    Route::get('/contractors/{user}/edit', [AdminUserController::class, 'editContractors'])->name('contractors.edit');
+    Route::put('/contractors/{user}', [AdminUserController::class, 'updateContractors'])->name('contractors.update');
+    Route::delete('/contractors/{user}/documents/{index}', [AdminUserController::class, 'deleteContractorDocument'])->name('contractors.documents.delete');
+    Route::patch('/contractors/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('contractors.toggle-active');
+    Route::delete('/contractors/{user}', [AdminUserController::class, 'destroyContractors'])->name('contractors.destroy');
 });
+
 
 Route::get('/superadmin/login', [AdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
 Route::post('/superadmin/login', [AdminLoginController::class, 'login']);

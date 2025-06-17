@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel | Contracting Alliance Inc.</title>
+    <title>Admin Panel | @yield('title')</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         tailwind.config = {
+            important: true,
             theme: {
                 extend: {
                     colors: {
@@ -25,8 +34,13 @@
             }
         }
     </script>
+    
+    <!-- Additional CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    @stack('styles')
 </head>
 <body class="bg-gray-50 min-h-screen flex font-sans">
     <!-- Sidebar -->
@@ -45,10 +59,11 @@
             <!-- Navigation -->
             <div class="flex-1 overflow-y-auto py-4">
                 <nav class="px-2 space-y-1">
-                    <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
+                    <a href="{{ route('superadmin.users.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-tachometer-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Dashboard
                     </a>
+                    
                     <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-users mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Groups
