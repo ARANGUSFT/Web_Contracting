@@ -4,7 +4,7 @@
 
 @section('actions')
     <div class="flex space-x-2">
-        <a href="{{ URL::previous() }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
+        <a href="{{ route('superadmin.users.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary">
             <i class="fas fa-arrow-left mr-2"></i> Back
         </a>
   
@@ -120,4 +120,23 @@
 
     </div>
 
+    <script>
+        function confirmDeleteContractor() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'This contractor will be permanently deleted.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteContractorForm').submit();
+                }
+            });
+        }
+    </script>
+    
 @endsection

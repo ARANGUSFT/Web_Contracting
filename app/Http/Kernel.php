@@ -36,6 +36,8 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\CheckUserIsActive::class, // ✅ Agrégalo aquí
+
         ],
 
         'api' => [
@@ -67,6 +69,7 @@ class Kernel extends HttpKernel
 
         'team.active' => \App\Http\Middleware\CheckTeamIsActive::class,
         'is-admin' => \App\Http\Middleware\IsAdmin::class,
+        
 
 
     ];
