@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Subcontractors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -17,7 +18,7 @@ class AdminUserController extends Controller
     public function index()
     {
         $contractors = User::where('is_admin', false)->count();
-        $subcontractors = 0; // puedes definir una lógica si necesitas más adelante
+        $subcontractors = Subcontractors::count();
         // $offers = Quote::count(); 
         return view('admin.users.index', compact('contractors', 'subcontractors'));
     }
@@ -53,14 +54,65 @@ class AdminUserController extends Controller
 // ==============================
 // 🔹 Módulo: Contractors
 // ==============================
-
-    public function contractors()
+    public function contractors(Request $request)
     {
-        $users = User::where('is_admin', false)->get();
-        $contractors = User::where('is_admin', false)->count();
+        $query = User::where('is_admin', false);
+        
+        // Aplicar filtros
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+        
+        if ($request->filled('status')) {
+            $status = $request->input('status') === 'active';
+            $query->where('is_active', $status);
+        }
+        
+        // Filtro por estados (usando states_you_can_work que es un array)
+        if ($request->filled('state')) {
+            $query->whereJsonContains('states_you_can_work', $request->input('state'));
+        }
+        
+        // Filtro por años de experiencia
+        if ($request->filled('experience')) {
+            $query->where('years_experience', '>=', $request->input('experience'));
+        }
+        
+        // Filtro por tipo de techo (residencial/comercial)
+        if ($request->filled('roof_type')) {
+            $roofType = $request->input('roof_type');
+            if ($roofType === 'residential') {
+                $query->whereNotNull('residential_roof_types');
+            } elseif ($roofType === 'commercial') {
+                $query->whereNotNull('commercial_roof_types');
+            }
+        }
+        
+        $users = $query->latest()->paginate(10);
+        
+        // Obtener estados únicos para el dropdown de filtro
+        $states = User::where('is_admin', false)
+            ->whereNotNull('states_you_can_work')
+            ->get()
+            ->flatMap(function($user) {
+                return $user->states_you_can_work ?? [];
+            })
+            ->unique()
+            ->sort()
+            ->values();
+            
+        $contractors = $users->total();
 
-        return view('admin.contractors.list', compact('users', 'contractors'));
+        return view('admin.contractors.list', compact('users', 'contractors', 'states'));
     }
+
 
     public function editContractors(User $user)
     {
@@ -97,9 +149,6 @@ class AdminUserController extends Controller
             'company_name' => 'nullable|string|max:255',
             'years_experience' => 'nullable|integer|min:0',
             'language' => 'nullable|in:English,Spanish',
-            // 'account_status' => 'required|in:active,pending,suspended',
-            // 'verification_status' => 'required|in:unverified,pending,verified',
-            // 'account_type' => 'required|in:basic,premium,vip',
             'residential_roof_types' => 'nullable|array',
             'commercial_roof_types' => 'nullable|array',
             'states_you_can_work' => 'nullable|array',

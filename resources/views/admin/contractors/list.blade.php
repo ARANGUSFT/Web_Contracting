@@ -45,6 +45,36 @@
             </div>
         @endif
 
+        <form method="GET" action="{{ route('superadmin.users.contractors') }}" class="px-6 py-4 bg-gray-100 flex flex-wrap gap-4 items-end rounded-t-xl">
+            <!-- Campo de búsqueda general -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" 
+                       class="form-input mt-1 block w-52 rounded-md border-gray-300 shadow-sm" 
+                       placeholder="Name, Email or Phone">
+            </div>
+        
+            <!-- Filtro por estado (activo/inactivo) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" class="form-select mt-1 block w-40 rounded-md border-gray-300 shadow-sm">
+                    <option value="">All</option>
+                    <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                    <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                </select>
+            </div>
+        
+        
+            <!-- Botones de acción -->
+            <div class="flex items-center gap-2">
+                <button type="submit" class="btn btn-secondary px-4 py-2 text-sm">Filter</button>
+                <a href="{{ route('superadmin.users.contractors') }}" class="btn btn-light px-4 py-2 text-sm">Reset</a>
+            </div>
+        </form>
+        
+        
+
+        
         <!-- Table -->
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">

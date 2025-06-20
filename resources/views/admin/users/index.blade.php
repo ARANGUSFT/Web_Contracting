@@ -20,7 +20,7 @@
             </div>
             <div class="border-t border-gray-200 pt-4">
                 <a href="{{ route('superadmin.users.contractors') }}" class="inline-flex items-center text-secondary hover:text-accent">
-                    <i class="fas fa-eye mr-2"></i> View
+                    <i class="fas fa-eye mr-2"></i> View 
                 </a>
                 <span class="ml-4 text-gray-500">
                     <i class="fas fa-user-tie mr-1"></i> 
@@ -33,17 +33,17 @@
     <!-- Subconnotable Card -->
     <div class="bg-white rounded-xl shadow overflow-hidden">
         <div class="bg-primary px-6 py-4">
-            <h3 class="text-lg font-medium text-white">SubContractor</h3>
+            <h3 class="text-lg font-medium text-white">Crew Manager</h3>
         </div>
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
-                <span class="text-4xl font-bold text-gray-800">65</span>
+                <span class="text-4xl font-bold text-gray-800">{{ $subcontractors }}</span>
                 <span class="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                     <i class="fas fa-users mr-1"></i> Group
                 </span>
             </div>
             <div class="border-t border-gray-200 pt-4">
-                <a href="#" class="inline-flex items-center text-secondary hover:text-accent">
+                <a href="{{ route('superadmin.subcontractors.index') }}" class="inline-flex items-center text-secondary hover:text-accent">
                     <i class="fas fa-eye mr-2"></i> View
                 </a>
                 <span class="ml-4 text-gray-500">

@@ -13,6 +13,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+
     <script>
         tailwind.config = {
             important: true,
@@ -39,6 +40,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     
     @stack('styles')
 </head>
@@ -66,7 +68,7 @@
                     
                     <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-users mr-3 text-gray-400 group-hover:text-secondary"></i>
-                        Groups
+                        Crew
                     </a>
                     <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-images mr-3 text-gray-400 group-hover:text-secondary"></i>

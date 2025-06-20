@@ -1,6 +1,11 @@
 <?php
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\Auth\AdminLoginController;
+use App\Http\Controllers\SubcontractorsController;
+
+
+
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Team\ProfileTeamController;
 use App\Http\Controllers\Auth\TeamLoginController;
@@ -28,17 +33,7 @@ use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
-use App\Http\Controllers\CalendarAllController;
 
-
-
-
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
 
 // Página de inicio
 Route::get('/', function () {
@@ -60,6 +55,11 @@ Route::get('/leads/{lead_id}/chat', function ($lead_id) {
 })->name('lead.images.gallery')->middleware('auth');
 
 
+Route::get('/superadmin/login', [AdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
+Route::post('/superadmin/login', [AdminLoginController::class, 'login']);
+Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name('superadmin.logout');
+
+
 Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')->group(function () {
 
     Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
@@ -77,12 +77,23 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::delete('/contractors/{user}/documents/{index}', [AdminUserController::class, 'deleteContractorDocument'])->name('contractors.documents.delete');
     Route::patch('/contractors/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('contractors.toggle-active');
     Route::delete('/contractors/{user}', [AdminUserController::class, 'destroyContractors'])->name('contractors.destroy');
+    Route::get('/contractors/filter', [AdminUserController::class, 'filter'])->name('contractors.filter');
+
+
+
+    // Subcontractors
+    Route::get('/subcontractors', [SubcontractorsController::class, 'index'])->name('subcontractors.index');
+    Route::get('/subcontractors/create', [SubcontractorsController::class, 'create'])->name('subcontractors.create');
+    Route::post('/subcontractors', [SubcontractorsController::class, 'store'])->name('subcontractors.store');
+    Route::get('/subcontractors/{subcontractor}/edit', [SubcontractorsController::class, 'edit'])->name('subcontractors.edit');
+    Route::put('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'update'])->name('subcontractors.update');
+    Route::delete('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'destroy'])->name('subcontractors.destroy');
+
+
 });
 
 
-Route::get('/superadmin/login', [AdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
-Route::post('/superadmin/login', [AdminLoginController::class, 'login']);
-Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name('superadmin.logout');
+
 
 
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")
@@ -201,7 +212,6 @@ Route::prefix('seller')->middleware('auth:team')->group(function () {
     Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('seller.profile.password.update');
 });
 
-
 // 🔹 Panel de Invitados (guest)
 Route::prefix('guest')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [GuestDashboardController::class, 'index'])->name('guest.dashboard');
@@ -250,7 +260,6 @@ Route::prefix('project')->middleware(['auth:team', 'team.active'])->group(functi
     Route::put('/profile', [ProfileTeamController::class, 'update'])->name('project.profile.update');
     Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('project.profile.password.update');
 });
-
 
 // 🔹 Panel de Company Admin
 Route::prefix('admin')->middleware(['auth:team', 'team.active'])->group(function () {
