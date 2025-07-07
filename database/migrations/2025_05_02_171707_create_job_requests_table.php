@@ -16,6 +16,7 @@ return new class extends Migration
 
             // Relación con usuario
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('crew_id')->nullable()->constrained()->onDelete('set null');
 
             // General Info
             $table->date('install_date_requested');

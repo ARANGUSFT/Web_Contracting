@@ -25,10 +25,9 @@ class User extends Authenticatable
         'language',
         'profile_photo',
         'company_name',
-        'residential_roof_types',
-        'commercial_roof_types',
-        'states_you_can_work',
-        'all_states',
+
+  
+        
         'years_experience',
         'password',
         'company_documents',

@@ -13,8 +13,14 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('subcontractors:check-expiration')->daily();
+
     }
 
+
+    protected $commands = [
+        \App\Console\Commands\DeactivateExpiredSubcontractors::class,
+    ];
     /**
      * Register the commands for the application.
      */
@@ -24,4 +30,6 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+
+    
 }

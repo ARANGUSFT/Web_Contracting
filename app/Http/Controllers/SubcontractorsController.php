@@ -58,15 +58,36 @@ class SubcontractorsController extends Controller
             'phone' => 'nullable|string|max:255',
             'state' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
+    
+            // Nuevos campos
+            'residential_roof_types' => 'nullable|array',
+            'residential_roof_types.*' => 'string|max:255',
+    
+            'commercial_roof_types' => 'nullable|array',
+            'commercial_roof_types.*' => 'string|max:255',
+    
+            'states_you_can_work' => 'nullable|array',
+            'states_you_can_work.*' => 'string|max:255',
+    
+            'all_states' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
         ]);
-
-        $validated['password'] = Hash::make($request->password);
-        $validated['is_active'] = $request->boolean('is_active');
-
+    
+        // Campos booleanos y arrays
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['is_active'] = $request->has('is_active');
+        $validated['all_states'] = $request->boolean('all_states');
+        $validated['residential_roof_types'] = $request->input('residential_roof_types', []);
+        $validated['commercial_roof_types'] = $request->input('commercial_roof_types', []);
+        $validated['states_you_can_work'] = $request->input('states_you_can_work', []);
+    
+        // Crear
         Subcontractors::create($validated);
-
+    
         return redirect()->route('superadmin.subcontractors.index')->with('success', 'Subcontractor created successfully.');
     }
+    
+    
 
     public function edit(Subcontractors $subcontractor)
     {
@@ -83,20 +104,39 @@ class SubcontractorsController extends Controller
             'phone' => 'nullable|string|max:255',
             'state' => 'required|string|max:255',
             'password' => 'nullable|string|min:6|confirmed',
+    
+            // Nuevos campos
+            'residential_roof_types' => 'nullable|array',
+            'residential_roof_types.*' => 'string|max:255',
+    
+            'commercial_roof_types' => 'nullable|array',
+            'commercial_roof_types.*' => 'string|max:255',
+    
+            'states_you_can_work' => 'nullable|array',
+            'states_you_can_work.*' => 'string|max:255',
+    
+            'all_states' => 'nullable|boolean',
+            'is_active' => 'nullable|boolean',
         ]);
-        
+    
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($request->password);
         } else {
             unset($validated['password']);
         }
-        
-        $validated['is_active'] = $request->has('is_active');
-
+    
+        $validated['is_active'] = $request->boolean('is_active');
+        $validated['all_states'] = $request->boolean('all_states');
+    
+        $validated['residential_roof_types'] = $request->input('residential_roof_types', []);
+        $validated['commercial_roof_types'] = $request->input('commercial_roof_types', []);
+        $validated['states_you_can_work'] = $request->input('states_you_can_work', []);
+    
         $subcontractor->update($validated);
-
+    
         return redirect()->route('superadmin.subcontractors.index')->with('success', 'Subcontractor updated successfully.');
     }
+    
 
     public function destroy(Subcontractors $subcontractor)
     {

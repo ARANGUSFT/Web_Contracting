@@ -26,10 +26,7 @@ return new class extends Migration
             // Company Info
             $table->string('company_name')->nullable();
             $table->string('years_experience')->nullable();
-            $table->json('residential_roof_types')->nullable();
-            $table->json('commercial_roof_types')->nullable();
-            $table->json('states_you_can_work')->nullable();
-            $table->boolean('all_states')->default(false);
+      
             $table->json('company_documents')->nullable();
 
             // Login Info

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Calendar;
+use App\Models\Offers;
 use App\Models\Emergencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -11,56 +12,59 @@ use App\Models\Team;
 
 class EmergenciesController extends Controller
 {
+   
+
     public function store(Request $request)
-{
-    if (!auth()->check()) {
-        return redirect()->back()->withErrors(['error' => 'Debe iniciar sesión para enviar la solicitud.']);
+    {
+        if (!auth()->check()) {
+            return redirect()->back()->withErrors(['error' => 'Debe iniciar sesión para enviar la solicitud.']);
+        }
+
+        $validated = $request->validate([
+            'date_submitted' => 'required|date',
+            'type_of_supplement' => 'required|string',
+            'company_name' => 'required|string',
+            'company_contact_email' => 'required|email',
+            'job_number_name' => 'required|string',
+            'job_address' => 'required|string',
+            'job_address_line2' => 'nullable|string',
+            'job_city' => 'required|string',
+            'job_state' => 'required|string',
+            'job_zip_code' => 'required|string',
+            'terms_conditions' => 'accepted',
+            'requirements' => 'accepted',
+            'aerial_measurement.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
+            'contract_upload.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
+            'file_picture_upload.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
+            'assigned_team_members' => 'nullable|array',
+            'assigned_team_members.*' => 'exists:team,id',
+        ]);
+
+        $validated['aerial_measurement_path']    = $this->handleMultipleFiles($request, 'aerial_measurement', 'emergency/aerials');
+        $validated['contract_upload_path']       = $this->handleMultipleFiles($request, 'contract_upload', 'emergency/contracts');
+        $validated['file_picture_upload_path']   = $this->handleMultipleFiles($request, 'file_picture_upload', 'emergency/files');
+
+        $validated['terms_conditions'] = $request->has('terms_conditions');
+        $validated['requirements']     = $request->has('requirements');
+
+        
+        $validated['user_id'] = auth()->id();
+
+        $emergency = Emergencies::create($validated);     
+
+        $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
+
+        Calendar::create([
+            'title'        => 'Supplement: ' . $validated['job_number_name'],
+            'start'        => $validated['date_submitted'],
+            'type'         => 'emergency',
+            'reference_id' => $emergency->id,
+            'color'        => '#dc3545',
+        ]);
+
+
+        return redirect()->back()->with('success', 'Emergency request submitted successfully.');
     }
-
-    $validated = $request->validate([
-        'date_submitted' => 'required|date',
-        'type_of_supplement' => 'required|string',
-        'company_name' => 'required|string',
-        'company_contact_email' => 'required|email',
-        'job_number_name' => 'required|string',
-        'job_address' => 'required|string',
-        'job_address_line2' => 'nullable|string',
-        'job_city' => 'required|string',
-        'job_state' => 'required|string',
-        'job_zip_code' => 'required|string',
-        'terms_conditions' => 'accepted',
-        'requirements' => 'accepted',
-        'aerial_measurement.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
-        'contract_upload.*' => 'required|file|mimes:pdf,jpg,jpeg,png',
-        'file_picture_upload.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
-        'assigned_team_members' => 'nullable|array',
-        'assigned_team_members.*' => 'exists:team,id',
-    ]);
-
-    $validated['aerial_measurement_path']    = $this->handleMultipleFiles($request, 'aerial_measurement', 'emergency/aerials');
-    $validated['contract_upload_path']       = $this->handleMultipleFiles($request, 'contract_upload', 'emergency/contracts');
-    $validated['file_picture_upload_path']   = $this->handleMultipleFiles($request, 'file_picture_upload', 'emergency/files');
-
-    $validated['terms_conditions'] = $request->has('terms_conditions');
-    $validated['requirements']     = $request->has('requirements');
-
-    
-    $validated['user_id'] = auth()->id();
-
-    $emergency = Emergencies::create($validated);     
-
-    $emergency->teamMembers()->sync($request->input('assigned_team_members', []));
-
-    Calendar::create([
-        'title'        => 'Supplement: ' . $validated['job_number_name'],
-        'start'        => $validated['date_submitted'],
-        'type'         => 'emergency',
-        'reference_id' => $emergency->id,
-        'color'        => '#dc3545',
-    ]);
-
-    return redirect()->back()->with('success', 'Emergency request submitted successfully.');
-}
 
 
     public function form()

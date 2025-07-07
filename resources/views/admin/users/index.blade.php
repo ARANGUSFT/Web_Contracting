@@ -66,7 +66,7 @@
                 </span>
             </div>
             <div class="border-t border-gray-200 pt-4">
-                <a href="#" class="inline-flex items-center text-secondary hover:text-accent">
+                <a href="{{ route('superadmin.calendar.index') }}" class="inline-flex items-center text-secondary hover:text-accent">
                     <i class="fas fa-eye mr-2"></i> View
                 </a>
                 <span class="ml-4 text-gray-500">

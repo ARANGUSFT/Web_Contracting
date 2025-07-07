@@ -12,6 +12,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
 
 
     <script>
@@ -66,7 +67,7 @@
                         Dashboard
                     </a>
                     
-                    <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
+                    <a href="{{ route('superadmin.crew.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-users mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Crew
                     </a>
@@ -74,7 +75,7 @@
                         <i class="fas fa-images mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Photos
                     </a>
-                    <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
+                    <a href="{{ route('superadmin.subcontractors.insurances.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Insurance
                     </a>

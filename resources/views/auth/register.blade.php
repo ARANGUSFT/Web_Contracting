@@ -77,60 +77,7 @@
                         <input type="text" name="years_experience" class="form-control" placeholder="e.g. 2020">
                     </div>
     
-                    <div class="col-md-6">
-                        <label class="form-label">Residential Roof Types</label>
-                        <div class="row">
-                            @foreach(['TPO', 'Low Slope', 'Tile', 'Wood Shakes', 'Asphalt Shingle', 'Metal'] as $roof)
-                                <div class="col-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="residential_roof_types[]" value="{{ $roof }}" id="res_{{ $roof }}">
-                                        <label class="form-check-label" for="res_{{ $roof }}">Roofing {{ $roof }}</label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-    
-                    <div class="col-md-6">
-                        <label class="form-label">Commercial Roof Types</label>
-                        <div class="row">
-                            @foreach(['EPDM', 'Asphalt Shingle', 'Low Slope', 'TPO', 'Tar & Gravel', 'Metal'] as $roof)
-                                <div class="col-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="commercial_roof_types[]" value="{{ $roof }}" id="com_{{ $roof }}">
-                                        <label class="form-check-label" for="com_{{ $roof }}">Commercial {{ $roof }}</label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-    
-
-                    @php
-                        $states = old('states_you_can_work', $user->states_you_can_work ?? []);
-                        $states = is_array($states) ? $states : json_decode($states, true) ?? [];
-                    @endphp
-                    <div class="col-md-6">
-                        <label class="form-label">States You Can Work</label>
-                        <select name="states_you_can_work[]" class="form-select" multiple>
-                            @foreach([
-                                'Texas', 'Florida', 'California', 'New York', 'Illinois',
-                                'Arizona', 'Nevada', 'Colorado', 'Georgia', 'North Carolina'
-                            ] as $state)
-                                <option value="{{ $state }}" {{ in_array($state, $states) ? 'selected' : '' }}>
-                                    {{ $state }}
-                                </option>
-                            @endforeach
-                        </select>
-                    
-                        <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple states</small>
-                    
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="all_states" id="all_states" class="form-check-input" value="1"
-                                   {{ old('all_states', $user->all_states ?? false) ? 'checked' : '' }}>
-                            <label for="all_states" class="form-check-label">I can work in all states</label>
-                        </div>
-                    </div>
+                 
                     
                 </div>
             </div>

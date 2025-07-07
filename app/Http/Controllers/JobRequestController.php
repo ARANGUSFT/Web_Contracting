@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Calendar;
+use App\Models\Offers;
 use Illuminate\Http\Request;
 use App\Models\JobRequest;
 use App\Models\Team;
@@ -12,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 
 class JobRequestController extends Controller
 {
+  
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -105,6 +108,8 @@ class JobRequestController extends Controller
                 'reference_id' => $job->id,
                 'color'        => '#0d6efd',
             ]);
+
+            
     
             return redirect()->back()->with('success', 'Job Request submitted successfully.');
         } catch (\Exception $e) {

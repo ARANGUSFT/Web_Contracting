@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Emergencies extends Model
 {
     use HasFactory;
+    
 
     protected $fillable = [
         'user_id', 
+        'crew_id',
+
         'date_submitted',
         'type_of_supplement',
         'company_name',
@@ -46,7 +49,10 @@ class Emergencies extends Model
         return $this->belongsTo(User::class);
     }
 
-    
+    public function crew()
+    {
+        return $this->belongsTo(Crew::class);
+    }
     
 
     

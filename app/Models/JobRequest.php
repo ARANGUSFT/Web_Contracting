@@ -12,6 +12,8 @@ class JobRequest extends Model
     protected $fillable = [
 
         'user_id', 
+        'crew_id',
+
 
         // General Info
         'install_date_requested',
@@ -83,5 +85,12 @@ class JobRequest extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+
+    public function crew()
+    {
+        return $this->belongsTo(Crew::class);
+    }
+
 
 }

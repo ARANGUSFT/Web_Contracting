@@ -18,6 +18,12 @@ return new class extends Migration
             $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable();
+            
+            $table->json('residential_roof_types')->nullable();
+            $table->json('commercial_roof_types')->nullable();
+            $table->json('states_you_can_work')->nullable();
+            $table->boolean('all_states')->default(false);
+
             $table->string('state');
             $table->string('password'); // Campo para la contraseña
             $table->boolean('is_active')->default(true); // Campo para activar/desactivar cuenta

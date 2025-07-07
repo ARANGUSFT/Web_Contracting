@@ -71,66 +71,7 @@
                         <input type="text" name="years_experience" value="{{ old('years_experience', $user->years_experience) }}" class="form-control">
                     </div>
 
-                    <!-- RESIDENTIAL -->
-                    <div class="col-md-6">
-                        <label class="form-label">Residential Roof Types</label>
-                        <div class="row">
-                            @php
-                                $residential = old('residential_roof_types', $user->residential_roof_types ?? []);
-                                $residential = is_array($residential) ? $residential : json_decode($residential, true) ?? [];
-                            @endphp
-                            @foreach(['TPO', 'Low Slope', 'Tile', 'Wood Shakes', 'Asphalt Shingle', 'Metal'] as $roof)
-                                <div class="col-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="residential_roof_types[]" value="{{ $roof }}" id="res_{{ $roof }}" {{ in_array($roof, $residential) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="res_{{ $roof }}">Roofing {{ $roof }}</label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- COMMERCIAL -->
-                    <div class="col-md-6">
-                        <label class="form-label">Commercial Roof Types</label>
-                        <div class="row">
-                            @php
-                                $commercial = old('commercial_roof_types', $user->commercial_roof_types ?? []);
-                                $commercial = is_array($commercial) ? $commercial : json_decode($commercial, true) ?? [];
-                            @endphp
-                            @foreach(['EPDM', 'Asphalt Shingle', 'Low Slope', 'TPO', 'Tar & Gravel', 'Metal'] as $roof)
-                                <div class="col-6">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="commercial_roof_types[]" value="{{ $roof }}" id="com_{{ $roof }}" {{ in_array($roof, $commercial) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="com_{{ $roof }}">Commercial {{ $roof }}</label>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- STATES -->
-                    <div class="col-md-6">
-                        <label class="form-label">States You Can Work</label>
-                        @php
-                            $states = old('states_you_can_work', $user->states_you_can_work ?? []);
-                            $states = is_array($states) ? $states : json_decode($states, true) ?? [];
-                        @endphp
-                        <select name="states_you_can_work[]" class="form-select" multiple>
-                            @foreach([
-                                'Texas', 'Florida', 'California', 'New York', 'Illinois',
-                                'Arizona', 'Nevada', 'Colorado', 'Georgia', 'North Carolina'
-                            ] as $state)
-                                <option value="{{ $state }}" {{ in_array($state, $states) ? 'selected' : '' }}>{{ $state }}</option>
-                            @endforeach
-                        </select>
-                        <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple states</small>
-                        <div class="form-check mt-2">
-                            <input type="checkbox" name="all_states" id="all_states" class="form-check-input" value="1"
-                                   {{ old('all_states', $user->all_states ?? false) ? 'checked' : '' }}>
-                            <label for="all_states" class="form-check-label">I can work in all states</label>
-                        </div>
-                    </div>
+            
                 </div>
             </div>
 

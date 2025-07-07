@@ -1,9 +1,11 @@
 <?php
-use App\Http\Controllers\AdminUserController;
+
 use App\Http\Controllers\Auth\AdminLoginController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SubcontractorsController;
-
-
+use App\Http\Controllers\OffersController;
+use App\Http\Controllers\CrewController;
+use App\Http\Controllers\InsuranceController;
 
 
 use App\Http\Controllers\ProfileController;
@@ -70,7 +72,7 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    // Nueva ruta usando el mismo controlador
+    // Dashboard Contratista
     Route::get('/contractors', [AdminUserController::class, 'contractors'])->name('users.contractors');
     Route::get('/contractors/{user}/edit', [AdminUserController::class, 'editContractors'])->name('contractors.edit');
     Route::put('/contractors/{user}', [AdminUserController::class, 'updateContractors'])->name('contractors.update');
@@ -78,16 +80,44 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::patch('/contractors/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('contractors.toggle-active');
     Route::delete('/contractors/{user}', [AdminUserController::class, 'destroyContractors'])->name('contractors.destroy');
     Route::get('/contractors/filter', [AdminUserController::class, 'filter'])->name('contractors.filter');
-
-
-
-    // Subcontractors
+    // Dashboard Subcontratista
     Route::get('/subcontractors', [SubcontractorsController::class, 'index'])->name('subcontractors.index');
     Route::get('/subcontractors/create', [SubcontractorsController::class, 'create'])->name('subcontractors.create');
     Route::post('/subcontractors', [SubcontractorsController::class, 'store'])->name('subcontractors.store');
     Route::get('/subcontractors/{subcontractor}/edit', [SubcontractorsController::class, 'edit'])->name('subcontractors.edit');
     Route::put('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'update'])->name('subcontractors.update');
     Route::delete('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'destroy'])->name('subcontractors.destroy');
+    
+    
+    // Offers
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::get('/api/calendar-events', [CalendarController::class, 'events'])->name('calendar.events');
+    Route::post('/assign-crew', [CalendarController::class, 'assignCrew'])->name('superadmin.assign.crew');
+    
+
+
+    // Crew
+    Route::get('/crews', [CrewController::class, 'index'])->name('crew.index');
+    Route::get('/crews/create', [CrewController::class, 'create'])->name('crew.create');
+    Route::post('/crews', [CrewController::class, 'store'])->name('crew.store');
+    Route::get('/crews/{crew}/edit', [CrewController::class, 'edit'])->name('crew.edit');
+    Route::put('/crews/{crew}', [CrewController::class, 'update'])->name('crew.update');
+    Route::delete('/crews/{crew}', [CrewController::class, 'destroy'])->name('crew.destroy');
+
+    // 🔁 Asignación de subcontratistas
+    Route::get('/crews/{crew}', [CrewController::class, 'show'])->name('crew.show'); // Para ver y asignar
+    // Rutas para asignar subcontratistas a una crew
+    Route::get('/crews/{crew}/assign', [CrewController::class, 'assign'])->name('crew.assign');
+    Route::post('/crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
+
+
+    // Insurance
+    Route::get('subcontractors/insurances', [InsuranceController::class,'index'])->name('subcontractors.insurances.index');
+    Route::get('subcontractors/{sub}/insurances/create', [InsuranceController::class,'create'])->name('subcontractors.insurances.create');
+    Route::post('subcontractors/{sub}/insurances', [InsuranceController::class,'store'])->name('subcontractors.insurances.store');
+    Route::get('subcontractors/{sub}/insurances/{ins}/edit', [InsuranceController::class, 'edit'])->name('subcontractors.insurances.edit');
+    Route::put('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class, 'update'])->name('subcontractors.insurances.update');
+    Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
 
 
 });

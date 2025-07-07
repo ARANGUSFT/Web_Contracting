@@ -97,22 +97,12 @@ class AdminUserController extends Controller
         
         $users = $query->latest()->paginate(10);
         
-        // Obtener estados únicos para el dropdown de filtro
-        $states = User::where('is_admin', false)
-            ->whereNotNull('states_you_can_work')
-            ->get()
-            ->flatMap(function($user) {
-                return $user->states_you_can_work ?? [];
-            })
-            ->unique()
-            ->sort()
-            ->values();
+   
             
         $contractors = $users->total();
 
-        return view('admin.contractors.list', compact('users', 'contractors', 'states'));
+        return view('admin.contractors.list', compact('users', 'contractors'));
     }
-
 
     public function editContractors(User $user)
     {
@@ -149,10 +139,7 @@ class AdminUserController extends Controller
             'company_name' => 'nullable|string|max:255',
             'years_experience' => 'nullable|integer|min:0',
             'language' => 'nullable|in:English,Spanish',
-            'residential_roof_types' => 'nullable|array',
-            'commercial_roof_types' => 'nullable|array',
-            'states_you_can_work' => 'nullable|array',
-            'all_states' => 'nullable|boolean',
+           
             'admin_notes' => 'nullable|string',
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'company_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120'
@@ -182,11 +169,7 @@ class AdminUserController extends Controller
             $validated['company_documents'] = $documents;
         }
     
-        // Convertir arrays a JSON para almacenamiento
-        $validated['residential_roof_types'] = $request->residential_roof_types ? json_encode($request->residential_roof_types) : null;
-        $validated['commercial_roof_types'] = $request->commercial_roof_types ? json_encode($request->commercial_roof_types) : null;
-        $validated['states_you_can_work'] = $request->states_you_can_work ? json_encode($request->states_you_can_work) : null;
-        $validated['all_states'] = $request->has('all_states');
+    
     
         $user->update($validated);
     
