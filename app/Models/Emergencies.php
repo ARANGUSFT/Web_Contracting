@@ -32,6 +32,7 @@ class Emergencies extends Model
     ];
 
     protected $casts = [
+        'date_submitted'            => 'date',
         'aerial_measurement_path' => 'array',
         'contract_upload_path' => 'array',
         'file_picture_upload_path' => 'array',
@@ -53,6 +54,12 @@ class Emergencies extends Model
     {
         return $this->belongsTo(Crew::class);
     }
+
+    public function notes()
+    {
+        return $this->morphMany(EventNote::class, 'noteable')->latest();
+    }
+    
     
 
     

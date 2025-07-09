@@ -3,7 +3,7 @@
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\SubcontractorsController;
-use App\Http\Controllers\OffersController;
+use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\CrewController;
 use App\Http\Controllers\InsuranceController;
 
@@ -88,12 +88,13 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::put('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'update'])->name('subcontractors.update');
     Route::delete('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'destroy'])->name('subcontractors.destroy');
     
-    
     // Offers
-    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
-    Route::get('/api/calendar-events', [CalendarController::class, 'events'])->name('calendar.events');
-    Route::post('/assign-crew', [CalendarController::class, 'assignCrew'])->name('superadmin.assign.crew');
-    
+    Route::get('calendar',           [EventCalendarController::class,'index'])->name('calendar.index');
+    Route::get('calendar/events',    [EventCalendarController::class,'events'])->name('calendar.events');
+    Route::get('calendar/event/{type}/{id}', [EventCalendarController::class,'show'])->name('calendar.show');
+    Route::post('calendar/assign',   [EventCalendarController::class,'assignCrew'])->name('calendar.assign');
+    Route::post('calendar/company/color', [EventCalendarController::class,'updateColor'])->name('calendar.company.updateColor');
+    Route::post('calendar/note', [EventCalendarController::class, 'storeNote'])->name('calendar.storeNote');
 
 
     // Crew
@@ -110,7 +111,6 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('/crews/{crew}/assign', [CrewController::class, 'assign'])->name('crew.assign');
     Route::post('/crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
 
-
     // Insurance
     Route::get('subcontractors/insurances', [InsuranceController::class,'index'])->name('subcontractors.insurances.index');
     Route::get('subcontractors/{sub}/insurances/create', [InsuranceController::class,'create'])->name('subcontractors.insurances.create');
@@ -118,7 +118,6 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('subcontractors/{sub}/insurances/{ins}/edit', [InsuranceController::class, 'edit'])->name('subcontractors.insurances.edit');
     Route::put('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class, 'update'])->name('subcontractors.insurances.update');
     Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
-
 
 });
 

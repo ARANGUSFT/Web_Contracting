@@ -211,7 +211,6 @@ class AdminUserController extends Controller
         return redirect()->back()->with('success', 'Contractor status updated.');
     }
 
-
     public function destroyContractors(User $user)
     {
         if ($user->is_admin) {
@@ -222,6 +221,9 @@ class AdminUserController extends Controller
 
         return redirect()->route('superadmin.users.contractors')->with('success', 'Contractor successfully removed.');
     }
+
+
+    
 
 
 }

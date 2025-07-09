@@ -70,6 +70,7 @@ class JobRequest extends Model
     ];
 
     protected $casts = [
+        'install_date_requested'    => 'date',
         'aerial_measurement' => 'array',
         'material_order'     => 'array',
         'file_upload'        => 'array',
@@ -91,6 +92,13 @@ class JobRequest extends Model
     {
         return $this->belongsTo(Crew::class);
     }
+
+    public function notes()
+    {
+        return $this->morphMany(EventNote::class, 'noteable')->latest();
+    }
+    
+
 
 
 }

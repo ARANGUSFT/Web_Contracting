@@ -27,5 +27,15 @@ class Crew extends Model
     {
         return $this->belongsToMany(Subcontractors::class, 'crew_subcontractor', 'crew_id', 'subcontractor_id')->withTimestamps();
     }
+
+    public function emergencies()
+    {
+        return $this->hasMany(Emergencies::class);
+    }
+    
+    public function jobRequests()
+    {
+        return $this->hasMany(JobRequest::class);
+    }
     
 }
