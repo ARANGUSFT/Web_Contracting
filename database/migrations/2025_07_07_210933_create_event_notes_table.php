@@ -13,15 +13,19 @@ return new class extends Migration
     {
         Schema::create('event_notes', function (Blueprint $table) {
             $table->id();
+
             // Relación polimórfica
             $table->string('noteable_type');
             $table->unsignedBigInteger('noteable_id');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            // Emisor: puede ser un usuario del sistema o un subcontratista
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('subcontractor_id')->nullable()->constrained()->onDelete('cascade');
+
             $table->text('content');
             $table->timestamps();
         });
     }
-    
 
     /**
      * Reverse the migrations.

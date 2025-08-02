@@ -71,7 +71,8 @@ return new class extends Migration
             $table->json('material_order')->nullable();
             $table->json('file_upload')->nullable();
             
-
+            // Estado del trabajo
+            $table->enum('status', ['pending', 'en_process', 'completed'])->default('pending');
 
             $table->timestamps();
         });

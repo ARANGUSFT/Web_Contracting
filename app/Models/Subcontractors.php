@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Subcontractors extends Model
+class Subcontractors extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
     protected $fillable = [
         'company_name',
@@ -15,7 +16,7 @@ class Subcontractors extends Model
         'last_name',
         'email',
         'phone',
-        
+
         'residential_roof_types',
         'commercial_roof_types',
         'states_you_can_work',
@@ -36,11 +37,19 @@ class Subcontractors extends Model
 
     public function crews()
     {
-        return $this->belongsToMany(Crew::class, 'crew_subcontractor');
+        return $this->belongsToMany(Crew::class, 'crew_subcontractor', 'subcontractor_id', 'crew_id')->withTimestamps();
     }
 
     public function insurances()
     {
         return $this->hasMany(Insurance::class, 'subcontractor_id');
     }
+
+    public function notes()
+{
+    return $this->hasMany(EventNote::class, 'subcontractor_id');
 }
+}
+
+
+

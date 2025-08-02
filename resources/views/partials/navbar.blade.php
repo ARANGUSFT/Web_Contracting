@@ -43,6 +43,13 @@
                             <i class="bi bi-shield-check"></i> Insurance
                         </a>
                     </li>
+
+                   <li class="nav-item">
+                        <a class="nav-link" href="{{ auth()->user()->is_admin ? route('superadmin.chat.view') : route('user.chat.view') }}">
+                            <i class="bi bi-chat-dots"></i> Chat
+                        </a>
+                    </li>
+
                 @elseif(Auth::guard('team')->check()) 
                     @php
                         $teamUser = Auth::guard('team')->user();

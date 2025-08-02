@@ -55,6 +55,9 @@
                         {{ __('INSURANCE') }}
                     </x-nav-link>
                 </div>
+
+      
+
             </div>
 
             

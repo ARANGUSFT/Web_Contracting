@@ -31,6 +31,10 @@ return new class extends Migration
             $table->json('aerial_measurement_path');
             $table->json('contract_upload_path');
             $table->json('file_picture_upload_path')->nullable();
+
+            // Estado del trabajo
+            $table->enum('status', ['pending', 'en_process', 'completed'])->default('pending');
+
             $table->timestamps();
         });
     }

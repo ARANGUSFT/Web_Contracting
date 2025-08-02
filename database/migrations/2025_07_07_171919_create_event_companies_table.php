@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();
             $table->string('color')->default('#3788d8');
+            $table->boolean('is_active')->default(true);   // Added column to toggle visibility
             $table->timestamps();
         });
     }
+    
 
     /**
      * Reverse the migrations.

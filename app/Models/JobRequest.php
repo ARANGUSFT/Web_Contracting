@@ -56,6 +56,8 @@ class JobRequest extends Model
         'open_soffit_ceiling',
         'detached_garage_roof',
         'detached_shed_roof',
+            'status',
+
 
         // Additional
         'special_instructions',
@@ -93,11 +95,44 @@ class JobRequest extends Model
         return $this->belongsTo(Crew::class);
     }
 
+   public function fotos()
+    {
+        return $this->morphMany(Foto::class, 'imageable');
+    }
+
+
     public function notes()
     {
-        return $this->morphMany(EventNote::class, 'noteable')->latest();
+        return $this->morphMany(EventNote::class, 'noteable');
     }
-    
+
+     // ✅ Devuelve todos los estados posibles
+    public static function availableStatuses(): array
+    {
+        return ['pendiente', 'en_proceso', 'completado'];
+    }
+
+    // ✅ Avanza al siguiente estado
+    public function advanceStatus(): void
+    {
+        $flow = self::availableStatuses();
+        $index = array_search($this->status, $flow);
+        if ($index !== false && $index < count($flow) - 1) {
+            $this->status = $flow[$index + 1];
+            $this->save();
+        }
+    }
+
+    // ✅ Retrocede al estado anterior
+    public function rollbackStatus(): void
+    {
+        $flow = self::availableStatuses();
+        $index = array_search($this->status, $flow);
+        if ($index !== false && $index > 0) {
+            $this->status = $flow[$index - 1];
+            $this->save();
+        }
+    }
 
 
 

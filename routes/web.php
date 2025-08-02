@@ -6,7 +6,8 @@ use App\Http\Controllers\SubcontractorsController;
 use App\Http\Controllers\EventCalendarController;
 use App\Http\Controllers\CrewController;
 use App\Http\Controllers\InsuranceController;
-
+use App\Http\Controllers\FotoController;
+use App\Http\Controllers\ChatController;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Team\ProfileTeamController;
@@ -62,6 +63,8 @@ Route::post('/superadmin/login', [AdminLoginController::class, 'login']);
 Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name('superadmin.logout');
 
 
+
+
 Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')->group(function () {
 
     Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
@@ -94,6 +97,8 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('calendar/event/{type}/{id}', [EventCalendarController::class,'show'])->name('calendar.show');
     Route::post('calendar/assign',   [EventCalendarController::class,'assignCrew'])->name('calendar.assign');
     Route::post('calendar/company/color', [EventCalendarController::class,'updateColor'])->name('calendar.company.updateColor');
+    Route::post('superadmin/calendar/company/update-visibility', [EventCalendarController::class, 'updateVisibility'])->name('calendar.company.updateVisibility');
+     
     Route::post('calendar/note', [EventCalendarController::class, 'storeNote'])->name('calendar.storeNote');
 
 
@@ -111,6 +116,32 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('/crews/{crew}/assign', [CrewController::class, 'assign'])->name('crew.assign');
     Route::post('/crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
 
+
+    //Photos
+    Route::get('/photos/{tipo}/{id}/view', function ($tipo, $id) {
+    $modelo = $tipo === 'job_request'
+        ? \App\Models\JobRequest::with('fotos')->findOrFail($id)
+        : \App\Models\Emergencies::with('fotos')->findOrFail($id);
+
+    return view('photos.view', [
+        'fotos' => $modelo->fotos,
+        'tipo' => $tipo,
+        'id' => $id
+    ]);
+    })->name('photos.view');
+
+    // Photos (ver y seleccionar proyectos)
+    Route::get('/photos/projects', [FotoController::class, 'projects'])->name('photos.projects');
+    Route::get('/photos/{tipo}/{id}/view', [FotoController::class, 'view'])->name('photos.view');
+
+
+   // Vista principal del chat
+    Route::get('/chat', [ChatController::class, 'chatView'])->name('chat.view');
+    Route::get('/chat/{userId}', [ChatController::class, 'index'])->name('chat.messages');
+    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat-users', [ChatController::class, 'users'])->name('chat.users');
+
+
     // Insurance
     Route::get('subcontractors/insurances', [InsuranceController::class,'index'])->name('subcontractors.insurances.index');
     Route::get('subcontractors/{sub}/insurances/create', [InsuranceController::class,'create'])->name('subcontractors.insurances.create');
@@ -120,7 +151,6 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
 
 });
-
 
 
 
@@ -154,6 +184,12 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('/calendar/data', [CalendarController::class, 'calendarData'])->name('calendar.data');
         // Formulario approved
         Route::post('/leads/{id}/submit-approved-data', [LeadController::class, 'submitApprovedData'])->name('leads.submitApprovedData');
+
+
+    // 📩 Chat para usuarios no admins
+        Route::get('/chat', [ChatController::class, 'chatView'])->name('user.chat.view');
+        Route::get('/chat/{userId}', [ChatController::class, 'index'])->name('user.chat.messages');
+        Route::post('/chat/send', [ChatController::class, 'send'])->name('user.chat.send');
 
 
     // CRUD de Leads

@@ -101,7 +101,21 @@ class User extends Authenticatable
         return $this->hasOne(lead_approvals::class);
     }
 
+    public function notes()
+    {
+        return $this->hasMany(EventNote::class);
+    }
 
 
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Chat::class, 'sender_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Chat::class, 'receiver_id');
+    }
     
 }
