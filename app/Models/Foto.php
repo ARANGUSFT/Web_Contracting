@@ -12,4 +12,5 @@ class Foto extends Model
     {
         return $this->morphTo();
     }
+    
 }

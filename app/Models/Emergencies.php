@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Emergencies extends Model
 {
@@ -40,6 +41,44 @@ class Emergencies extends Model
         'contract_upload_path' => 'array',
         'file_picture_upload_path' => 'array',
     ];
+
+    protected $appends = [
+    'aerial_measurement_urls',
+    'contract_upload_urls',
+    'file_picture_upload_urls',
+];
+
+
+
+    protected function pathsToUrls($value): array
+    {
+        if (empty($value)) return [];
+        $paths = is_array($value) ? $value : [$value];
+
+        return array_values(array_filter(array_map(function ($p) {
+            if (!$p) return null;
+            // Si ya es absoluta, respétala
+            if (is_string($p) && preg_match('#^https?://#i', $p)) return $p;
+            // Caso normal: ruta relativa en storage (disk por defecto)
+            return Storage::url($p);
+        }, $paths)));
+    }
+
+    // 🔽 Accessors públicos (leer)
+    public function getAerialMeasurementUrlsAttribute(): array
+    {
+        return $this->pathsToUrls($this->aerial_measurement_path);
+    }
+
+    public function getContractUploadUrlsAttribute(): array
+    {
+        return $this->pathsToUrls($this->contract_upload_path);
+    }
+
+    public function getFilePictureUploadUrlsAttribute(): array
+    {
+        return $this->pathsToUrls($this->file_picture_upload_path);
+    }
 
     // app/Models/Emergency.php
 

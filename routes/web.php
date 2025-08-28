@@ -97,9 +97,10 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('calendar/event/{type}/{id}', [EventCalendarController::class,'show'])->name('calendar.show');
     Route::post('calendar/assign',   [EventCalendarController::class,'assignCrew'])->name('calendar.assign');
     Route::post('calendar/company/color', [EventCalendarController::class,'updateColor'])->name('calendar.company.updateColor');
-    Route::post('superadmin/calendar/company/update-visibility', [EventCalendarController::class, 'updateVisibility'])->name('calendar.company.updateVisibility');
+    Route::post('calendar/company/update-visibility', [EventCalendarController::class, 'updateVisibility'])->name('calendar.company.updateVisibility');
      
     Route::post('calendar/note', [EventCalendarController::class, 'storeNote'])->name('calendar.storeNote');
+    Route::get('calendar/notes', [EventCalendarController::class, 'fetchNotes'])->name('calendar.fetchNotes');
 
 
     // Crew
@@ -117,22 +118,14 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::post('/crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
 
 
-    //Photos
-    Route::get('/photos/{tipo}/{id}/view', function ($tipo, $id) {
-    $modelo = $tipo === 'job_request'
-        ? \App\Models\JobRequest::with('fotos')->findOrFail($id)
-        : \App\Models\Emergencies::with('fotos')->findOrFail($id);
+  // Photos (área admin, nombres superadmin.photos.*)
+        Route::prefix('photos')->as('photos.')->group(function () {
+            Route::get('projects',         [FotoController::class, 'projects'])->name('projects');
+            Route::get('{tipo}/{id}/view', [FotoController::class, 'view'])->name('view');
+            Route::post('share',           [FotoController::class, 'createShareWeb'])->name('share');
+            Route::post('unshare',         [FotoController::class, 'revokeShareWeb'])->name('unshare');
+        });
 
-    return view('photos.view', [
-        'fotos' => $modelo->fotos,
-        'tipo' => $tipo,
-        'id' => $id
-    ]);
-    })->name('photos.view');
-
-    // Photos (ver y seleccionar proyectos)
-    Route::get('/photos/projects', [FotoController::class, 'projects'])->name('photos.projects');
-    Route::get('/photos/{tipo}/{id}/view', [FotoController::class, 'view'])->name('photos.view');
 
 
    // Vista principal del chat
@@ -153,6 +146,7 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
 });
 
 
+Route::get('/g/{token}', [FotoController::class, 'publicGallery'])->name('photos.public');
 
 
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")

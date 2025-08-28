@@ -2,7 +2,6 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CalendarAllController;
 use App\Models\Subcontractors;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\EventCalendarController;
@@ -56,12 +55,16 @@ Route::get('/trabajos-detalle/{type}/{id}', [EventCalendarController::class, 'sh
 Route::get('fotos/{tipo}/{id}', [FotoController::class, 'index']);
 Route::post('fotos', [FotoController::class, 'store']);
 
-Route::middleware('auth:sanctum')->post('/calendar/note', [EventCalendarController::class, 'storeNote']);
 Route::middleware('auth:sanctum')->get('/calendar/notes', [EventCalendarController::class, 'fetchNotes']);
+Route::middleware('auth:sanctum')->post('/calendar/note',  [EventCalendarController::class, 'storeNote']);
+
+Route::get('/items/{type}/{id}', [EventCalendarController::class, 'show']);
+Route::get('/items/{type}/{id}/files', [EventCalendarController::class, 'files']); 
+
+Route::get('/files/inline',   [EventCalendarController::class, 'inlineFile']);
+Route::get('/files/download', [EventCalendarController::class, 'downloadFile']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-// Ruta para obtener eventos del calendario
-Route::get('/calendar-all', [CalendarAllController::class, 'index']);
