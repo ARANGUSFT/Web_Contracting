@@ -36,6 +36,8 @@ use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\InvoicesController;
+use App\Http\Controllers\InvoicePaymentsController;
 
 
 // Página de inicio
@@ -142,6 +144,45 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::get('subcontractors/{sub}/insurances/{ins}/edit', [InsuranceController::class, 'edit'])->name('subcontractors.insurances.edit');
     Route::put('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class, 'update'])->name('subcontractors.insurances.update');
     Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
+
+
+    // Invoices (listado + guardar paid/due)
+    Route::resource('invoices', InvoicesController::class)->only(['index','store']);
+
+    // Abre/crea invoice por calendar y va al historial de pagos
+    Route::get('invoices/{calendar}/open', [InvoicesController::class, 'open'])
+        ->whereNumber('calendar')
+        ->name('invoices.open');
+
+    // Historial de pagos de un invoice
+    Route::get('invoices/{invoice}/payments', [InvoicePaymentsController::class, 'index'])
+        ->whereNumber('invoice')
+        ->name('invoices.payments.index');
+
+    // Registrar pago (con fecha, motivo y adjuntos)
+    Route::post('invoices/{invoice}/payments', [InvoicePaymentsController::class, 'store'])
+        ->whereNumber('invoice')
+        ->name('invoices.payments.store');
+
+
+    // Download
+    Route::get('invoices/{invoice}/payments/{payment}/files/{index}/download', [InvoicePaymentsController::class, 'download'])
+        ->whereNumber('invoice')->whereNumber('payment')->whereNumber('index')
+        ->name('invoices.payments.download');
+
+
+
+    // ✅ Editar pago (UPDATE)
+    Route::put('invoices/{invoice}/payments/{payment}', [InvoicePaymentsController::class, 'update'])
+        ->whereNumber('invoice')->whereNumber('payment')
+        ->name('invoices.payments.update');
+
+
+    // Eliminar pago del historial
+    Route::delete('invoices/{invoice}/payments/{payment}', [InvoicePaymentsController::class, 'destroy'])
+        ->whereNumber('invoice')
+        ->whereNumber('payment')
+        ->name('invoices.payments.destroy');
 
 });
 

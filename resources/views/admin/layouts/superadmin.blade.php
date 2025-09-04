@@ -86,10 +86,12 @@
                         <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Insurance
                     </a>
-                    <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
+                    <a href="{{ route('superadmin.invoices.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
                         <i class="fas fa-file-invoice-dollar mr-3 text-gray-400 group-hover:text-secondary"></i>
                         Invoices
                     </a>
+
+
                 </nav>
             </div>
             
