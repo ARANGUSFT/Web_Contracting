@@ -1,6 +1,6 @@
 @extends('admin.layouts.superadmin')
 
-@push('styles')
+
 <style>
     .table-responsive-sticky { max-height: 70vh; overflow: auto; }
     .table-responsive-sticky thead th {
@@ -12,16 +12,29 @@
     .w-170 { width: 170px; }
     .w-260 { width: 260px; }
 </style>
-@endpush
+
 
 @section('content')
 <div class="container">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="mb-0">Invoices</h1>
 
-        <div class="w-25">
-            <input id="invoicesFilter" type="text" class="form-control form-control-sm" placeholder="Filter by Job, Crew or Address...">
-        </div>
+        {{-- Filtro server-side --}}
+        <form id="invoicesSearchForm" method="GET" class="d-flex align-items-center gap-2 w-50">
+            <input name="q" value="{{ $q ?? '' }}" type="text" class="form-control form-control-sm"
+                   placeholder="Filter by Job, Crew or Address...">
+            <select name="perPage" class="form-select form-select-sm w-auto">
+                @php $pp = (int)($perPage ?? 25); @endphp
+                <option value="10"  {{ $pp===10  ? 'selected' : '' }}>10</option>
+                <option value="25"  {{ $pp===25  ? 'selected' : '' }}>25</option>
+                <option value="50"  {{ $pp===50  ? 'selected' : '' }}>50</option>
+                <option value="100" {{ $pp===100 ? 'selected' : '' }}>100</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Search</button>
+            @if(!empty($q))
+                <a href="{{ url()->current() }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+            @endif
+        </form>
     </div>
 
     @if ($errors->any())
@@ -165,42 +178,45 @@
             </tfoot>
         </table>
     </div>
+
+    {{-- Paginación y resumen --}}
+    <div class="d-flex align-items-center justify-content-between mt-3">
+        <div class="small text-muted">
+            Showing {{ $page->firstItem() ?? 0 }}–{{ $page->lastItem() ?? 0 }} of {{ $page->total() }} results
+            @if(!empty($q)) for "<strong>{{ $q }}</strong>" @endif
+        </div>
+        <div>
+            {{ $page->onEachSide(1)->links() }}
+        </div>
+    </div>
     @endif
 </div>
 @endsection
 
-@push('scripts')
+
 <script>
-    (function(){
-        const input = document.getElementById('invoicesFilter');
-        const table = document.getElementById('invoicesTable');
-        if(!input || !table) return;
+document.addEventListener('DOMContentLoaded', function(){
+    // Autosubmit al cambiar perPage
+    const form = document.getElementById('invoicesSearchForm');
+    const perSel = form ? form.querySelector('select[name="perPage"]') : null;
+    if (form && perSel) {
+        perSel.addEventListener('change', () => form.submit());
+    }
 
-        input.addEventListener('input', function(){
-            const q = this.value.trim().toLowerCase();
-            const rows = table.tBodies[0].rows;
-            for (let i = 0; i < rows.length; i++) {
-                const cellsText = (rows[i].cells[0].innerText + ' ' + rows[i].cells[1].innerText + ' ' + rows[i].cells[2].innerText).toLowerCase();
-                rows[i].style.display = cellsText.includes(q) ? '' : 'none';
-            }
+    // Formateo de inputs de total + deshabilitar botón al enviar
+    document.querySelectorAll('.total-form').forEach(function(f){
+        const btn = f.querySelector('button[type="submit"]');
+        const input = f.querySelector('input[name="total"]');
+        f.addEventListener('submit', function(){
+            if(btn){ btn.disabled = true; btn.innerText = 'Saving...'; }
         });
-    })();
-
-    (function(){
-        document.querySelectorAll('.total-form').forEach(function(form){
-            const btn = form.querySelector('button[type="submit"]');
-            const input = form.querySelector('input[name="total"]');
-
-            form.addEventListener('submit', function(){
-                if(btn){ btn.disabled = true; btn.innerText = 'Saving...'; }
+        if(input){
+            input.addEventListener('blur', function(){
+                const val = parseFloat(this.value || 0);
+                this.value = isNaN(val) ? '' : val.toFixed(2);
             });
-            if(input){
-                input.addEventListener('blur', function(){
-                    const val = parseFloat(this.value || 0);
-                    this.value = isNaN(val) ? '' : val.toFixed(2);
-                });
-            }
-        });
-    })();
+        }
+    });
+});
 </script>
-@endpush
+

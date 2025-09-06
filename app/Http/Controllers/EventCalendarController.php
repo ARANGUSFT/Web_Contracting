@@ -20,144 +20,135 @@ use Illuminate\Support\Facades\Auth;
 class EventCalendarController extends Controller
 {
   
-public function index()
-{
-    $crews = Crew::all();
+    public function index()
+    {
+        $crews = Crew::all();
 
-    // 1) Nombres de compañías (sin nulos/ni vacíos)
-    $jobCompanies = JobRequest::whereNotNull('company_name')
-        ->where('company_name', '!=', '')
-        ->distinct()->pluck('company_name')->toArray();
+        // 1) Nombres de compañías (sin nulos/ni vacíos)
+        $jobCompanies = JobRequest::whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->distinct()->pluck('company_name')->toArray();
 
-    $emergCompanies = Emergencies::whereNotNull('company_name')
-        ->where('company_name', '!=', '')
-        ->distinct()->pluck('company_name')->toArray();
+        $emergCompanies = Emergencies::whereNotNull('company_name')
+            ->where('company_name', '!=', '')
+            ->distinct()->pluck('company_name')->toArray();
 
-    $allNames = array_values(array_unique(array_merge($jobCompanies, $emergCompanies)));
-    sort($allNames, SORT_NATURAL | SORT_FLAG_CASE);
+        $allNames = array_values(array_unique(array_merge($jobCompanies, $emergCompanies)));
+        sort($allNames, SORT_NATURAL | SORT_FLAG_CASE);
 
-    // 2) Mapa con color y is_active guardados en BD
-    //    keyBy('name') => acceso rápido por nombre
-    $saved = EventCompany::get(['name','color','is_active'])
-        ->keyBy('name');
+        // 2) Mapa con color y is_active guardados en BD
+        //    keyBy('name') => acceso rápido por nombre
+        $saved = EventCompany::get(['name','color','is_active'])
+            ->keyBy('name');
 
-    // 3) Armar arreglo para la vista con color + active
-    $companiesForView = array_map(function ($name) use ($saved) {
-        $row = $saved->get($name); // Illuminate\Support\Collection::get
-        return [
-            'name'   => $name,
-            'color'  => $row->color     ?? '#3788d8',
-            'active' => $row->is_active ?? true,
-            // Sugerencia útil para el HTML:
-            'slug'   => \Illuminate\Support\Str::slug($name),
-        ];
-    }, $allNames);
+        // 3) Armar arreglo para la vista con color + active
+        $companiesForView = array_map(function ($name) use ($saved) {
+            $row = $saved->get($name); // Illuminate\Support\Collection::get
+            return [
+                'name'   => $name,
+                'color'  => $row->color     ?? '#3788d8',
+                'active' => $row->is_active ?? true,
+                // Sugerencia útil para el HTML:
+                'slug'   => \Illuminate\Support\Str::slug($name),
+            ];
+        }, $allNames);
 
-    // (Opcional) Estados si los necesitas en la vista
-    $jobStatuses   = JobRequest::select('id', 'status')->get();
-    $emergStatuses = Emergencies::select('id', 'status')->get();
+        // (Opcional) Estados si los necesitas en la vista
+        $jobStatuses   = JobRequest::select('id', 'status')->get();
+        $emergStatuses = Emergencies::select('id', 'status')->get();
 
-    return view('admin.calendar.index', [
-        'crews'         => $crews,
-        'companies'     => $companiesForView,
-        'jobStatuses'   => $jobStatuses,
-        'emergStatuses' => $emergStatuses,
-    ]);
-}
-
-  public function events(Request $request)
-{
-    $start = $request->query('start');
-    $end   = $request->query('end');
-
-    // Normalizador de nombre
-    $norm = fn($s) => mb_strtolower(trim((string)$s));
-
-    // 1) Mapas desde event_companies
-    //    - colores por nombre normalizado
-    //    - estado activo por nombre normalizado
-    $companyRows = EventCompany::get(['name','color','is_active']);
-    $colorByName = [];
-    $activeByName = [];
-    foreach ($companyRows as $row) {
-        $k = $norm($row->name);
-        $colorByName[$k]  = $row->color ?: '#3788d8';
-        $activeByName[$k] = (bool) $row->is_active;
+        return view('admin.calendar.index', [
+            'crews'         => $crews,
+            'companies'     => $companiesForView,
+            'jobStatuses'   => $jobStatuses,
+            'emergStatuses' => $emergStatuses,
+        ]);
     }
 
-    // 2) Política para compañías no registradas en event_companies:
-    //    true = se muestran (comportamiento "legacy")
-    //    false = se ocultan
-    $unknownAreActive = true;
+    public function events(Request $request)
+    {
+        $start = $request->query('start');
+        $end   = $request->query('end');
 
-    // 3) Paleta fallback
-    $fallbackPalette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
-    $assignedFallback = [];
+        $norm = fn($s) => mb_strtolower(trim((string)$s));
 
-    $getColor = function ($company) use ($norm, &$colorByName, &$assignedFallback, $fallbackPalette) {
-        $k = $norm($company);
-        if (isset($colorByName[$k])) return $colorByName[$k];
-        if (!isset($assignedFallback[$k])) {
-            $assignedFallback[$k] = $fallbackPalette[count($assignedFallback) % count($fallbackPalette)];
+        $companyRows = EventCompany::get(['name','color','is_active']);
+        $colorByName = [];
+        $activeByName = [];
+        foreach ($companyRows as $row) {
+            $k = $norm($row->name);
+            $colorByName[$k]  = $row->color ?: '#3788d8';
+            $activeByName[$k] = (bool) $row->is_active;
         }
-        return $assignedFallback[$k];
-    };
 
-    $isAllowed = function ($company) use ($norm, $activeByName, $unknownAreActive) {
-        $k = $norm($company);
-        if (array_key_exists($k, $activeByName)) {
-            return $activeByName[$k] === true;
-        }
-        return $unknownAreActive;
-    };
+        $unknownAreActive = true;
 
-    $events = [];
+        $fallbackPalette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+        $assignedFallback = [];
 
-    // 4) Jobs (eager load crew para evitar N+1)
-    JobRequest::with('crew')
-        ->whereBetween('install_date_requested', [$start, $end])
-        ->get()
-        ->each(function ($job) use (&$events, $getColor, $isAllowed) {
-            $company = $job->company_name ?? '';
-            if (!$isAllowed($company)) return;
+        $getColor = function ($company) use ($norm, &$colorByName, &$assignedFallback, $fallbackPalette) {
+            $k = $norm($company);
+            if (isset($colorByName[$k])) return $colorByName[$k];
+            if (!isset($assignedFallback[$k])) {
+                $assignedFallback[$k] = $fallbackPalette[count($assignedFallback) % count($fallbackPalette)];
+            }
+            return $assignedFallback[$k];
+        };
 
-            $events[] = [
-                'id'    => 'job-' . $job->id,
-                'title' => "Job #{$job->job_number_name}",
-                'start' => optional($job->install_date_requested)->toDateString(),
-                'color' => $getColor($company),
-                // Lo que tu Front espera leer:
-                'extendedProps' => [
-                    'type'        => 'job',
-                    'companyName' => $company,
-                    'crewName'    => optional($job->crew)->name,
-                ],
-            ];
-        });
+        $isAllowed = function ($company) use ($norm, $activeByName, $unknownAreActive) {
+            $k = $norm($company);
+            if (array_key_exists($k, $activeByName)) {
+                return $activeByName[$k] === true;
+            }
+            return $unknownAreActive;
+        };
 
-    // 5) Emergencies
-    Emergencies::with('crew')
-        ->whereBetween('date_submitted', [$start, $end])
-        ->get()
-        ->each(function ($e) use (&$events, $getColor, $isAllowed) {
-            $company = $e->company_name ?? '';
-            if (!$isAllowed($company)) return;
+        $events = [];
 
-            $events[] = [
-                'id'    => 'emergency-' . $e->id,
-                'title' => "Emergency #{$e->job_number_name}",
-                'start' => optional($e->date_submitted)->toDateString(),
-                'color' => $getColor($company),
-                'extendedProps' => [
-                    'type'        => 'emergency',
-                    'companyName' => $company,
-                    'crewName'    => optional($e->crew)->name,
-                ],
-            ];
-        });
+        // Jobs
+        JobRequest::with('crew')
+            ->whereBetween('install_date_requested', [$start, $end])
+            ->get()
+            ->each(function ($job) use (&$events, $getColor, $isAllowed) {
+                $company = $job->company_name ?? '';
+                if (!$isAllowed($company)) return;
 
-    return response()->json($events);
-}
+                $events[] = [
+                    'id'    => $job->id, // ← ID limpio
+                    'title' => "Job #{$job->job_number_name}",
+                    'start' => optional($job->install_date_requested)->toDateString(),
+                    'color' => $getColor($company),
+                    'extendedProps' => [
+                        'type'        => 'job',
+                        'companyName' => $company,
+                        'crewName'    => optional($job->crew)->name,
+                    ],
+                ];
+            });
+
+        // Emergencies
+        Emergencies::with('crew')
+            ->whereBetween('date_submitted', [$start, $end])
+            ->get()
+            ->each(function ($e) use (&$events, $getColor, $isAllowed) {
+                $company = $e->company_name ?? '';
+                if (!$isAllowed($company)) return;
+
+                $events[] = [
+                    'id'    => $e->id, // ← ID limpio
+                    'title' => "Emergency #{$e->job_number_name}",
+                    'start' => optional($e->date_submitted)->toDateString(),
+                    'color' => $getColor($company),
+                    'extendedProps' => [
+                        'type'        => 'emergency',
+                        'companyName' => $company,
+                        'crewName'    => optional($e->crew)->name,
+                    ],
+                ];
+            });
+
+        return response()->json($events);
+    }
 
 
 

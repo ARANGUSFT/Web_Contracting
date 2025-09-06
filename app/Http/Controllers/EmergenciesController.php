@@ -86,7 +86,7 @@ class EmergenciesController extends Controller
 
     public function edit(Emergencies $emergency)
     {
-        $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+        $teamMembers = Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
         return view('leads.pg.update.editEmerg', compact('emergency', 'teamMembers'));
     }
 

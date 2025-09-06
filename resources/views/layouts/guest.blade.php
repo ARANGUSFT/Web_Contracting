@@ -10,17 +10,24 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/css/intlTelInput.css" />
-
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <!-- Custom CSS -->
     <style>
+        :root {
+            --primary-color: #297bce;
+            --secondary-color: #0670bd;
+        }
+        
         body {
-            background: linear-gradient(120deg, #004A99, #00c6ff);
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
         }
 
         .auth-container {
@@ -33,10 +40,11 @@
         }
 
         .auth-header {
-            background-color: #004A99;
+            background-color: var(--primary-color);
             color: #fff;
             padding: 2rem;
             text-align: center;
+            position: relative;
         }
 
         .auth-body {
@@ -45,7 +53,7 @@
 
         .logo-img {
             height: 60px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
 
         .footer-note {
@@ -53,7 +61,80 @@
             margin-top: 20px;
             font-size: 0.9rem;
             color: #fff;
-            opacity: 0.8;
+            opacity: 0.9;
+        }
+
+        .form-control {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(0, 74, 153, 0.25);
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: #003a7a;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .forgot-password {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .forgot-password:hover {
+            color: #003a7a;
+            text-decoration: underline;
+        }
+
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .btn-language {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 20px;
+            padding: 0.4rem 1rem;
+        }
+
+        .btn-language:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .auth-body {
+                padding: 1.5rem;
+            }
+            
+            .auth-header {
+                padding: 1.5rem;
+            }
         }
     </style>
 
@@ -61,10 +142,23 @@
 </head>
 <body>
 
+    <!-- Selector de idioma -->
+    <div class="language-selector">
+        <div class="dropdown">
+            <button class="btn btn-language dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-translate me-1"></i> {{ strtoupper(app()->getLocale()) }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                <li><a class="dropdown-item">English</a></li>
+            </ul>
+        </div>
+    </div>
+
     <div class="container">
         <div class="auth-container mx-auto">
             <div class="auth-header">
-                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img" height="100px" width="300px">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo" class="logo-img">
+              
             </div>
             <div class="auth-body">
                 {{ $slot }}
@@ -72,13 +166,54 @@
         </div>
 
         <div class="footer-note">
-            &copy; {{ date('Y') }} Contracting Alliance Inc. All rights reserved.
+            &copy; {{ date('Y') }} Contracting Alliance Inc. {{ __('All rights reserved') }}.
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/intlTelInput.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Validación básica de formularios
+            const forms = document.querySelectorAll('form');
+            
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        const spinner = document.createElement('span');
+                        
+                        spinner.classList.add('spinner-border', 'spinner-border-sm', 'me-2');
+                        spinner.setAttribute('role', 'status');
+                        spinner.setAttribute('aria-hidden', 'true');
+                        
+                        submitBtn.prepend(spinner);
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+
+            // Inicializar inputs de teléfono internacional
+            const phoneInputs = document.querySelectorAll('input[type="tel"]');
+            phoneInputs.forEach(input => {
+                if (window.intlTelInput) {
+                    window.intlTelInput(input, {
+                        initialCountry: "auto",
+                        geoIpLookup: function(callback) {
+                            fetch('https://ipapi.co/json')
+                                .then(res => res.json())
+                                .then(data => callback(data.country_code))
+                                .catch(() => callback('us'));
+                        },
+                        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.19/js/utils.js"
+                    });
+                }
+            });
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 </html>

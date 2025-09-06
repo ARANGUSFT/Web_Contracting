@@ -134,7 +134,17 @@ class JobRequestController extends Controller
 
     public function edit(JobRequest $job)
     {
-        $teamMembers = \App\Models\Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
+
+         // Formatear la fecha para el input type="date"
+    if ($job->install_date_requested) {
+        $job->install_date_requested = \Carbon\Carbon::parse($job->install_date_requested)->format('Y-m-d');
+    }
+
+    if ($job->delivery_date) {
+        $job->delivery_date = \Carbon\Carbon::parse($job->delivery_date)->format('Y-m-d');
+    }
+    
+        $teamMembers = Team::whereIn('role', ['manager', 'project_manager', 'crew'])->get();
         return view('leads.pg.update.editJob', compact('job', 'teamMembers'));
     }
     
@@ -250,8 +260,9 @@ class JobRequestController extends Controller
     
 
 
-    public function deleteFile($jobId, $field, $index)
-    {
+   public function deleteFile($jobId, $field, $index)
+{
+    try {
         $job = JobRequest::findOrFail($jobId);
     
         $validFields = ['aerial_measurement', 'material_order', 'file_upload'];
@@ -260,25 +271,46 @@ class JobRequestController extends Controller
             return response()->json(['error' => 'Invalid field'], 400);
         }
     
-        $files = is_array($job->$field) ? $job->$field : json_decode($job->$field, true);
+        // Obtener archivos actuales
+        $files = [];
+        if (!empty($job->$field)) {
+            $files = is_string($job->$field) 
+                ? json_decode($job->$field, true) 
+                : $job->$field;
+            $files = is_array($files) ? $files : [];
+        }
     
-        if (!is_array($files) || !isset($files[$index])) {
+        if (!isset($files[$index])) {
             return response()->json(['error' => 'File not found'], 404);
         }
     
         $file = $files[$index];
     
-        // Eliminar archivo del storage (opcional)
-        if (isset($file['path'])) {
+        // Eliminar archivo del storage
+        if (isset($file['path']) && Storage::disk('public')->exists($file['path'])) {
             Storage::disk('public')->delete($file['path']);
         }
     
+        // Eliminar del array y reindexar
         unset($files[$index]);
-        $job->$field = array_values($files); // Reindexar
+        $files = array_values($files);
+        
+        // Actualizar el campo
+        $job->$field = !empty($files) ? json_encode($files) : null;
         $job->save();
     
-        return response()->json(['message' => 'File deleted']);
+        return response()->json([
+            'message' => 'File deleted successfully',
+            'remaining_files' => count($files)
+        ]);
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['error' => 'Job not found'], 404);
+    } catch (\Exception $e) {
+        Log::error('Error deleting file: ' . $e->getMessage());
+        return response()->json(['error' => 'Internal server error'], 500);
     }
+}
     
 
     

@@ -51,7 +51,6 @@
                         <label class="form-label">Preferred Language</label>
                         <select name="language" class="form-select">
                             <option value="English" selected>English</option>
-                            <option value="Spanish">Spanish</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -73,7 +72,7 @@
                         <input type="text" name="company_name" class="form-control">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Years of Experience</label>
+                        <label class="form-label">Years of Creation</label>
                         <input type="text" name="years_experience" class="form-control" placeholder="e.g. 2020">
                     </div>
     
@@ -84,7 +83,7 @@
     
             <!-- Company Documents Upload -->
             <div class="mt-4">
-                <label class="form-label" for="company_documents">Subir Documento</label>
+                <label class="form-label" for="company_documents">Upload</label>
                 <input type="file" id="company_documents" class="form-control">
                 <div id="uploaded_list" class="mt-3"></div>
                 <!-- Este input oculto contendrá todos los archivos para enviarlos a Laravel -->
