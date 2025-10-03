@@ -421,7 +421,7 @@
                                     <input type="hidden" name="type" value="{{ $docType['type'] }}">
                                     <input type="file" name="file" class="form-control mb-2" required>
                                     <button type="submit" class="btn btn-success">
-                                        <i class="bi bi-upload"></i> Subir {{ $docType['title'] }}
+                                        <i class="bi bi-upload"></i> Up {{ $docType['title'] }}
                                     </button>
                                 </form>
                             </div>
@@ -1182,7 +1182,7 @@
 <!-- Script Eliminar documento-->
 <script>
     function deleteDocument(filePath, fileType) {
-        if (confirm('¿Estás seguro de que deseas eliminar este archivo?')) {
+        if (confirm('Are you sure you want to delete this file?')) {
             document.getElementById('deleteFileType').value = fileType;
             document.getElementById('deleteFilePath').value = filePath;
             document.getElementById('deleteDocumentForm').submit();
@@ -1222,7 +1222,7 @@
                     alert("Error al subir la imagen.");
                 }
             })
-            .catch(error => console.error("Error enviando imagen:", error));
+            .catch(error => console.error("Error sending image:", error));
         });
     });
 
@@ -1236,7 +1236,7 @@
 
     // Eliminar imagen con AJAX
     function deleteImage(imageId) {
-        if (!confirm("¿Estás seguro de que quieres eliminar esta imagen?")) return;
+        if (!confirm("Are you sure you want to remove this image?")) return;
 
         fetch(`/lead-images/${imageId}`, {
             method: 'DELETE',
@@ -1254,7 +1254,7 @@
                 alert(data.error);
             }
         })
-        .catch(error => console.error("Error al eliminar imagen:", error));
+        .catch(error => console.error("Image removed successfully", error));
     }
 </script>
     

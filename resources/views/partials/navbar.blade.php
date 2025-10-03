@@ -38,11 +38,7 @@
                             <i class="bi bi-people"></i> Manage Team
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('leads.index') }}">
-                            <i class="bi bi-shield-check"></i> Insurance
-                        </a>
-                    </li>
+            
 
                    <li class="nav-item">
                         <a class="nav-link" href="{{ auth()->user()->is_admin ? route('superadmin.chat.view') : route('user.chat.view') }}">

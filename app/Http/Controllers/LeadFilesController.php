@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
-use App\Models\LeadFile;
+use App\Models\leadFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -52,7 +52,7 @@ class LeadFilesController extends Controller
             $data['team_id'] = $user->id;
         }
 
-        LeadFile::create($data);
+        leadFile::create($data);
 
         return redirect()->back()->with('success', 'Document uploaded successfully');
     }
@@ -60,7 +60,7 @@ class LeadFilesController extends Controller
     public function destroy($id)
     {
         $current = $this->getCurrentUser();
-        $file = LeadFile::findOrFail($id);
+        $file = leadFile::findOrFail($id);
         $user = $current['instance'];
 
         if (!$this->canManageLead($file->lead, $user, $current['type'])) {

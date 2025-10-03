@@ -7,10 +7,13 @@ use App\Models\JobRequest;
 use App\Models\Emergencies;
 use App\Models\PhotoShare;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage; // ⬅️ añade esto
+use Illuminate\Support\Facades\URL;   // ⬅️ agrega esto
+
 
 class FotoController extends Controller
 {
-    // ✅ API: Obtener fotos de un proyecto
+
     public function index($tipo, $id)
     {
         $modelo = $tipo === 'job_request'
@@ -19,15 +22,15 @@ class FotoController extends Controller
 
         $fotos = $modelo->fotos()->get()->map(function ($foto) {
             return [
-                'url' => asset('storage/' . $foto->url),
-                'takenAt' => optional($foto->created_at)->toIso8601String(), // 2025-08-11T14:03:22Z
+                'url' => URL::to(Storage::url($foto->url)),  // antes: Storage::url(...)
+
+                'takenAt' => optional($foto->created_at)->toIso8601String(),
             ];
         });
 
         return response()->json($fotos);
     }
 
-    // ✅ API: Guardar foto desde la app
     public function store(Request $request)
     {
         $request->validate([
@@ -36,23 +39,23 @@ class FotoController extends Controller
             'foto' => 'required|image|max:2048',
         ]);
 
-        $file = $request->file('foto');
-        $path = $file->store('fotos', 'public');
+        $path = $request->file('foto')->store('fotos', 'public'); // guarda 'fotos/xxx.png'
 
         $foto = new Foto(['url' => $path]);
+
         $modelo = $request->tipo === 'job_request'
             ? JobRequest::findOrFail($request->id)
             : Emergencies::findOrFail($request->id);
 
-        $modelo->fotos()->save($foto); // setea created_at
+        $modelo->fotos()->save($foto);
 
         return response()->json([
             'id'      => $foto->id,
-            'url'     => asset('storage/' . $foto->url),
+            'url' => URL::to(Storage::url($foto->url)),  // antes: Storage::url(...)
             'takenAt' => optional($foto->created_at)->toIso8601String(),
         ], 201);
     }
-
+    
 
     // ✅ Web: Vista de selección de proyectos
     public function projects()

@@ -13,8 +13,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-
-
     <script>
         tailwind.config = {
             important: true,
@@ -22,9 +20,8 @@
                 extend: {
                     colors: {
                         primary: '#003366',
+                        'primary-light': '#1a4d80',
                         'primary-dark': '#002244',
-                        secondary: '#D4AF37',
-                        accent: '#FFD700',
                         dark: '#1a202c',
                         light: '#f7fafc',
                         sidebar: '#001a33'
@@ -43,79 +40,78 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     
-    @stack('styles')
+
 </head>
 <body class="bg-gray-50 min-h-screen flex font-sans">
     <!-- Sidebar -->
     <div class="hidden md:flex md:flex-shrink-0">
-        <div class="flex flex-col w-64 bg-sidebar border-r border-primary-dark">
+        <div class="flex flex-col w-64 bg-gradient-to-b from-primary to-primary-dark border-r border-primary-dark">
             <!-- Logo Section -->
-            <div class="flex items-center justify-center h-16 px-4 bg-primary-dark">
-                <div class="flex items-center">
-                    <svg class="w-8 h-8 mr-2 text-secondary" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span class="text-xl font-bold text-white">CONTRACTING ALLIANCE</span>
+            <div class="flex flex-col items-center justify-center h-40 px-4 bg-primary-dark/30 py-6">
+                <div class="h-20 w-20 bg-white/20 rounded-2xl flex items-center justify-center p-3 backdrop-blur-sm mb-3">
+                    <img src="{{ asset('img/dd.png') }}" alt="Contracting Alliance Inc. Logo">
                 </div>
+                <span class="text-lg font-bold text-white text-center">Contracting Alliance Inc</span>
+                <span class="text-xs text-white/70 mt-1">Administration Panel</span>
             </div>
             
             <!-- Navigation -->
             <div class="flex-1 overflow-y-auto py-4">
                 <nav class="px-2 space-y-1">
-                    <a href="{{ route('superadmin.users.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-tachometer-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    <a href="{{ route('superadmin.users.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-tachometer-alt mr-3 text-gray-300 group-hover:text-white"></i>
                         Dashboard
                     </a>
                     
-                    <a href="{{ route('superadmin.crew.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-users mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    <a href="{{ route('superadmin.crew.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-users mr-3 text-gray-300 group-hover:text-white"></i>
                         Crew
                     </a>
 
-                    <a href="{{ route('superadmin.photos.projects') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-images mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    <a href="{{ route('superadmin.photos.projects') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-images mr-3 text-gray-300 group-hover:text-white"></i>
                         Photos
                     </a>
 
-                    <a href="{{ route('superadmin.chat.view') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-comments mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    <a href="{{ route('superadmin.chat.view') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-comments mr-3 text-gray-300 group-hover:text-white"></i>
                         Chat
                     </a>
 
-                    <a href="{{ route('superadmin.subcontractors.insurances.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    <a href="{{ route('superadmin.subcontractors.insurances.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-shield-alt mr-3 text-gray-300 group-hover:text-white"></i>
                         Insurance
                     </a>
-                    <a href="{{ route('superadmin.invoices.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                        <i class="fas fa-file-invoice-dollar mr-3 text-gray-400 group-hover:text-secondary"></i>
+                    
+                    <a href="{{ route('superadmin.invoices.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                        <i class="fas fa-file-invoice-dollar mr-3 text-gray-300 group-hover:text-white"></i>
                         Invoices
                     </a>
-
-
                 </nav>
             </div>
             
             <!-- User Section -->
-            <div class="p-4 border-t border-primary-dark">
+            <div class="p-4 border-t border-white/10">
                 <div class="relative">
-                    <button id="sidebar-user-menu-button" class="flex items-center w-full text-left focus:outline-none">
+                    <button id="sidebar-user-menu-button" class="flex items-center w-full text-left focus:outline-none group">
                         <div class="flex-shrink-0">
-                            <div class="h-10 w-10 rounded-full bg-primary-dark flex items-center justify-center text-white">
+                            <div class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-white/20 transition-colors">
                                 {{ substr(auth()->user()->name, 0, 1) }}
                             </div>
                         </div>
                         <div class="ml-3">
                             <p class="text-sm font-medium text-white">{{ auth()->user()->name }}</p>
-                            <p class="text-xs font-medium text-gray-400">Administrator</p>
+                            <p class="text-xs font-medium text-gray-300">Administrator</p>
                         </div>
-                        <i class="fas fa-chevron-down ml-auto text-xs text-gray-400"></i>
+                        <i class="fas fa-chevron-down ml-auto text-xs text-gray-300 group-hover:text-white transition-colors"></i>
                     </button>
                     
                     <div id="sidebar-user-menu" class="hidden absolute bottom-full left-0 mb-2 w-full bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                        <form action="{{ route('superadmin.logout') }}" method="POST" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                        <form action="{{ route('superadmin.logout') }}" method="POST" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                             @csrf
                             <button type="submit" class="w-full text-left flex items-center">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                                <i class="fas fa-sign-out-alt mr-2 text-primary"></i> 
+                                <span class="text-primary">Sign Out</span>
                             </button>
                         </form>
                     </div>
@@ -128,50 +124,58 @@
     <div id="mobile-sidebar-backdrop" class="fixed inset-0 z-40 bg-black bg-opacity-75 hidden"></div>
 
     <!-- Mobile sidebar -->
-    <div id="mobile-sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 transform -translate-x-full transition duration-300 ease-in-out bg-sidebar">
-        <div class="flex items-center justify-center h-16 px-4 bg-primary-dark">
-            <div class="flex items-center">
-                <svg class="w-8 h-8 mr-2 text-secondary" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path>
-                </svg>
-                <span class="text-xl font-bold text-white">CONTRACTING ALLIANCE</span>
+    <div id="mobile-sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col w-64 transform -translate-x-full transition duration-300 ease-in-out bg-gradient-to-b from-primary to-primary-dark">
+        <div class="flex flex-col items-center justify-center h-40 px-4 bg-primary-dark/30 py-6">
+            <div class="h-20 w-20 bg-white/20 rounded-2xl flex items-center justify-center p-3 backdrop-blur-sm mb-3">
+                <img src="{{ asset('img/logo.png') }}" alt="Contracting Alliance Inc. Logo" class="h-14 w-auto object-contain" />
             </div>
+            <span class="text-lg font-bold text-white text-center">Contracting Alliance</span>
+            <span class="text-xs text-white/70 mt-1">Administration Panel</span>
         </div>
         <div class="flex-1 overflow-y-auto py-4">
             <nav class="px-2 space-y-1">
-                <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                    <i class="fas fa-tachometer-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
+                <a href="{{ route('superadmin.users.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-tachometer-alt mr-3 text-gray-300 group-hover:text-white"></i>
                     Dashboard
                 </a>
-                <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                    <i class="fas fa-users mr-3 text-gray-400 group-hover:text-secondary"></i>
-                    Groups
+                
+                <a href="{{ route('superadmin.crew.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-users mr-3 text-gray-300 group-hover:text-white"></i>
+                    Crew
                 </a>
-                <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                    <i class="fas fa-images mr-3 text-gray-400 group-hover:text-secondary"></i>
+
+                <a href="{{ route('superadmin.photos.projects') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-images mr-3 text-gray-300 group-hover:text-white"></i>
                     Photos
                 </a>
-                <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                    <i class="fas fa-shield-alt mr-3 text-gray-400 group-hover:text-secondary"></i>
+
+                <a href="{{ route('superadmin.chat.view') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-comments mr-3 text-gray-300 group-hover:text-white"></i>
+                    Chat
+                </a>
+
+                <a href="{{ route('superadmin.subcontractors.insurances.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-shield-alt mr-3 text-gray-300 group-hover:text-white"></i>
                     Insurance
                 </a>
-                <a href="#" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-primary hover:text-white">
-                    <i class="fas fa-file-invoice-dollar mr-3 text-gray-400 group-hover:text-secondary"></i>
+                
+                <a href="{{ route('superadmin.invoices.index') }}" class="group flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-200 hover:bg-white/10 hover:text-white transition-colors">
+                    <i class="fas fa-file-invoice-dollar mr-3 text-gray-300 group-hover:text-white"></i>
                     Invoices
                 </a>
             </nav>
         </div>
-        <div class="p-4 border-t border-primary-dark">
+        <div class="p-4 border-t border-white/10">
             <div class="relative">
-                <button id="mobile-sidebar-user-menu-button" class="flex items-center w-full text-left focus:outline-none">
+                <button id="mobile-sidebar-user-menu-button" class="flex items-center w-full text-left focus:outline-none group">
                     <div class="flex-shrink-0">
-                        <div class="h-10 w-10 rounded-full bg-primary-dark flex items-center justify-center text-white">
+                        <div class="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-white/20 transition-colors">
                             {{ substr(auth()->user()->name, 0, 1) }}
                         </div>
                     </div>
                     <div class="ml-3">
                         <p class="text-sm font-medium text-white">{{ auth()->user()->name }}</p>
-                        <p class="text-xs font-medium text-gray-400">Administrator</p>
+                        <p class="text-xs font-medium text-gray-300">Administrator</p>
                     </div>
                 </button>
             </div>
@@ -184,7 +188,7 @@
         <header class="bg-white shadow-sm">
             <div class="flex items-center justify-between px-4 py-3 sm:px-6">
                 <!-- Mobile menu button -->
-                <button id="mobile-sidebar-toggle" class="md:hidden text-gray-500 hover:text-gray-600 focus:outline-none">
+                <button id="mobile-sidebar-toggle" class="md:hidden text-gray-500 hover:text-primary focus:outline-none transition-colors">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
                 
@@ -195,17 +199,18 @@
                         @yield('actions')
                         <!-- User dropdown for mobile -->
                         <div class="md:hidden relative">
-                            <button id="mobile-user-menu-button" class="flex items-center space-x-1 focus:outline-none">
-                                <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm">
+                            <button id="mobile-user-menu-button" class="flex items-center space-x-1 focus:outline-none group">
+                                <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm group-hover:bg-primary-light transition-colors">
                                     {{ substr(auth()->user()->name, 0, 1) }}
                                 </div>
                             </button>
                             
                             <div id="mobile-user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
-                                <form action="{{ route('superadmin.logout') }}" method="POST" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <form action="{{ route('superadmin.logout') }}" method="POST" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                                     @csrf
                                     <button type="submit" class="w-full text-left flex items-center">
-                                        <i class="fas fa-sign-out-alt mr-2"></i> Sign Out
+                                        <i class="fas fa-sign-out-alt mr-2 text-primary"></i> 
+                                        <span class="text-primary">Sign Out</span>
                                     </button>
                                 </form>
                             </div>

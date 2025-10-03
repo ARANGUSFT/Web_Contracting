@@ -19,7 +19,23 @@ use Illuminate\Support\Facades\Auth;
 
 class EventCalendarController extends Controller
 {
-  
+    /**
+     * Devuelve la URL para editar el contratista si existe (o null).
+     * Ajusta los accesos según tu modelo si usan otros nombres/campos.
+     */
+    private function contractorEditUrlFrom($item): ?string
+    {
+        $contractorUserId =
+            $item->contractor_user_id
+            ?? optional($item->contractor)->id
+            ?? optional($item->crew)->contractor_user_id
+            ?? null;
+
+        return $contractorUserId
+            ? route('superadmin.contractors.edit', ['user' => $contractorUserId])
+            : null;
+    }
+
     public function index()
     {
         $crews = Crew::all();
@@ -37,18 +53,16 @@ class EventCalendarController extends Controller
         sort($allNames, SORT_NATURAL | SORT_FLAG_CASE);
 
         // 2) Mapa con color y is_active guardados en BD
-        //    keyBy('name') => acceso rápido por nombre
         $saved = EventCompany::get(['name','color','is_active'])
             ->keyBy('name');
 
         // 3) Armar arreglo para la vista con color + active
         $companiesForView = array_map(function ($name) use ($saved) {
-            $row = $saved->get($name); // Illuminate\Support\Collection::get
+            $row = $saved->get($name);
             return [
                 'name'   => $name,
                 'color'  => $row->color     ?? '#3788d8',
                 'active' => $row->is_active ?? true,
-                // Sugerencia útil para el HTML:
                 'slug'   => \Illuminate\Support\Str::slug($name),
             ];
         }, $allNames);
@@ -114,7 +128,7 @@ class EventCalendarController extends Controller
                 if (!$isAllowed($company)) return;
 
                 $events[] = [
-                    'id'    => $job->id, // ← ID limpio
+                    'id'    => $job->id,
                     'title' => "Job #{$job->job_number_name}",
                     'start' => optional($job->install_date_requested)->toDateString(),
                     'color' => $getColor($company),
@@ -135,7 +149,7 @@ class EventCalendarController extends Controller
                 if (!$isAllowed($company)) return;
 
                 $events[] = [
-                    'id'    => $e->id, // ← ID limpio
+                    'id'    => $e->id,
                     'title' => "Emergency #{$e->job_number_name}",
                     'start' => optional($e->date_submitted)->toDateString(),
                     'color' => $getColor($company),
@@ -149,8 +163,6 @@ class EventCalendarController extends Controller
 
         return response()->json($events);
     }
-
-
 
     public function show(string $type, int $id)
     {
@@ -230,6 +242,9 @@ class EventCalendarController extends Controller
                 })->all(),
             ];
 
+            // ➕ NUEVO: URL al apartado del contratista (si existe)
+            $data['contractor_edit_url'] = $this->contractorEditUrlFrom($item);
+
         } else {
             $item = Emergencies::with(['crew', 'notes.user', 'notes.subcontractor'])->findOrFail($id);
 
@@ -275,6 +290,9 @@ class EventCalendarController extends Controller
                     ];
                 })->all(),
             ];
+
+            // ➕ NUEVO: URL al apartado del contratista (si existe)
+            $data['contractor_edit_url'] = $this->contractorEditUrlFrom($item);
         }
 
         return response()->json([
@@ -282,7 +300,6 @@ class EventCalendarController extends Controller
             'data' => $data,
         ]);
     }
-
 
 
 

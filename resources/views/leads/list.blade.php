@@ -16,11 +16,11 @@
             <!-- Círculos de Estado + Checkboxes -->
             <div class="d-flex justify-content-around flex-wrap">
                 @foreach ([
-                    'leads' => ['L', 'bg-warning', ''],
-                    'prospect' => ['P', 'bg-orange', ''],
-                    'approved' => ['A', 'bg-success', ''],
-                    'completed' => ['C', 'bg-primary', ''],
-                    'invoiced' => ['I', 'bg-danger', '']
+                    'leads' => ['L', 'bg-warning', 'lead'],
+                    'prospect' => ['P', 'bg-orange', 'prospect'],
+                    'approved' => ['A', 'bg-success', 'approved'],
+                    'completed' => ['C', 'bg-primary', 'completed'],
+                    'invoiced' => ['I', 'bg-danger', 'invoiced']
                 ] as $key => [$letter, $color, $label])
                    
 

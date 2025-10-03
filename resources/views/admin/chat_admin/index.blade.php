@@ -1,11 +1,21 @@
 @extends('admin.layouts.superadmin')
 
 @section('content')
+
+@php
+    $users = $users ?? collect();
+    $firstUser = $users instanceof \Illuminate\Support\Collection ? $users->first() : (is_array($users) ? ($users[0] ?? null) : null);
+
+    $fullName = trim(($firstUser->name ?? '').' '.($firstUser->last_name ?? '')) ?: 'Usuario';
+    $avatarUrl = $firstUser->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($fullName).'&background=random';
+
+    $hasUsers = !is_null($firstUser);
+@endphp
+
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
             <div class="card shadow-sm">
-                <!-- Encabezado del chat -->
                 <div class="card-header bg-gradient-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Chat Administrativo</h4>
@@ -15,76 +25,92 @@
                     </div>
                 </div>
 
-                <!-- Cuerpo del chat -->
                 <div class="card-body p-0">
                     <div class="row g-0">
-                        <!-- Panel de usuarios (opcional) -->
+                        <!-- Panel de usuarios -->
                         <div class="col-md-4 d-none d-md-block border-end">
                             <div class="p-3">
                                 <div class="input-group mb-3">
                                     <span class="input-group-text bg-light">
                                         <i class="fas fa-search"></i>
                                     </span>
-                                    <input type="text" class="form-control" placeholder="Buscar usuario...">
+                                    <input type="text" class="form-control" placeholder="Buscar usuario..." @unless($hasUsers) disabled @endunless>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="receiver_id" class="form-label fw-bold text-muted">Seleccionar contacto:</label>
-                                    <select id="receiver_id" class="form-select shadow-sm">
-                                        @foreach($users as $u)
-                                            <option value="{{ $u->id }}" data-avatar="{{ $u->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($u->name).'&background=random' }}">
+                                    <select id="receiver_id" class="form-select shadow-sm" @unless($hasUsers) disabled @endunless>
+                                        @forelse($users as $u)
+                                            <option value="{{ $u->id }}"
+                                                data-avatar="{{ $u->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($u->name).'&background=random' }}"
+                                                @selected($firstUser && $u->id === $firstUser->id)>
                                                 {{ $u->name }} {{ $u->last_name }} - {{ $u->company_name }}
                                             </option>
-                                        @endforeach
+                                        @empty
+                                            <option value="" disabled selected>No hay usuarios disponibles</option>
+                                        @endforelse
                                     </select>
                                 </div>
-                                
+
                                 <div class="list-group list-group-flush user-list" style="max-height: 500px; overflow-y: auto;">
-                                    @foreach($users as $u)
-                                    <a href="#" class="list-group-item list-group-item-action user-item" data-id="{{ $u->id }}">
-                                        <div class="d-flex align-items-center">
-                                            <img src="{{ $u->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($u->name).'&background=random' }}" 
-                                                 class="rounded-circle me-3" width="40" height="40">
-                                            <div>
-                                                <h6 class="mb-0">{{ $u->name }} {{ $u->last_name }}</h6>
-                                                <small class="text-muted">{{ $u->company_name }}</small>
+                                    @forelse($users as $u)
+                                        <a href="#" class="list-group-item list-group-item-action user-item" data-id="{{ $u->id }}">
+                                            <div class="d-flex align-items-center">
+                                                <img src="{{ $u->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($u->name).'&background=random' }}"
+                                                     class="rounded-circle me-3" width="40" height="40" alt="avatar">
+                                                <div>
+                                                    <h6 class="mb-0">{{ $u->name }} {{ $u->last_name }}</h6>
+                                                    <small class="text-muted">{{ $u->company_name }}</small>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </a>
-                                    @endforeach
+                                        </a>
+                                    @empty
+                                        <div class="p-3 text-muted">Sin usuarios.</div>
+                                    @endforelse
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Área de conversación -->
                         <div class="col-md-8">
                             <div class="d-flex flex-column" style="height: 600px;">
                                 <!-- Información del contacto actual -->
                                 <div class="p-3 border-bottom d-flex align-items-center">
-                                    <img id="current-avatar" src="{{ $users[0]->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($users[0]->name).'&background=random' }}" 
-                                         class="rounded-circle me-3" width="48" height="48">
+                                    <img id="current-avatar" src="{{ $avatarUrl }}"
+                                         class="rounded-circle me-3" width="48" height="48" alt="avatar actual">
                                     <div>
-                                        <h5 id="current-contact" class="mb-0">{{ $users[0]->name }} {{ $users[0]->last_name }}</h5>
-                                        <small id="last-seen" class="text-muted">En línea</small>
+                                        <h5 id="current-contact" class="mb-0">
+                                            {{ $firstUser?->name ?? 'Sin contactos' }} {{ $firstUser?->last_name ?? '' }}
+                                        </h5>
+                                        <small id="last-seen" class="text-muted">
+                                            {{ $hasUsers ? 'En línea' : 'Sin usuarios disponibles' }}
+                                        </small>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Caja de mensajes -->
                                 <div id="chat-box" class="flex-grow-1 p-3" style="overflow-y: auto; background-color: #f8f9fa;">
-                                    <div class="text-center text-muted py-4">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Cargando mensajes...</span>
+                                    @if($hasUsers)
+                                        <div class="text-center text-muted py-4">
+                                            <div class="spinner-border spinner-border-sm" role="status">
+                                                <span class="visually-hidden">Cargando mensajes...</span>
+                                            </div>
+                                            Cargando historial de chat...
                                         </div>
-                                        Cargando historial de chat...
-                                    </div>
+                                    @else
+                                        <div class="text-center text-muted py-5">
+                                            No hay usuarios para chatear aún.
+                                        </div>
+                                    @endif
                                 </div>
-                                
+
                                 <!-- Área de escritura -->
                                 <div class="p-3 border-top">
                                     <div class="input-group">
-                                        <input type="text" id="message" class="form-control rounded-start" 
-                                               placeholder="Escribe un mensaje..." autocomplete="off">
-                                        <button class="btn btn-primary" onclick="sendMessage()">
+                                        <input type="text" id="message" class="form-control rounded-start"
+                                               placeholder="Escribe un mensaje..." autocomplete="off"
+                                               @unless($hasUsers) disabled @endunless>
+                                        <button class="btn btn-primary" onclick="sendMessage()" @unless($hasUsers) disabled @endunless>
                                             <i class="fas fa-paper-plane"></i> Enviar
                                         </button>
                                     </div>
@@ -94,12 +120,14 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- /Área de conversación -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 
 <style>
     /* Estilos personalizados */

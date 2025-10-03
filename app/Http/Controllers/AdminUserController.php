@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\JobRequest;
+use App\Models\Emergencies;
 use App\Models\Subcontractors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -15,13 +17,65 @@ class AdminUserController extends Controller
 // 🔹 Módulo: Admin Profile
 // ==============================
 
-    public function index()
-    {
-        $contractors = User::where('is_admin', false)->count();
-        $subcontractors = Subcontractors::count();
-        // $offers = Quote::count(); 
-        return view('admin.users.index', compact('contractors', 'subcontractors'));
+ public function index()
+{
+    // Stats actuales que ya tienes
+    $contractors    = User::where('is_admin', false)->count();
+    $subcontractors = Subcontractors::count();
+
+    // Ofertas SIN crew asignada (total)
+    $jobsUnassigned   = JobRequest::where(function ($q) {
+                            $q->whereNull('crew_id')->orWhere('crew_id', 0);
+                        })->count();
+    $emergUnassigned  = Emergencies::where(function ($q) {
+                            $q->whereNull('crew_id')->orWhere('crew_id', 0);
+                        })->count();
+    $offersUnassigned = $jobsUnassigned + $emergUnassigned;
+
+    // Ofertas CON crew asignada (total)
+    $jobsAssigned   = JobRequest::whereNotNull('crew_id')->where('crew_id', '!=', 0)->count();
+    $emergAssigned  = Emergencies::whereNotNull('crew_id')->where('crew_id', '!=', 0)->count();
+    $offersAssigned = $jobsAssigned + $emergAssigned;
+
+    // NUEVAS ESTADÍSTICAS - Registros del último mes
+    $contractorsLastMonth = User::where('is_admin', false)
+                                ->where('created_at', '>=', now()->subDays(30))
+                                ->count();
+    
+    $subcontractorsLastMonth = Subcontractors::where('created_at', '>=', now()->subDays(30))
+                                            ->count();
+    
+    $jobsLastMonth = JobRequest::where('created_at', '>=', now()->subDays(30))->count();
+    $emergLastMonth = Emergencies::where('created_at', '>=', now()->subDays(30))->count();
+    $offersLastMonth = $jobsLastMonth + $emergLastMonth;
+
+    // Cálculo de crecimiento (simplificado - puedes ajustar la lógica)
+    $growthContractors = $this->calculateGrowthRate($contractors, $contractorsLastMonth);
+    $growthSubcontractors = $this->calculateGrowthRate($subcontractors, $subcontractorsLastMonth);
+    $growthOffers = $this->calculateGrowthRate(($offersAssigned + $offersUnassigned), $offersLastMonth);
+
+    return view('admin.users.index', compact(
+        'contractors',
+        'subcontractors',
+        'offersUnassigned',
+        'offersAssigned',
+        'contractorsLastMonth',
+        'subcontractorsLastMonth',
+        'offersLastMonth',
+        'growthContractors',
+        'growthSubcontractors',
+        'growthOffers'
+    ));
+}
+
+private function calculateGrowthRate($total, $lastMonth)
+{
+    if ($total - $lastMonth <= 0) {
+        return $lastMonth > 0 ? 100 : 0;
     }
+    
+    return round(($lastMonth / ($total - $lastMonth)) * 100);
+}
 
     public function edit(User $user)
     {
