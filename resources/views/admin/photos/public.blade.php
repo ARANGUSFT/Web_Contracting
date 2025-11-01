@@ -26,7 +26,7 @@
     
     /* Scrollbar customization */
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
     
     ::-webkit-scrollbar-track {
@@ -34,48 +34,54 @@
     }
     
     ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 4px;
+      background: #cbd5e0;
+      border-radius: 3px;
     }
     
     ::-webkit-scrollbar-thumb:hover {
-      background: #555;
+      background: #a0aec0;
+    }
+
+    /* Smooth animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-content {
+      animation: fadeIn 0.2s ease-out;
     }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen text-gray-800">
 
-  <!-- Header -->
+  <!-- Header Compacto -->
   <header class="bg-white shadow-sm sticky top-0 z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
         <div class="flex items-center gap-2">
-          <i class="fas fa-camera text-blue-600 text-2xl"></i>
-          <h1 class="text-2xl md:text-3xl font-bold text-blue-700">
+          <i class="fas fa-camera text-blue-600 text-xl"></i>
+          <h1 class="text-xl font-bold text-blue-700 truncate">
             {{ $title ?? 'Public Photo Gallery' }}
           </h1>
+          <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+            {{ count($items ?? []) }} photos
+          </span>
         </div>
 
-        <!-- URL sharing -->
-        <div class="flex flex-col sm:flex-row items-stretch gap-2 w-full md:w-auto">
-          <div class="relative flex-1">
+        <!-- URL sharing compacto -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 min-w-0 max-w-xs">
             <input id="publicLink"
-                   class="w-full bg-white rounded-lg border border-gray-300 pl-10 pr-3 py-2 text-sm"
+                   class="w-full bg-gray-50 rounded-lg border border-gray-300 pl-3 pr-20 py-1.5 text-xs truncate"
                    readonly
                    value="{{ request()->fullUrl() }}">
-            <i class="fas fa-link absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-1">
             <button type="button"
-                    class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
                     onclick="copyLink()">
-              <i class="fas fa-copy"></i> Copy
-            </button>
-            <button type="button"
-                    class="px-4 py-2 rounded-lg bg-green-600 text-white text-sm hover:bg-green-700 transition-colors flex items-center gap-2 share-btn"
-                    data-url="{{ request()->fullUrl() }}"
-                    data-title="{{ $title ?? 'Public Photo Gallery' }}">
-              <i class="fas fa-share-alt"></i> Share
+              <i class="fas fa-copy text-xs"></i> Copy
             </button>
           </div>
         </div>
@@ -84,9 +90,7 @@
   </header>
 
   <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
- 
-
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
     @php
       // Normalize the list of photos that come as $photos or $fotos,
       // as string, array ['url'=>...], or object with ->url
@@ -105,51 +109,47 @@
 
     <!-- Gallery Grid -->
     @if (empty($items))
-      <div class="bg-white rounded-xl shadow-sm p-10 text-center max-w-2xl mx-auto">
-        <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <div class="bg-white rounded-xl shadow-sm p-8 text-center max-w-md mx-auto">
+        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
         </svg>
-        <h2 class="text-xl font-medium text-gray-700">No photos available</h2>
-        <p class="mt-2 text-gray-500">This public gallery doesn't have any images yet.</p>
+        <h2 class="text-lg font-medium text-gray-700">No photos available</h2>
+        <p class="mt-1 text-sm text-gray-500">This gallery doesn't have any images yet.</p>
       </div>
     @else
-      <!-- Image counter visible -->
-      <div class="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-        <p class="text-blue-800 font-medium text-center">
-          Total images: <span class="text-blue-600 font-bold">{{ count($items) }}</span>
-        </p>
-      </div>
-      
-      <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
         @foreach ($items as $i => $u)
           @php
             $isAbs = preg_match('#^https?://#i', $u);
             $src   = $isAbs ? $u : asset('storage/'.$u);
           @endphp
-          <div class="gallery-item bg-white rounded-xl shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md">
-            <div class="relative overflow-hidden">
+          <div class="gallery-item bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-gray-100">
+            <div class="relative overflow-hidden aspect-square">
               <img src="{{ $src }}"
                    alt="Photo {{ $i + 1 }}"
                    loading="lazy"
-                   class="gallery-image w-full h-48 object-cover cursor-pointer"
+                   class="gallery-image w-full h-full object-cover cursor-pointer"
                    data-index="{{ $i }}"
                    onclick="openModal(this)">
               
-              <!-- Overlay with buttons -->
-              <div class="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 flex items-center justify-center gap-2 opacity-0 hover:bg-opacity-40 hover:opacity-100">
-                <button class="bg-white p-2 rounded-full shadow-md hover:bg-blue-50" onclick="openModal(this.parentElement.parentElement.querySelector('img'))">
-                  <i class="fas fa-expand text-gray-700"></i>
+              <!-- Overlay con botones más pequeños -->
+              <div class="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 flex items-center justify-center gap-1 opacity-0 hover:bg-opacity-30 hover:opacity-100">
+                <button class="bg-white p-1.5 rounded-full shadow-sm hover:bg-blue-50 transition-colors" 
+                        onclick="openModal(this.parentElement.parentElement.querySelector('img')); event.stopPropagation();"
+                        title="View full size">
+                  <i class="fas fa-expand text-xs text-gray-600"></i>
                 </button>
-                <button class="bg-white p-2 rounded-full shadow-md hover:bg-blue-50" onclick="downloadImage('{{ $src }}', 'photo-{{ $i+1 }}')">
-                  <i class="fas fa-download text-gray-700"></i>
+                <button class="bg-white p-1.5 rounded-full shadow-sm hover:bg-green-50 transition-colors" 
+                        onclick="downloadImage('{{ $src }}', 'photo-{{ $i+1 }}'); event.stopPropagation();"
+                        title="Download photo">
+                  <i class="fas fa-download text-xs text-gray-600"></i>
                 </button>
               </div>
             </div>
             
-            <!-- Image information section (only with name) -->
-            <div class="p-3">
-              <p class="text-sm font-medium text-gray-700 truncate">Photo {{ $i + 1 }}</p>
-              <!-- The line showing the date has been removed -->
+            <!-- Información mínima -->
+            <div class="p-2">
+              <p class="text-xs font-medium text-gray-600 text-center">#{{ $i + 1 }}</p>
             </div>
           </div>
         @endforeach
@@ -157,67 +157,47 @@
     @endif
   </main>
 
-  <!-- Modal for enlarged image -->
-  <div id="imageModal" class="modal fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="relative max-w-4xl w-full mx-4">
-      <!-- Close button -->
-      <button class="absolute -top-12 right-0 text-white text-2xl z-10" onclick="closeModal()">
-        <i class="fas fa-times-circle"></i>
+  <!-- Modal Compacto para imagen ampliada -->
+  <div id="imageModal" class="modal fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300 p-3">
+    <div class="relative max-w-2xl w-full modal-content">
+      <!-- Botón cerrar compacto -->
+      <button class="absolute -top-8 right-0 text-white hover:text-gray-300 transition-colors z-10" 
+              onclick="closeModal()"
+              title="Close (ESC)">
+        <i class="fas fa-times text-lg"></i>
       </button>
       
-      <!-- Image container -->
+      <!-- Contenedor de imagen -->
       <div class="bg-black rounded-lg overflow-hidden">
-        <img id="modalImage" src="" alt="Enlarged view" class="w-full max-h-[80vh] object-contain">
+        <img id="modalImage" src="" alt="Enlarged view" class="w-full max-h-[65vh] object-contain">
       </div>
       
-      <!-- Navigation controls -->
-      <button class="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-12 text-white text-2xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75" onclick="navigateModal(-1)">
-        <i class="fas fa-chevron-left"></i>
+      <!-- Controles de navegación compactos -->
+      <button class="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10"
+              onclick="navigateModal(-1)"
+              title="Previous (←)">
+        <i class="fas fa-chevron-left text-sm"></i>
       </button>
-      <button class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-12 text-white text-2xl bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-75" onclick="navigateModal(1)">
-        <i class="fas fa-chevron-right"></i>
+      <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10"
+              onclick="navigateModal(1)"
+              title="Next (→)">
+        <i class="fas fa-chevron-right text-sm"></i>
       </button>
       
-      <!-- Image information -->
-      <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 text-white">
-        <p id="modalCaption" class="font-medium"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Share Modal -->
-  <div id="shareModal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-gray-800">Share Gallery</h3>
-        <button class="text-gray-400 hover:text-gray-600" onclick="closeShareModal()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Share this link</label>
-        <div class="flex">
-          <input id="shareLink" type="text" readonly class="flex-1 bg-gray-100 rounded-l-lg border border-r-0 border-gray-300 px-3 py-2 text-sm">
-          <button onclick="copyShareLink()" class="bg-blue-600 text-white px-4 py-2 rounded-r-lg text-sm hover:bg-blue-700 transition-colors">Copy</button>
+      <!-- Información e controles inferiores -->
+      <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+        <!-- Contador -->
+        <div class="bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
+          <span id="modalCounter">{{ count($items ?? []) ? '1/' . count($items) : '0/0' }}</span>
         </div>
-      </div>
-      
-      <div class="border-t border-gray-200 pt-4">
-        <p class="text-sm font-medium text-gray-700 mb-2">Share on social media</p>
-        <div class="flex justify-center gap-4">
-          <a id="facebookShare" class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors">
-            <i class="fab fa-facebook-f"></i>
-          </a>
-          <a id="twitterShare" class="w-10 h-10 rounded-full bg-blue-400 text-white flex items-center justify-center hover:bg-blue-500 transition-colors">
-            <i class="fab fa-twitter"></i>
-          </a>
-          <a id="linkedinShare" class="w-10 h-10 rounded-full bg-blue-700 text-white flex items-center justify-center hover:bg-blue-800 transition-colors">
-            <i class="fab fa-linkedin-in"></i>
-          </a>
-          <a id="whatsappShare" class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600 transition-colors">
-            <i class="fab fa-whatsapp"></i>
-          </a>
+        
+        <!-- Botones de acción -->
+        <div class="flex gap-1">
+          <button class="bg-black bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
+                  onclick="downloadCurrentImage()"
+                  title="Download current photo">
+            <i class="fas fa-download text-xs"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -241,14 +221,18 @@
     function copyLink() {
       const linkInput = document.getElementById('publicLink');
       navigator.clipboard.writeText(linkInput.value).then(() => {
-        // Temporarily change the button text
+        // Feedback visual temporal
         const copyButton = document.querySelector('button[onclick="copyLink()"]');
         const originalHtml = copyButton.innerHTML;
         copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        copyButton.classList.remove('bg-blue-600');
+        copyButton.classList.add('bg-green-600');
         
         setTimeout(() => {
           copyButton.innerHTML = originalHtml;
-        }, 2000);
+          copyButton.classList.remove('bg-green-600');
+          copyButton.classList.add('bg-blue-600');
+        }, 1500);
       });
     }
     
@@ -259,10 +243,10 @@
       
       const modal = document.getElementById('imageModal');
       const modalImage = document.getElementById('modalImage');
-      const modalCaption = document.getElementById('modalCaption');
+      const modalCounter = document.getElementById('modalCounter');
       
       modalImage.src = galleryImages[index];
-      modalCaption.textContent = `Photo ${index + 1} of ${galleryImages.length}`;
+      modalCounter.textContent = `${index + 1}/${galleryImages.length}`;
       
       modal.classList.remove('opacity-0', 'pointer-events-none');
       modal.classList.add('opacity-100');
@@ -293,69 +277,79 @@
       }
       
       const modalImage = document.getElementById('modalImage');
-      const modalCaption = document.getElementById('modalCaption');
+      const modalCounter = document.getElementById('modalCounter');
       
       modalImage.src = galleryImages[currentModalIndex];
-      modalCaption.textContent = `Photo ${currentModalIndex + 1} of ${galleryImages.length}`;
+      modalCounter.textContent = `${currentModalIndex + 1}/${galleryImages.length}`;
+    }
+    
+    // Download current image in modal
+    function downloadCurrentImage() {
+      const currentImage = galleryImages[currentModalIndex];
+      const filename = `photo-${currentModalIndex + 1}.jpg`;
+      downloadImage(currentImage, filename);
     }
     
     // Close modal with Escape key
     document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        closeModal();
-        closeShareModal();
+      const modal = document.getElementById('imageModal');
+      if (!modal.classList.contains('opacity-0')) {
+        switch(event.key) {
+          case 'Escape':
+            closeModal();
+            break;
+          case 'ArrowLeft':
+            navigateModal(-1);
+            break;
+          case 'ArrowRight':
+            navigateModal(1);
+            break;
+        }
       }
     });
     
-    // Download image
-    function downloadImage(url, filename) {
-      fetch(url)
-        .then(response => response.blob())
-        .then(blob => {
-          const blobUrl = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = blobUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(blobUrl);
-        })
-        .catch(() => alert('Error downloading image'));
-    }
-    
-    // Share modal
-    document.querySelectorAll('.share-btn').forEach(button => {
-      button.addEventListener('click', function() {
-        const url = this.getAttribute('data-url');
-        const title = encodeURIComponent(this.getAttribute('data-title'));
-        
-        document.getElementById('shareLink').value = url;
-        
-        // Set up social media sharing links
-        document.getElementById('facebookShare').href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-        document.getElementById('twitterShare').href = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${title}`;
-        document.getElementById('linkedinShare').href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
-        document.getElementById('whatsappShare').href = `https://wa.me/?text=${title} ${encodeURIComponent(url)}`;
-        
-        const modal = document.getElementById('shareModal');
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100');
-      });
+    // Close modal when clicking on background
+    document.getElementById('imageModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
     });
     
-    function closeShareModal() {
-      const modal = document.getElementById('shareModal');
-      modal.classList.remove('opacity-100');
-      modal.classList.add('opacity-0', 'pointer-events-none');
+    // Download image function
+    function downloadImage(url, filename) {
+      // Crear un enlace temporal para descargar
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
     
-    function copyShareLink() {
-      const shareInput = document.getElementById('shareLink');
-      navigator.clipboard.writeText(shareInput.value);
-      
-      // You can add a notification here that the link was copied
-      alert('Link copied to clipboard!');
+    // Swipe support for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    document.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    });
+    
+    function handleSwipe() {
+      const modal = document.getElementById('imageModal');
+      if (!modal.classList.contains('opacity-0')) {
+        if (touchEndX < touchStartX - 50) {
+          navigateModal(1); // Swipe left - next
+        }
+        if (touchEndX > touchStartX + 50) {
+          navigateModal(-1); // Swipe right - previous
+        }
+      }
     }
   </script>
 </body>

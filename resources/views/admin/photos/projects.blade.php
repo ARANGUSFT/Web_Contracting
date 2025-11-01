@@ -6,23 +6,79 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Header Section -->
     <div class="mb-8 space-y-4">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Photo Projects</h1>
-        <div class="relative max-w-md">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                </svg>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Photo Projects</h1>
+                <p class="mt-1 text-sm text-gray-500">Manage and review all photo projects</p>
             </div>
-            <input type="text" placeholder="Search projects..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <div class="flex items-center gap-3">
+             
+                
+                <!-- Search Input -->
+                <div class="relative max-w-xs">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Search projects..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
+                        <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Job Requests</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $jobs->count() }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-100 rounded-md p-3">
+                        <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-5 w-0 flex-1">
+                        <dl>
+                            <dt class="text-sm font-medium text-gray-500 truncate">Emergencies</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $emergencies->count() }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    
     </div>
 
     <!-- Job Requests Section -->
     <section class="mb-10">
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-lg leading-6 font-medium text-gray-900">Job Requests</h2>
-                <p class="mt-1 text-sm text-gray-500">Photo projects for scheduled jobs</p>
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Job Requests</h2>
+                    <p class="mt-1 text-sm text-gray-500">Photo projects for scheduled jobs</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {{ $jobs->count() }} projects
+                </span>
             </div>
             
             @if($jobs->isEmpty())
@@ -38,6 +94,13 @@
                     @foreach($jobs as $job)
                     <article class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-150 hover:shadow-md">
                         <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    Job Request
+                                </span>
+                           
+                            </div>
+                            
                             <div class="flex items-start space-x-4">
                                 <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
                                     <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,27 +117,42 @@
                                     
                                     <div class="mt-3 space-y-2 text-sm">
                                         @if($job->customer_first_name || $job->customer_last_name)
-                                        <p class="text-gray-700">
+                                        <div class="flex items-center text-gray-700">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
                                             {{ $job->customer_first_name }} {{ $job->customer_last_name }}
-                                        </p>
+                                        </div>
                                         @endif
                                         
                                         @if($job->job_address_city || $job->job_address_state)
-                                        <p class="text-gray-600">
+                                        <div class="flex items-center text-gray-600">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
                                             {{ $job->job_address_city }}, {{ $job->job_address_state }}
-                                        </p>
+                                        </div>
                                         @endif
                                         
                                         @if($job->install_date_requested)
-                                        <p class="text-gray-600">
+                                        <div class="flex items-center text-gray-600">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
                                             {{ \Carbon\Carbon::parse($job->install_date_requested)->format('M d, Y') }}
-                                        </p>
+                                        </div>
                                         @endif
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-4 flex justify-end">
-                                <a href="{{ route('superadmin.photos.view', ['tipo' => 'job_request', 'id' => $job->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <div class="mt-4 flex justify-between items-center">
+                                <div class="text-xs text-gray-500">
+                                    @if($job->updated_at)
+                                    Updated {{ \Carbon\Carbon::parse($job->updated_at)->diffForHumans() }}
+                                    @endif
+                                </div>
+                                <a href="{{ route('superadmin.photos.view', ['tipo' => 'job_request', 'id' => $job->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150">
                                     View Photos
                                 </a>
                             </div>
@@ -89,9 +167,14 @@
     <!-- Emergencies Section -->
     <section>
         <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-lg leading-6 font-medium text-gray-900">Emergencies</h2>
-                <p class="mt-1 text-sm text-gray-500">Photo projects for emergency situations</p>
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">Emergencies</h2>
+                    <p class="mt-1 text-sm text-gray-500">Photo projects for emergency situations</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                    {{ $emergencies->count() }} emergencies
+                </span>
             </div>
             
             @if($emergencies->isEmpty())
@@ -107,6 +190,20 @@
                     @foreach($emergencies as $emergency)
                     <article class="bg-white border border-gray-200 rounded-lg overflow-hidden transition-all duration-150 hover:shadow-md">
                         <div class="p-5">
+                            <div class="flex items-start justify-between mb-3">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Emergency
+                                </span>
+                                @if($emergency->priority)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {{ $emergency->priority === 'high' ? 'bg-red-100 text-red-800' : '' }}
+                                    {{ $emergency->priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                    {{ $emergency->priority === 'low' ? 'bg-green-100 text-green-800' : '' }}">
+                                    {{ ucfirst($emergency->priority) }} Priority
+                                </span>
+                                @endif
+                            </div>
+                            
                             <div class="flex items-start space-x-4">
                                 <div class="flex-shrink-0 bg-red-100 p-3 rounded-lg">
                                     <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,27 +220,42 @@
                                     
                                     <div class="mt-3 space-y-2 text-sm">
                                         @if($emergency->date_submitted)
-                                        <p class="text-gray-700">
+                                        <div class="flex items-center text-gray-700">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
                                             {{ \Carbon\Carbon::parse($emergency->date_submitted)->format('M d, Y') }}
-                                        </p>
+                                        </div>
                                         @endif
                                         
                                         @if($emergency->job_city || $emergency->job_state)
-                                        <p class="text-gray-600">
+                                        <div class="flex items-center text-gray-600">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
                                             {{ $emergency->job_city }}, {{ $emergency->job_state }}
-                                        </p>
+                                        </div>
                                         @endif
                                         
                                         @if($emergency->company_name)
-                                        <p class="text-gray-600">
+                                        <div class="flex items-center text-gray-600">
+                                            <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
                                             {{ $emergency->company_name }}
-                                        </p>
+                                        </div>
                                         @endif
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-4 flex justify-end">
-                                <a href="{{ route('superadmin.photos.view', ['tipo' => 'emergency', 'id' => $emergency->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <div class="mt-4 flex justify-between items-center">
+                                <div class="text-xs text-gray-500">
+                                    @if($emergency->updated_at)
+                                    Updated {{ \Carbon\Carbon::parse($emergency->updated_at)->diffForHumans() }}
+                                    @endif
+                                </div>
+                                <a href="{{ route('superadmin.photos.view', ['tipo' => 'emergency', 'id' => $emergency->id]) }}" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-150">
                                     View Photos
                                 </a>
                             </div>
@@ -155,4 +267,38 @@
         </div>
     </section>
 </div>
+
+<!-- JavaScript for filtering and searching -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const jobCards = document.querySelectorAll('article');
+    
+    function filterProjects() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const statusValue = statusFilter.value;
+        
+        jobCards.forEach(card => {
+            const cardText = card.textContent.toLowerCase();
+            const cardStatus = card.querySelector('.inline-flex.items-center:last-child')?.textContent.toLowerCase() || '';
+            
+            const matchesSearch = cardText.includes(searchTerm);
+            const matchesStatus = statusValue === 'all' || 
+                (statusValue === 'pending' && cardStatus.includes('pending')) ||
+                (statusValue === 'approved' && cardStatus.includes('approved')) ||
+                (statusValue === 'rejected' && cardStatus.includes('rejected'));
+            
+            if (matchesSearch && matchesStatus) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    searchInput.addEventListener('input', filterProjects);
+    statusFilter.addEventListener('change', filterProjects);
+});
+</script>
 @endsection

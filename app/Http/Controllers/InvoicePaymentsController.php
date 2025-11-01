@@ -70,7 +70,7 @@ class InvoicePaymentsController extends Controller
             $invoice->update(['paid' => $newPaid, 'due' => $newDue]);
         });
 
-        return back()->with('status', 'Pago registrado.');
+        return back()->with('status', 'Recorded payment');
     }
 
 
@@ -178,6 +178,6 @@ class InvoicePaymentsController extends Controller
             $payment->delete();
         });
 
-        return back()->with('status', 'Pago eliminado.');
+        return back()->with('status', 'Payment removed');
     }
 }

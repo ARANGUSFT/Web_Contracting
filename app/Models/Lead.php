@@ -46,7 +46,11 @@ class Lead extends Model
         return $statuses[$this->estado] ?? 'Unknown';
     }
 
-    
+    public function folders()
+    {
+        return $this->hasMany(LeadFolder::class);
+    }
+
 
     public function team()
     {

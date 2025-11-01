@@ -41,7 +41,6 @@
                         <label class="form-label">Preferred Language</label>
                         <select name="language" class="form-select">
                             <option value="English" {{ $user->language == 'English' ? 'selected' : '' }}>English</option>
-                            <option value="Spanish" {{ $user->language == 'Spanish' ? 'selected' : '' }}>Spanish</option>
                         </select>
                     </div>
                     <div class="col-md-6">

@@ -6,14 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class LeadFile extends Model
 {
-    protected $fillable = [
+     protected $fillable = [
         'lead_id',
         'user_id',
         'team_id',
-        'type',
+        'folder_id',
         'file_path',
     ];
 
+    public function folder()
+    {
+        return $this->belongsTo(LeadFolder::class);
+    }
+    
     public function lead()
     {
         return $this->belongsTo(Lead::class);

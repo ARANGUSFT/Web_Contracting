@@ -10,8 +10,6 @@ use App\Notifications\LeadAssignedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-
-
 use Illuminate\Http\Request;
 
 class LeadController extends Controller
@@ -33,13 +31,14 @@ class LeadController extends Controller
             return $team->role === 'sales';
         });
         
-        // Contadores por estado (solo para este admin)
+        // Contadores por estado (solo para este admin) - AGREGADO ESTADO 6
         $statusCounts = [
             'leads' => Lead::where('estado', 1)->where('user_id', auth()->id())->count(),
             'prospect' => Lead::where('estado', 2)->where('user_id', auth()->id())->count(),
             'approved' => Lead::where('estado', 3)->where('user_id', auth()->id())->count(),
             'completed' => Lead::where('estado', 4)->where('user_id', auth()->id())->count(),
             'invoiced' => Lead::where('estado', 5)->where('user_id', auth()->id())->count(),
+            'canceled' => Lead::where('estado', 6)->where('user_id', auth()->id())->count(), // ✅ NUEVO ESTADO 6
         ];
 
         $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
@@ -54,36 +53,15 @@ class LeadController extends Controller
             'approved' => $statusSumsRaw[3] ?? 0,
             'completed' => $statusSumsRaw[4] ?? 0,
             'invoiced' => $statusSumsRaw[5] ?? 0,
+            'canceled' => $statusSumsRaw[6] ?? 0, // ✅ NUEVO ESTADO 6
         ];
 
         return view('leads.list', compact('leads', 'statusCounts', 'statusSums', 'teams', 'sellerId'));
     }
 
-
-    
-    
-
-    // public function updateStatus(Request $request, $id)
-    // {
-    //     $lead = Lead::findOrFail($id);
-    
-    //     // Validar el estado enviado
-    //     $request->validate([
-    //         'estado' => 'required|integer|between:1,6'
-    //     ]);
-    
-    //     // Guardar nuevo estado
-    //     $lead->estado = $request->estado;
-    //     $lead->save();
-    
-    //     return response()->json(['success' => true, 'message' => 'Estado actualizado con éxito']);
-    // }
-
-
-
     public function assignStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|integer|between:1,6']);
+        $request->validate(['status' => 'required|integer|between:1,6']); // ✅ Ya incluye el 6
     
         $lead = Lead::findOrFail($id);
         $lead->estado = $request->status;
@@ -92,10 +70,6 @@ class LeadController extends Controller
     
         return back()->with('success', 'Lead status updated successfully.');
     }
-
-
-    
-
 
     public function submitApprovedData(Request $request, $id)
     {
@@ -136,15 +110,6 @@ class LeadController extends Controller
         return back()->with('success', 'Lead approval data submitted successfully and status updated to Completed.');
     }
     
-    
-
-
-
-
-
-    
-
-
     public function assignSales(Request $request, $id)
     {
         $lead = Lead::findOrFail($id);
@@ -163,17 +128,12 @@ class LeadController extends Controller
     
         return redirect()->back()->with('success', 'Vendedor asignado correctamente.');
     }
-    
-
-
-    
 
     // Carga formulario
     public function financial()
     {
          return view('paymentReport.payment');
     }
-
 
     // Carga formulario
     public function create()
@@ -207,14 +167,6 @@ class LeadController extends Controller
     
         return redirect()->route('leads.index')->with('success', 'Lead creado con éxito.');
     }
-    
-
-
-
-
-
-
-
 
     public function show($id) 
     {
@@ -234,28 +186,18 @@ class LeadController extends Controller
         // Obtener imágenes ordenadas
         $images = $lead->images->sortByDesc('created_at');
     
-        // Mapeo de estados con colores
+        // Mapeo de estados con colores - AGREGADO ESTADO 6
         $statusMap = [
             1 => ['name' => 'Lead', 'color' => 'bg-warning'], 
             2 => ['name' => 'Prospect', 'color' => 'bg-orange'], 
             3 => ['name' => 'Approved', 'color' => 'bg-success'], 
             4 => ['name' => 'Completed', 'color' => 'bg-primary'], 
-            5 => ['name' => 'Invoiced', 'color' => 'bg-danger']
+            5 => ['name' => 'Invoiced', 'color' => 'bg-danger'],
+            6 => ['name' => 'Canceled', 'color' => 'bg-secondary'] // ✅ NUEVO ESTADO 6
         ];
     
         return view('leads.view', compact('lead', 'messages', 'images', 'statusMap'));
     }
-
-   
-    
-
-
-
-
-
-
-
-
 
     public function edit(Lead $lead)
     {
@@ -265,18 +207,15 @@ class LeadController extends Controller
         return view('leads.editLead', compact('lead', 'teams', 'images'));
     }
 
-
     public function update(Request $request, Lead $lead)
     {
-       
-          // Validar datos
-          $request->validate([
+        // Validar datos
+        $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'company_name' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20',
             'email' => 'required|email|max:255',
-            
         ]);
 
         // Actualizar datos
@@ -284,9 +223,6 @@ class LeadController extends Controller
 
         return redirect()->route('leads.index')->with('success', 'Lead actualizado correctamente.');
     }
-
-
-
 
     public function destroy(Lead $lead)
     {

@@ -18,7 +18,7 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-bold text-uppercase">
-                    🧍 Update Profile Information
+                    Update Profile Information
                 </div>
                 <div class="card-body">
                     @include('profile.partials.update-profile-information-form')
@@ -30,7 +30,7 @@
         <div class="col-md-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-white fw-bold text-uppercase">
-                    🔒 Change Password
+                     Change Password
                 </div>
                 <div class="card-body">
                     @include('profile.partials.update-password-form')
@@ -42,7 +42,7 @@
         <div class="col-md-6">
             <div class="card shadow-sm border border-danger">
                 <div class="card-header bg-white text-danger fw-bold text-uppercase">
-                    ❌ Delete Account
+                     Delete Account
                 </div>
                 <div class="card-body">
                     @include('profile.partials.delete-user-form')

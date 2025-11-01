@@ -179,16 +179,7 @@
         </table>
     </div>
 
-    {{-- Paginación y resumen --}}
-    <div class="d-flex align-items-center justify-content-between mt-3">
-        <div class="small text-muted">
-            Showing {{ $page->firstItem() ?? 0 }}–{{ $page->lastItem() ?? 0 }} of {{ $page->total() }} results
-            @if(!empty($q)) for "<strong>{{ $q }}</strong>" @endif
-        </div>
-        <div>
-            {{ $page->onEachSide(1)->links() }}
-        </div>
-    </div>
+
     @endif
 </div>
 @endsection

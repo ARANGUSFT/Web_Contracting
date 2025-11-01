@@ -9,13 +9,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-
-
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-
 
 class ProfileController extends Controller
 {
@@ -45,10 +42,6 @@ class ProfileController extends Controller
             'profile_photo' => 'nullable|image|max:2048',
             'company_name' => 'nullable|string|max:255',
             'years_experience' => 'nullable|string|max:50',
-            'residential_roof_types' => 'nullable|array',
-            'commercial_roof_types' => 'nullable|array',
-            'states_you_can_work' => 'nullable|array',
-            'all_states' => 'nullable|boolean',
             'company_documents.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
     
@@ -59,8 +52,6 @@ class ProfileController extends Controller
         $user->language = $validated['language'];
         $user->company_name = $validated['company_name'] ?? null;
         $user->years_experience = $validated['years_experience'] ?? null;
-        $user->states_you_can_work = $validated['states_you_can_work'] ?? null;
-        $user->all_states = $request->has('all_states');
     
         // Foto de perfil
         if ($request->hasFile('profile_photo')) {
@@ -70,12 +61,7 @@ class ProfileController extends Controller
             $user->profile_photo = $request->file('profile_photo')->store('profile_photos', 'public');
         }
     
-        // Tipos de techo (cast automático)
-        $user->residential_roof_types = $validated['residential_roof_types'] ?? null;
-        $user->commercial_roof_types = $validated['commercial_roof_types'] ?? null;
-    
-
-
+        // Documentos de la empresa
         $documents = $user->company_documents ?? [];
 
         if ($request->hasFile('company_documents')) {
@@ -89,20 +75,11 @@ class ProfileController extends Controller
         
             $user->company_documents = $documents;
         }
-        
-
-
-            
-
-
     
         $user->save();
     
         return back()->with('success', 'Document deleted.');
     }
-    
-
-
 
     public function updatePassword(Request $request)
     {
@@ -113,14 +90,12 @@ class ProfileController extends Controller
 
         $user = Auth::user();
 
-        // Verifica si la contraseña actual es correcta
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors([
                 'current_password' => 'The current password is incorrect.',
             ]);
         }
 
-        // Cambiar contraseña
         $user->password = Hash::make($request->password);
         $user->save();
 
@@ -132,39 +107,27 @@ class ProfileController extends Controller
         $user = auth()->user();
         $documents = $user->company_documents;
 
-        // Validar existencia del índice
         if (!is_array($documents) || !isset($documents[$index])) {
             return back()->with('error', 'Document not found.');
         }
 
-        // Obtener la ruta del archivo (soporta formato antiguo y nuevo)
         $path = is_array($documents[$index])
             ? $documents[$index]['file_name']
             : $documents[$index];
 
-        // Borrar archivo físico si existe
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }
 
-        // Eliminar el documento del array
         unset($documents[$index]);
-        $documents = array_values($documents); // Reindexar
+        $documents = array_values($documents);
 
-        // Guardar el nuevo arreglo o null si está vacío
         $user->company_documents = empty($documents) ? null : $documents;
         $user->save();
 
         return back()->with('success', 'Document deleted.');
     }
 
-    
-    
-
-    
-    
-    
-    
     /**
      * Delete the user's account.
      */

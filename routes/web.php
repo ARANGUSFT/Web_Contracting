@@ -121,21 +121,22 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
 
 
   // Photos (área admin, nombres superadmin.photos.*)
-        Route::prefix('photos')->as('photos.')->group(function () {
-            Route::get('projects',         [FotoController::class, 'projects'])->name('projects');
-            Route::get('{tipo}/{id}/view', [FotoController::class, 'view'])->name('view');
-            Route::post('share',           [FotoController::class, 'createShareWeb'])->name('share');
-            Route::post('unshare',         [FotoController::class, 'revokeShareWeb'])->name('unshare');
-        });
+    Route::prefix('photos')->as('photos.')->group(function () {
+        Route::get('projects',         [FotoController::class, 'projects'])->name('projects');
+        Route::get('{tipo}/{id}/view', [FotoController::class, 'view'])->name('view');
+        Route::post('share',           [FotoController::class, 'createShareWeb'])->name('share');
+        Route::post('unshare',         [FotoController::class, 'revokeShareWeb'])->name('unshare');
+    });
 
 
 
-   // Vista principal del chat
+    // Vista principal del chat
     Route::get('/chat', [ChatController::class, 'chatView'])->name('chat.view');
     Route::get('/chat/{userId}', [ChatController::class, 'index'])->name('chat.messages');
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::post('/chat/{userId}/read', [ChatController::class, 'markRead'])->name('chat.read');
+    Route::get('/chat-unread/count', [ChatController::class, 'unreadCount'])->name('chat.unread');
     Route::get('/chat-users', [ChatController::class, 'users'])->name('chat.users');
-
 
     // Insurance
     Route::get('subcontractors/insurances', [InsuranceController::class,'index'])->name('subcontractors.insurances.index');
@@ -219,13 +220,14 @@ Route::middleware(['auth:web'])->group(function () {
         Route::get('/calendar/data', [CalendarController::class, 'calendarData'])->name('calendar.data');
         // Formulario approved
         Route::post('/leads/{id}/submit-approved-data', [LeadController::class, 'submitApprovedData'])->name('leads.submitApprovedData');
+  
 
-
-    // 📩 Chat para usuarios no admins
+    // 📩 Vista principal (lista de admins para chatear)
         Route::get('/chat', [ChatController::class, 'chatView'])->name('user.chat.view');
         Route::get('/chat/{userId}', [ChatController::class, 'index'])->name('user.chat.messages');
         Route::post('/chat/send', [ChatController::class, 'send'])->name('user.chat.send');
-
+        Route::post('/chat/{userId}/read', [ChatController::class, 'markRead'])->name('user.chat.read');
+        Route::get('/chat-unread/count', [ChatController::class, 'unreadCount'])->name('user.chat.unread');
 
     // CRUD de Leads
         Route::resource('/leads', LeadController::class);
@@ -255,9 +257,13 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
         Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
         Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
+        Route::get('/leads/{leadId}/images/paginated', [LeadImageController::class, 'getLeadImagesPaginated'])->name('lead.images.paginated');
+
     // Actualizar y Elimianr Documentos
         Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
         Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
+        Route::post('/leads/{lead}/folders', [LeadFilesController::class, 'storeFolder'])->name('leads.folders.store');
+        Route::delete('/leads/folders/{folder}', [LeadFilesController::class, 'destroyFolder'])->name('leads.folders.destroy');
     // Contribution Panel 
         Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
         Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');
