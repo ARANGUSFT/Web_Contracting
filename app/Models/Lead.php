@@ -40,7 +40,8 @@ class Lead extends Model
             3 => 'Approved',
             4 => 'Completed',
             5 => 'Invoiced',
-            6 => 'Closed'
+            6 => 'Finish',
+            7 => 'Cancelled'
         ];
 
         return $statuses[$this->estado] ?? 'Unknown';

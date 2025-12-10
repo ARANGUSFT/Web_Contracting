@@ -12,7 +12,7 @@ class Team extends Authenticatable
 
     protected $table = 'team'; // Asegúrate de que coincida con tu BD
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'is_active',
+    protected $fillable = ['name', 'email', 'phone', 'password', 'role', 'is_active',
     'user_id'];
 
     protected $hidden = ['password'];

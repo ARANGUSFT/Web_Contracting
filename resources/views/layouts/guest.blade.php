@@ -18,7 +18,7 @@
     <style>
         
         :root {
-            --primary-color: #0e60a3;
+            --primary-color: #255b88;
             --secondary-color: #003366;
         }
         body {

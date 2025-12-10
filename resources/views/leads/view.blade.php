@@ -1,220 +1,363 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- En el head de tu layout -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="container mt-4">
-
+    <!-- Header Section -->
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
         <h2 class="text-primary m-0">
             <i class="bi bi-person-circle"></i> Customer Details
         </h2>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Financial Summary -->
+            <div class="text-end">
+                <h5 class="fw-bold mb-0" id="totalAmountText">$0.00</h5>
+                <div class="text-danger fw-bold small">Balance Due</div>
+                <div class="text-danger small" id="balanceDueText">$0.00</div>
+            </div>
+            
+            <!-- Progress Chart -->
+            <div class="position-relative" style="width: 70px; height: 70px;">
+                <canvas id="balanceChart" class="balance-chart"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle fw-bold small" id="chartPercentageText">0%</div>
+            </div>
+        </div>
     </div>
-    
-   
+
+    <!-- Success Message -->
     @if(session('success'))
-        <div class="alert alert-success mt-3">
-            <i class="bi bi-check-circle"></i> {{ session('success') }}
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
 
-
     @php
         $statusList = [
-            1 => ['label' => 'Lead', 'color' => 'bg-warning'],
-            2 => ['label' => 'Prospect', 'color' => 'bg-orange'],
-            3 => ['label' => 'Approved', 'color' => 'bg-success'],
-            4 => ['label' => 'Completed', 'color' => 'bg-primary'],
-            5 => ['label' => 'Invoiced', 'color' => 'bg-danger'],
-            6 => ['label' => 'Closed', 'color' => 'bg-secondary'], // ✅ NUEVO ESTADO 6
+            1 => ['label' => 'Lead', 'color' => 'bg-warning', 'icon' => 'bi-person'],
+            2 => ['label' => 'Prospect', 'color' => 'bg-orange', 'icon' => 'bi-search'],
+            3 => ['label' => 'Approved', 'color' => 'bg-success', 'icon' => 'bi-check-circle'],
+            4 => ['label' => 'Completed', 'color' => 'bg-primary', 'icon' => 'bi-check-all'],
+            5 => ['label' => 'Invoiced', 'color' => 'bg-info', 'icon' => 'bi-receipt'],
+            6 => ['label' => 'Finish', 'color' => 'bg-secondary', 'icon' => 'bi-flag-fill'],
+            7 => ['label' => 'Cancelled', 'color' => 'bg-danger', 'icon' => 'bi-x-circle'],
         ];
 
         $currentIndex = array_search($lead->estado, array_keys($statusList));
         $statusKeys = array_keys($statusList);
     @endphp
 
- 
-    {{-- Tarjeta --}}
-    <div class="card shadow-lg p-4">
-        <div class="d-flex justify-content-between align-items-center">
-
-            <a href="{{ route('leads.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-
-            <h4 class="text-primary">{{ $lead->first_name }} {{ $lead->last_name }}</h4>
-            
-            <div class="d-flex align-items-center gap-3">
-                <!-- Textual Info -->
-                <div class="text-end me-2">
-                    <h5 class="fw-bold mb-0" id="totalAmountText">$0.00</h5>
-                    <div class="text-danger fw-bold">Balance Due</div>
-                    <div class="text-danger small" id="balanceDueText">$0.00</div>
-                </div>
-            
-                <!-- Chart with percentage -->
-                <div class="position-relative" style="width: 70px; height: 70px;">
-                    <canvas id="balanceChart" class="balance-chart"></canvas>
-                    <div class="position-absolute top-50 start-50 translate-middle fw-bold small" id="chartPercentageText">0%</div>
-                </div>
+    <!-- Main Card -->
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ route('leads.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Leads
+                </a>
+                
+                <h4 class="text-primary mb-0">
+                    {{ $lead->first_name }} {{ $lead->last_name }}
+                </h4>
+                
+                <span class="badge {{ $statusList[$lead->estado]['color'] }} fs-6">
+                    <i class="bi {{ $statusList[$lead->estado]['icon'] }} me-1"></i>
+                    {{ $statusList[$lead->estado]['label'] }}
+                </span>
             </div>
-            
-
         </div>
 
-        <p><strong>📞 Phone:</strong> <a href="tel:{{ $lead->phone }}">{{ $lead->phone }}</a></p>
-        <p><strong>📧 Email:</strong> <a href="mailto:{{ $lead->email }}">{{ $lead->email }}</a></p>
-        <p class="small text-muted mb-2">
-            <i class="bi bi-geo-alt text-warning"></i>
-            {{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}
-        </p>
-        <p><strong>📅 Created At:</strong> {{ $lead->created_at->format('d M, Y') }}</p>
-        <p><strong>🕒 Last Touched:</strong> 
-            {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
-        </p>
-        
-        
-
-
-        <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST" class="mb-3">
-            @csrf
-            <input type="hidden" name="status" id="selectedStatus">
-        
-            <label class="form-label fw-semibold text-muted">📌 Status:</label>
-            <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
-                @if ($currentIndex > 0 && $lead->estado < 3)
-                    <button type="button" class="btn btn-outline-secondary" onclick="changeStatus({{ $statusKeys[$currentIndex - 1] }})">
-                        &#8592; Back
-                    </button>
-                @endif
-        
-                @foreach ($statusList as $key => $status)
-                    <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}">
-                        {{ $status['label'] }}
+        <div class="card-body p-4">
+            <!-- Contact Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-telephone text-primary me-2"></i>
+                        <strong class="me-2">Phone:</strong>
+                        <a href="tel:{{ $lead->phone }}" class="text-decoration-none">{{ $lead->phone }}</a>
                     </div>
-                @endforeach
-        
-                @if ($currentIndex < count($statusList) - 1)
-                    <button type="button" class="btn btn-outline-primary" onclick="handleNextClick({{ $statusKeys[$currentIndex + 1] }})">
-                        Next &#8594;
-                    </button>
-                @endif
-            </div>
-        </form>
-        
-        @if ($lead->estado == 2)
-            <div class="card border-success mt-4 shadow-sm w-75 mx-auto">
-                <div class="card-header bg-success text-white py-2 px-3">
-                    <h6 class="mb-0"><i class="bi bi-check-circle-fill me-2"></i>Approved Lead - Submit Information</h6>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-envelope text-primary me-2"></i>
+                        <strong class="me-2">Email:</strong>
+                        <a href="mailto:{{ $lead->email }}" class="text-decoration-none">{{ $lead->email }}</a>
+                    </div>
                 </div>
-                <div class="card-body p-3">
-                    <form action="{{ route('leads.submitApprovedData', $lead->id) }}" method="POST">
-                        @csrf
-        
-                        <div class="row g-2">
-                            <!-- Company Info -->
-                            <div class="col-md-6">
-                                <p class="text-primary fw-bold small mb-1">🏢 Company Information</p>
-                            
-                                <div class="mb-2">
-                                    <input type="text" name="company_name" 
-                                           value="{{ $lead->user->company_name ?? '' }}" 
-                                           placeholder="Company Name" 
-                                           class="form-control form-control-sm" 
-                                           readonly>
-                                </div>
-                            
-                                <div class="mb-2">
-                                    <input type="text" name="company_representative" 
-                                           value="{{ $lead->user->name ?? '' }} {{ $lead->user->last_name ?? '' }}" 
-                                           placeholder="Representative" 
-                                           class="form-control form-control-sm" 
-                                           readonly>
-                                </div>
-                            
-                                <div class="mb-2">
-                                    <input type="text" name="company_phone" 
-                                           value="{{ $lead->user->phone ?? '' }}" 
-                                           placeholder="Phone" 
-                                           class="form-control form-control-sm" 
-                                           readonly>
-                                </div>
-                            </div>
-                            
-        
-                            <!-- Lead Info -->
-                            <div class="col-md-6">
-                                <p class="text-success fw-bold small mb-1">🙍‍♂️ Lead Information</p>
-                                <div class="mb-2">
-                                    <input type="text" name="lead_name" value="{{ $lead->first_name }}" placeholder="Lead Name" class="form-control form-control-sm" required>
-                                </div>
-                                <div class="mb-2">
-                                    <input type="text" name="lead_address" value="{{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}" placeholder="Address" class="form-control form-control-sm" required>
-                                </div>
-                                <div class="mb-2">
-                                    <input type="text" name="lead_phone" value="{{ $lead->phone }}" placeholder="Lead Phone" class="form-control form-control-sm" required>
-                                </div>
-                                <div class="mb-2">
-                                    <input type="date" name="installation_date" value="{{ $lead->installation_date }}" class="form-control form-control-sm" required>
-                                </div>
-                            </div>
-                        </div>
-        
-                        <!-- Extra Info -->
-                        <div class="mb-2 mt-2">
-                            <textarea name="extra_info" class="form-control form-control-sm" rows="2" placeholder="Additional Notes"></textarea>
-                        </div>
-        
-                        <div class="text-end mt-2">
-                            <button type="submit" class="btn btn-sm btn-success">
-                                <i class="bi bi-send-fill me-1"></i>Submit
+                
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-calendar text-primary me-2"></i>
+                        <strong class="me-2">Created:</strong>
+                        <span>{{ $lead->created_at->format('d M, Y') }}</span>
+                    </div>
+                    
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-clock text-primary me-2"></i>
+                        <strong class="me-2">Last Touched:</strong>
+                        <span>{{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-4 p-3 bg-light rounded">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-geo-alt text-warning mt-1 me-2"></i>
+                    <div>
+                        <strong class="d-block mb-1">Address</strong>
+                        {{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Progress -->
+            <div class="mb-4">
+                <form id="statusForm" action="{{ route('leads.assignstatus', $lead->id) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="status" id="selectedStatus">
+                
+                    <label class="form-label fw-semibold text-muted mb-3">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Status Progress
+                    </label>
+                    
+                    <div class="d-flex align-items-center justify-content-center flex-wrap gap-2">
+                        @if ($currentIndex > 0 && $lead->estado < 3)
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    onclick="changeStatus({{ $statusKeys[$currentIndex - 1] }})">
+                                <i class="bi bi-arrow-left me-1"></i> Back
                             </button>
+                        @endif
+
+                        @foreach ($statusList as $key => $status)
+                            <div class="status-box {{ $status['color'] }} {{ $lead->estado == $key ? 'status-active' : 'status-inactive' }}"
+                                 data-bs-toggle="tooltip" title="{{ $status['label'] }}">
+                                <i class="bi {{ $status['icon'] }}"></i>
+                            </div>
+                        @endforeach
+
+                        @if ($currentIndex < count($statusList) - 1 && $lead->estado != 7)
+                            <button type="button" class="btn btn-outline-primary btn-sm" 
+                                    onclick="handleNextClick({{ $statusKeys[$currentIndex + 1] }})">
+                                Next <i class="bi bi-arrow-right ms-1"></i>
+                            </button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+
+            <!-- Approved Lead Form -->
+            @if ($lead->estado == 2)
+                <div class="card border-success mt-4 shadow-sm">
+                    <div class="card-header bg-success text-white py-2">
+                        <h6 class="mb-0">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Approved Lead - Submit Installation Information
+                        </h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <form action="{{ route('leads.submitApprovedData', $lead->id) }}" method="POST">
+                            @csrf
+                            <div class="row g-3">
+                                <!-- Company Information -->
+                                <div class="col-md-6">
+                                    <h6 class="text-primary border-bottom pb-2">
+                                        <i class="bi bi-building me-1"></i>Company Information
+                                    </h6>
+                                
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Company Name</label>
+                                        <input type="text" name="company_name" 
+                                               value="{{ $lead->user->company_name ?? '' }}" 
+                                               class="form-control form-control-sm bg-light" 
+                                               readonly>
+                                    </div>
+                                
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Representative</label>
+                                        <input type="text" name="company_representative" 
+                                               value="{{ $lead->user->name ?? '' }} {{ $lead->user->last_name ?? '' }}" 
+                                               class="form-control form-control-sm bg-light" 
+                                               readonly>
+                                    </div>
+                                
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Phone</label>
+                                        <input type="text" name="company_phone" 
+                                               value="{{ $lead->user->phone ?? '' }}" 
+                                               class="form-control form-control-sm bg-light" 
+                                               readonly>
+                                    </div>
+                                </div>
+                                
+                                <!-- Lead Information -->
+                                <div class="col-md-6">
+                                    <h6 class="text-success border-bottom pb-2">
+                                        <i class="bi bi-person me-1"></i>Lead Information
+                                    </h6>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Lead Name</label>
+                                        <input type="text" name="lead_name" 
+                                               value="{{ $lead->first_name }}" 
+                                               class="form-control form-control-sm" 
+                                               required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Address</label>
+                                        <input type="text" name="lead_address" 
+                                               value="{{ $lead->street }} {{ $lead->suite }}, {{ $lead->city }}, {{ $lead->state }} {{ $lead->zip }}" 
+                                               class="form-control form-control-sm" 
+                                               required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Phone</label>
+                                        <input type="text" name="lead_phone" 
+                                               value="{{ $lead->phone }}" 
+                                               class="form-control form-control-sm" 
+                                               required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold">Installation Date</label>
+                                        <input type="date" name="installation_date" 
+                                               value="{{ $lead->installation_date }}" 
+                                               class="form-control form-control-sm" 
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Notes -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Additional Notes</label>
+                                <textarea name="extra_info" class="form-control" rows="3" 
+                                          placeholder="Enter any additional information or notes..."></textarea>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-send-fill me-1"></i>Submit Information
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Financial Summary -->
+            <div class="row mt-4 pt-3 border-top">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-danger h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-arrow-up-circle text-danger h4"></i>
+                            <h6 class="card-title text-muted">Total Expenses</h6>
+                            <div id="totalExpensesDisplayBelow" class="h4 text-danger">
+                                ${{ number_format($lead->total_expenses, 2) }}
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
-        @endif
-        
-    
-    
-    
-
-       
-            
-            
-        
-
-        <hr>
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <div class="border p-3 rounded bg-light">
-                    <strong>Total Expenses:</strong>
-                    <div id="totalExpensesDisplayBelow" class="h5 text-danger">${{ number_format($lead->total_expenses, 2) }}</div>
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card border-primary h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-cash-coin text-primary h4"></i>
+                            <h6 class="card-title text-muted">Total Paid</h6>
+                            <div id="totalPaidDisplayBelow" class="h4 text-primary">
+                                ${{ number_format($lead->total_paid, 2) }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="border p-3 rounded bg-light">
-                    <strong>Total Paid:</strong>
-                    <div id="totalPaidDisplayBelow" class="h5 text-primary">${{ number_format($lead->total_paid, 2) }}</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="border p-3 rounded bg-light">
-                    <strong>Net Profit:</strong>
-                    <div id="netProfitDisplayBelow" class="h5 fw-bold {{ $lead->net_profit >= 0 ? 'text-success' : 'text-danger' }}">
-                        ${{ number_format($lead->net_profit, 2) }}
+                
+                <div class="col-md-4 mb-3">
+                    <div class="card {{ $lead->net_profit >= 0 ? 'border-success' : 'border-warning' }} h-100">
+                        <div class="card-body text-center">
+                            <i class="bi bi-graph-up {{ $lead->net_profit >= 0 ? 'text-success' : 'text-warning' }} h4"></i>
+                            <h6 class="card-title text-muted">Net Profit</h6>
+                            <div id="netProfitDisplayBelow" class="h4 fw-bold {{ $lead->net_profit >= 0 ? 'text-success' : 'text-warning' }}">
+                                ${{ number_format($lead->net_profit, 2) }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-
-
-
-    
     </div>
-    {{-- Fin --}}
+</div>
+
+<style>
+.status-box {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.status-active {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.status-inactive {
+    opacity: 0.6;
+}
+
+.status-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.bg-orange {
+    background-color: #fd7e14 !important;
+}
+
+.balance-chart {
+    border-radius: 50%;
+}
+</style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+
+function changeStatus(status) {
+    document.getElementById('selectedStatus').value = status;
+    document.getElementById('statusForm').submit();
+}
+
+function handleNextClick(nextStatus) {
+    if (nextStatus === 3) {
+        // Scroll to the approved form section
+        document.querySelector('.card-border-success')?.scrollIntoView({ 
+            behavior: 'smooth' 
+        });
+    } else {
+        changeStatus(nextStatus);
+    }
+}
+
+// Initialize chart (you'll need to implement this based on your data)
+function initializeBalanceChart() {
+    const ctx = document.getElementById('balanceChart').getContext('2d');
+    // Add your chart initialization logic here
+}
+</script>
+
 
 
 
@@ -300,1093 +443,1469 @@
                     </div>
                 </form>
         </div>
-        
 
-<!-- Photos Tab - Enhanced Design -->
-<div class="tab-pane fade" id="photos">
-    <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="text-dark mb-1">
-                <i class="bi bi-images me-2 text-primary"></i>Photo Manager
-            </h4>
-            <p class="text-muted small mb-0">Upload, organize and manage your photo collection</p>
-        </div>
-        <div class="d-flex align-items-center gap-3">
-            <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2">
-                <i class="bi bi-images me-1"></i>
-                <span id="totalImagesCounter">{{ $images->count() }}</span> images
-            </div>
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#helpModal">
-                <i class="bi bi-question-circle"></i>
-            </button>
-        </div>
-    </div>
 
-    <!-- Upload Card -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-transparent border-0 pb-0">
-            <h5 class="card-title mb-0">
-                <i class="bi bi-cloud-arrow-up text-primary me-2"></i>Upload Images
-            </h5>
-        </div>
-        <div class="card-body">
-            <form id="uploadForm" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" name="lead_id" value="{{ $lead->id }}">
 
-                <!-- Enhanced Drop Area -->
-                <div id="dropArea" class="border border-3 border-dashed rounded-4 p-5 text-center bg-light bg-opacity-50 position-relative transition-all">
-                    <div class="drop-content">
-                        <i class="bi bi-cloud-arrow-up display-4 text-primary mb-3"></i>
-                        <h5 class="fw-semibold text-dark mb-2">Drag & Drop your images here</h5>
-                        <p class="text-muted mb-3">Supports JPG, PNG, GIF, WEBP • Max 10MB per image</p>
-                        <input type="file" id="imagesInput" name="images[]" accept="image/*" multiple class="d-none">
-                        <button type="button" class="btn btn-primary px-4" onclick="document.getElementById('imagesInput').click()">
-                            <i class="bi bi-folder2-open me-2"></i> Select Files
-                        </button>
+        <!-- Photos Tab -->
+        <div class="tab-pane fade" id="photos">
+            
+            <!-- Header Section - Rediseñado -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 rounded-circle p-3 me-3">
+                        <i class="bi bi-images text-primary fs-4"></i>
                     </div>
-                    <div id="dropOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-primary bg-opacity-10 rounded-4 d-none transition-all"></div>
+                    <div>
+                        <h4 class="text-dark mb-1 fw-bold">Photo Gallery</h4>
+                        <p class="text-muted small mb-0">Manage and organize your lead photos</p>
+                    </div>
                 </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fs-6" id="totalImagesCounter">
+                        <i class="bi bi-image me-1"></i>{{ $images->count() }}
+                    </span>
+                </div>
+            </div>
 
-                <!-- File Selection Info -->
-                <div id="fileSelectionInfo" class="alert alert-info mt-3 d-none">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-info-circle me-2"></i>
-                            <span id="selectedFilesCount">0</span> files selected • 
-                            <span id="totalFilesSize">0 MB</span>
+            <!-- Upload Card - Diseño Moderno -->
+            <div class="card mb-4 border-0 shadow-lg rounded-3">
+                <div class="card-header bg-transparent border-0 py-4">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                            <i class="bi bi-cloud-arrow-up text-success fs-5"></i>
                         </div>
-                        <button type="button" class="btn-close" onclick="clearSelection()"></button>
+                        <h5 class="mb-0 fw-semibold text-dark">Upload New Photos</h5>
                     </div>
                 </div>
-
-                <!-- Preview Section -->
-                <div id="previewSection" class="d-none">
-                    <h6 class="text-dark mb-3">
-                        <i class="bi bi-eye me-2"></i>Preview
-                        <small class="text-muted">(<span id="previewCount">0</span> images)</small>
-                    </h6>
-                    <div id="previewContainer" class="row g-3"></div>
-                </div>
-
-                <!-- Upload Progress -->
-                <div id="uploadProgress" class="mt-4 d-none">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="text-dark fw-medium">Uploading...</span>
-                        <span id="uploadPercent" class="text-primary fw-bold">0%</span>
-                    </div>
-                    <div class="progress" style="height: 8px;">
-                        <div id="uploadProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%;"></div>
-                    </div>
-                    <div class="text-center mt-2">
-                        <small class="text-muted" id="uploadStatus">Preparing upload...</small>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="d-flex gap-2 mt-4">
-                    <button type="button" id="clearSelectionBtn" class="btn btn-outline-secondary flex-fill d-none" onclick="clearSelection()">
-                        <i class="bi bi-x-circle me-2"></i>Clear Selection
-                    </button>
-                    <button type="submit" id="uploadButton" class="btn btn-success flex-fill" disabled>
-                        <i class="bi bi-cloud-upload me-2"></i> Upload Images
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Gallery Section -->
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-transparent border-0">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-collection text-primary me-2"></i>Photo Gallery
-                    <small class="text-muted ms-2">(<span id="galleryCounter">0</span> images)</small>
-                </h5>
-                <div class="d-flex gap-2">
-                    <!-- Bulk Actions -->
-                    <div id="bulkActions" class="d-none">
-                        <button type="button" class="btn btn-outline-success btn-sm" id="downloadSelectedBtn">
-                            <i class="bi bi-download me-1"></i> Download (<span id="selectedCount">0</span>)
-                        </button>
-                        <button type="button" class="btn btn-outline-danger btn-sm" id="deleteSelectedBtn">
-                            <i class="bi bi-trash me-1"></i> Delete
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="cancelSelectionBtn">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-sort-down"></i> Sort
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item sort-option" href="#" data-sort="newest">Newest First</a></li>
-                            <li><a class="dropdown-item sort-option" href="#" data-sort="oldest">Oldest First</a></li>
-                        </ul>
-                    </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="selectImagesBtn">
-                        <i class="bi bi-check-square me-1"></i> Select
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="card-body">
-            <!-- Gallery Grid -->
-            <div class="row g-3" id="gallery-box"></div>
-
-            <!-- Empty State -->
-            <div id="emptyGallery" class="text-center py-5 {{ $images->count() ? 'd-none' : '' }}">
-                <i class="bi bi-images display-1 text-muted opacity-25"></i>
-                <h5 class="text-muted mt-3">No images uploaded yet</h5>
-                <p class="text-muted">Start by uploading some images using the uploader above.</p>
-            </div>
-
-            <!-- Load More -->
-            <div class="text-center mt-4">
-                <button id="loadMoreBtn" class="btn btn-outline-primary px-4 d-none">
-                    <i class="bi bi-arrow-down-circle me-2"></i> Load More Images
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Image Viewer Modal -->
-<div class="modal fade" id="imageViewerModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content bg-dark border-0">
-            <div class="modal-header border-secondary border-bottom">
-                <div class="d-flex align-items-center text-white">
-                    <i class="bi bi-image me-2"></i>
-                    <h6 class="modal-title mb-0" id="imageModalTitle">Image Viewer</h6>
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-light btn-sm" id="downloadImageBtn">
-                        <i class="bi bi-download me-1"></i> Download
-                    </button>
-                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="modal-body p-0 position-relative">
-                <!-- Navigation Arrows -->
-                <button class="btn btn-light btn-navigation position-absolute top-50 start-0 translate-middle-y ms-3" id="prevImageBtn" style="z-index: 10;">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-                <button class="btn btn-light btn-navigation position-absolute top-50 end-0 translate-middle-y me-3" id="nextImageBtn" style="z-index: 10;">
-                    <i class="bi bi-chevron-right"></i>
-                </button>
                 
-                <!-- Image Container -->
-                <div class="d-flex justify-content-center align-items-center min-vh-50 p-4">
-                    <img id="modalImage" src="" class="img-fluid modal-image" alt="Full size image" style="max-height: 70vh; object-fit: contain;">
-                </div>
-            </div>
-            <div class="modal-footer border-secondary border-top justify-content-center">
-                <div class="text-center text-white">
-                    <small id="imageCounter" class="text-light opacity-75">Image 1 of 10</small>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                <div class="card-body pt-0">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        @csrf
+                        <input type="hidden" name="lead_id" value="{{ $lead->id }}">
 
-<!-- Help Modal -->
-<div class="modal fade" id="helpModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-question-circle text-primary me-2"></i>Photo Manager Help
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <h6>Supported Formats:</h6>
-                <ul class="list-unstyled">
-                    <li><i class="bi bi-check text-success me-2"></i>JPG, PNG, GIF, WEBP</li>
-                    <li><i class="bi bi-check text-success me-2"></i>Maximum 10MB per image</li>
-                </ul>
-                <h6>Features:</h6>
-                <ul class="list-unstyled">
-                    <li><i class="bi bi-mouse me-2"></i>Drag & Drop upload</li>
-                    <li><i class="bi bi-eye me-2"></i>Image preview before upload</li>
-                    <li><i class="bi bi-arrows-fullscreen me-2"></i>Full-screen modal viewer</li>
-                    <li><i class="bi bi-download me-2"></i>Download images (single & multiple)</li>
-                    <li><i class="bi bi-arrow-left-right me-2"></i>Navigation between images</li>
-                    <li><i class="bi bi-trash me-2"></i>One-click deletion</li>
-                    <li><i class="bi bi-check-square me-2"></i>Multiple selection</li>
-                    <li><i class="bi bi-hash me-2"></i>Photo numbering</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    // ========== GLOBAL VARIABLES ==========
-    const galleryBox = document.getElementById('gallery-box');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const emptyGallery = document.getElementById('emptyGallery');
-    const galleryCounter = document.getElementById('galleryCounter');
-    const selectImagesBtn = document.getElementById('selectImagesBtn');
-    const bulkActions = document.getElementById('bulkActions');
-    const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
-    const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
-    const cancelSelectionBtn = document.getElementById('cancelSelectionBtn');
-    const selectedCount = document.getElementById('selectedCount');
-    
-    let currentPage = 1;
-    const leadId = {{ $lead->id }};
-    const perPage = 20;
-    let totalImagesLoaded = 0;
-    let allGalleryImages = [];
-    let selectedImages = new Set();
-    let selectionMode = false;
-    let isLoading = false; // ✅ NUEVO: Prevenir carga duplicada
-    let isUploading = false; // ✅ NUEVO: Prevenir upload duplicado
-
-    // Modal elements
-    const imageViewerModal = new bootstrap.Modal(document.getElementById('imageViewerModal'));
-    const modalImage = document.getElementById('modalImage');
-    const imageModalTitle = document.getElementById('imageModalTitle');
-    const imageCounter = document.getElementById('imageCounter');
-    const prevImageBtn = document.getElementById('prevImageBtn');
-    const nextImageBtn = document.getElementById('nextImageBtn');
-    const downloadImageBtn = document.getElementById('downloadImageBtn');
-    
-    let currentImageIndex = 0;
-    let currentModalImages = [];
-
-    // Upload functionality elements
-    const dropArea = document.getElementById('dropArea');
-    const overlay = document.getElementById('dropOverlay');
-    const input = document.getElementById('imagesInput');
-    const previewContainer = document.getElementById('previewContainer');
-    const uploadButton = document.getElementById('uploadButton');
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadProgressBar = document.getElementById('uploadProgressBar');
-    const uploadPercent = document.getElementById('uploadPercent');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const fileSelectionInfo = document.getElementById('fileSelectionInfo');
-    const previewSection = document.getElementById('previewSection');
-    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
-    
-    let selectedFiles = [];
-
-    // ========== UPLOAD FUNCTIONS MEJORADAS ==========
-    function handleFiles(files) {
-        // ✅ MEJORADO: Limitar a 100 archivos máximo
-        const maxFiles = 100;
-        if (files.length > maxFiles) {
-            showToast(`You can only upload up to ${maxFiles} files at once. The first ${maxFiles} files will be selected.`, 'warning');
-            files = files.slice(0, maxFiles);
-        }
-
-        const validFiles = files.filter(file => {
-            if (!file.type.startsWith('image/')) {
-                showToast(`"${file.name}" is not a valid image file`, 'error');
-                return false;
-            }
-            
-            // ✅ MEJORADO: Verificar tipos específicos
-            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-            if (!allowedTypes.includes(file.type)) {
-                showToast(`"${file.name}" has unsupported format`, 'error');
-                return false;
-            }
-            
-            // ✅ MEJORADO: Aumentar límite a 50MB
-            if (file.size > 50 * 1024 * 1024) {
-                showToast(`"${file.name}" is too large (${(file.size / (1024 * 1024)).toFixed(2)}MB). Max 50MB`, 'error');
-                return false;
-            }
-            
-            if (file.size === 0) {
-                showToast(`"${file.name}" is empty`, 'error');
-                return false;
-            }
-            
-            return true;
-        });
-
-        if (validFiles.length > 0) {
-            selectedFiles = [...selectedFiles, ...validFiles];
-            
-            // ✅ NUEVO: Limitar el total a 100 archivos
-            if (selectedFiles.length > maxFiles) {
-                selectedFiles = selectedFiles.slice(0, maxFiles);
-                showToast(`Maximum ${maxFiles} files allowed. Some files were removed.`, 'warning');
-            }
-            
-            updateFileSelection();
-            renderPreviews();
-            showToast(`Added ${validFiles.length} file(s). Total: ${selectedFiles.length}/${maxFiles}`, 'success');
-        }
-    }
-
-    function updateFileSelection() {
-        const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-        const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
-        
-        document.getElementById('selectedFilesCount').textContent = selectedFiles.length;
-        document.getElementById('totalFilesSize').textContent = sizeMB + ' MB';
-        document.getElementById('previewCount').textContent = selectedFiles.length;
-        
-        if (selectedFiles.length > 0) {
-            fileSelectionInfo.classList.remove('d-none');
-            previewSection.classList.remove('d-none');
-            clearSelectionBtn.classList.remove('d-none');
-            uploadButton.disabled = false;
-        } else {
-            fileSelectionInfo.classList.add('d-none');
-            previewSection.classList.add('d-none');
-            clearSelectionBtn.classList.add('d-none');
-            uploadButton.disabled = true;
-        }
-    }
-
-    function renderPreviews() {
-        previewContainer.innerHTML = '';
-        selectedFiles.forEach((file, i) => {
-            const reader = new FileReader();
-            reader.onload = e => {
-                previewContainer.insertAdjacentHTML('beforeend', `
-                    <div class="col-6 col-md-4 col-lg-3">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="position-relative">
-                                <img src="${e.target.result}" class="card-img-top" style="height:120px;object-fit:cover;" alt="Preview ${i + 1}">
-                                <div class="position-absolute top-0 start-0 m-1">
-                                    <span class="badge bg-primary bg-opacity-90 text-white px-2 py-1" style="font-size:0.7rem;">
-                                        #${i + 1}
-                                    </span>
+                        <!-- Modern Upload Zone -->
+                        <div class="mb-4">
+                            <div class="upload-zone border-dashed rounded-4 p-5 text-center bg-light bg-gradient position-relative overflow-hidden">
+                                <div class="upload-zone-content">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-4 d-inline-flex mb-3">
+                                        <i class="bi bi-cloud-arrow-up text-primary fs-1"></i>
+                                    </div>
+                                    <h5 class="text-dark mb-2 fw-semibold">Drop your images here</h5>
+                                    <p class="text-muted mb-3">or click to browse your files</p>
+                                    
+                                    <button type="button" 
+                                            class="btn btn-primary btn-lg px-4 rounded-pill fw-semibold"
+                                            onclick="document.getElementById('images').click()">
+                                        <i class="bi bi-folder2-open me-2"></i>Choose Files
+                                    </button>
+                                    
+                                    <div class="mt-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            JPG, PNG, WEBP • Max 50MB each • Up to 200 files
+                                        </small>
+                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1 rounded-circle" onclick="removeFile(${i})" style="width:30px;height:30px;">
-                                    <i class="bi bi-x"></i>
+                                
+                                <!-- Hidden File Input -->
+                                <input type="file" 
+                                    name="images[]" 
+                                    id="images" 
+                                    multiple 
+                                    class="form-control d-none" 
+                                    accept="image/*"
+                                    aria-label="Select images to upload">
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar - Mejorado -->
+                        <div id="uploadProgress" class="mb-4 d-none" aria-live="polite">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-dark small fw-semibold">
+                                    <i class="bi bi-arrow-up-circle me-1"></i>
+                                    Uploading...
+                                </span>
+                                <span class="text-primary fw-bold" id="progressPercent">0%</span>
+                            </div>
+                            <div class="progress rounded-pill" style="height: 10px;">
+                                <div id="progressFill" 
+                                    class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
+                                    role="progressbar" 
+                                    style="width: 0%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image Previews - Grid Moderno -->
+                        <div id="previewContainer" class="row g-3 mb-4" aria-live="polite">
+                            <!-- Preview cards will be dynamically inserted here -->
+                        </div>
+
+                        <!-- Action Bar - Rediseñada -->
+                        <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                            <div id="fileInfo" class="text-muted small fw-medium" aria-live="polite">
+                                <!-- File info will be displayed here -->
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary rounded-pill px-4"
+                                        onclick="leadImagesManager.resetUploadForm()">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </button>
+                                <button type="submit" 
+                                        class="btn btn-success rounded-pill px-4 fw-semibold" 
+                                        id="uploadBtn" 
+                                        disabled>
+                                    <i class="bi bi-cloud-arrow-up me-2"></i>Upload All
                                 </button>
                             </div>
-                            <div class="card-body p-2">
-                                <small class="text-muted d-block text-truncate" title="${file.name}">${file.name}</small>
-                                <small class="text-muted">${(file.size / (1024 * 1024)).toFixed(2)} MB</small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bulk Actions - Toolbar Flotante -->
+            <div class="card mb-4 border-0 shadow-lg rounded-3 sticky-top" id="bulkActionsCard" style="display: none; top: 20px; z-index: 1000;">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="form-check">
+                                <input type="checkbox" 
+                                    id="selectAll" 
+                                    class="form-check-input"
+                                    style="width: 18px; height: 18px;"
+                                    aria-label="Select all images">
+                                <label for="selectAll" class="form-check-label text-dark fw-medium ms-2">
+                                    Select All
+                                </label>
+                            </div>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border-0 px-3 py-2" id="selectedCount">
+                                <i class="bi bi-check2-circle me-1"></i><span id="selectedCountText">0</span> selected
+                            </span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button id="downloadSelectedBtn" 
+                                    class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                                    disabled>
+                                <i class="bi bi-download me-1"></i>Download
+                            </button>
+                            <button id="deleteSelectedBtn" 
+                                    class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                    disabled>
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                            <button id="deleteAllBtn" 
+                                    class="btn btn-danger btn-sm rounded-pill px-3">
+                                <i class="bi bi-trash-fill me-1"></i>Delete All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Section - Diseño Moderno -->
+            <div class="card border-0 shadow-lg rounded-3">
+                <div class="card-header bg-transparent border-0 py-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-semibold text-dark">
+                            <i class="bi bi-grid-3x3-gap me-2 text-primary"></i>Photo Collection
+                        </h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small" id="pageInfo">Page 1 of 1</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <!-- Gallery Container -->
+                    <div id="galleryContainer" class="p-4">
+                        <!-- Dynamic Gallery -->
+                        <div id="dynamicGallery">
+                            <div id="gallery" class="row g-4"></div>
+                        </div>
+
+                        <!-- Empty State - Rediseñado -->
+                        <div id="emptyState" class="text-center py-5" style="display: {{ $images->count() > 0 ? 'none' : 'block' }};">
+                            <div class="empty-state">
+                                <div class="bg-light bg-gradient rounded-4 p-5 mx-auto" style="max-width: 400px;">
+                                    <i class="bi bi-images display-1 text-muted opacity-25 mb-4"></i>
+                                    <h4 class="text-dark mb-3">No photos yet</h4>
+                                    <p class="text-muted mb-4">Upload your first images to get started with your photo gallery.</p>
+                                    <button class="btn btn-primary rounded-pill px-4" onclick="document.getElementById('images').click()">
+                                        <i class="bi bi-cloud-arrow-up me-2"></i>Upload Photos
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                `);
+
+                    <!-- Pagination - Mejorado -->
+                    <div class="card-footer bg-transparent border-0 py-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button id="prevPage" class="btn btn-outline-primary rounded-pill px-4" disabled>
+                                <i class="bi bi-chevron-left me-2"></i>Previous
+                            </button>
+                            <div class="text-center">
+                                <span class="text-muted small" id="pageInfoDetailed">Showing 0 images</span>
+                            </div>
+                            <button id="nextPage" class="btn btn-outline-primary rounded-pill px-4" disabled>
+                                Next<i class="bi bi-chevron-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+<!-- Toast Container for Notifications -->
+<div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+<!-- Custom Styles -->
+<style>
+:root {
+    --primary-color: #0d6efd;
+    --primary-light: rgba(13, 110, 253, 0.1);
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --border-radius: 1rem;
+    --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Upload Zone Styles */
+.upload-zone {
+    border: 2px dashed #dee2e6;
+    transition: var(--transition);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: var(--transition);
+}
+
+.upload-zone:hover::before {
+    left: 100%;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.upload-zone.dragover {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    transform: scale(1.02);
+}
+
+/* Gallery Cards */
+.gallery-card {
+    border: none;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.gallery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow);
+}
+
+.gallery-card .card-img-top {
+    transition: var(--transition);
+}
+
+.gallery-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* Image Overlay */
+.image-overlay {
+    background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%);
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.gallery-card:hover .image-overlay {
+    opacity: 1;
+}
+
+.image-counter {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+    z-index: 10;
+}
+
+/* Preview Images */
+.preview-image {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    overflow: hidden;
+}
+
+.preview-image:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.remove-preview {
+    background: rgba(220, 53, 69, 0.9);
+    border: none;
+    transition: var(--transition);
+    z-index: 20;
+}
+
+.remove-preview:hover {
+    background: var(--danger-color);
+    transform: scale(1.1);
+}
+
+/* Progress Bar */
+.progress {
+    background: #e9ecef;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--primary-color), #4dabf7);
+    transition: width 0.6s ease;
+}
+
+/* Bulk Actions Sticky */
+.sticky-top {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+/* Button Styles */
+.btn {
+    transition: var(--transition);
+    border: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #4dabf7);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--success-color), #20c997);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger-color), #e35d6a);
+    border: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .upload-zone {
+        padding: 2rem 1rem !important;
+    }
+    
+    .upload-zone-content h5 {
+        font-size: 1.1rem;
+    }
+    
+    .gallery-card .btn-group {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .bulk-actions-card .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    .upload-zone {
+        padding: 1.5rem 0.75rem !important;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animation for new items */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gallery-card, .preview-image {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Loading states */
+.uploading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.gallery-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Selection states */
+.select-image:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.gallery-card.selected {
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+</style>
+
+<script>
+// =============================================
+// LEAD IMAGES GALLERY MANAGER - VERSION MEJORADA
+// =============================================
+
+class LeadImagesManager {
+    constructor() {
+        this.config = {
+            MAX_FILES_PER_UPLOAD: 200,
+            MAX_FILE_SIZE: 50 * 1024 * 1024, // 50MB
+            MAX_TOTAL_SIZE: 100 * 1024 * 1024, // 100MB
+            ALLOWED_FILE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+            IMAGES_PER_PAGE: 12,
+            TOAST_DELAY: 5000
+        };
+
+        this.state = {
+            isUploading: false,
+            currentPage: 1,
+            lastPage: 1,
+            totalImages: 0,
+            imagesPerPage: 12,
+            selectedImages: new Set(),
+            currentPagination: null
+        };
+
+        this.leadId = {{ $lead->id }};
+        this.elements = {};
+        this.init();
+    }
+
+    // =============================================
+    // INITIALIZATION
+    // =============================================
+
+    init() {
+        console.log('🔄 Initializing LeadImagesManager...');
+        this.initializeElements();
+        this.initializeUploadFunctionality();
+        this.initializeEventListeners();
+        this.loadInitialImages();
+        this.initializeToastSystem();
+    }
+
+    initializeElements() {
+        // Galería
+        this.elements.gallery = document.getElementById('gallery');
+        this.elements.dynamicGallery = document.getElementById('dynamicGallery');
+        this.elements.emptyState = document.getElementById('emptyState');
+        
+        // Controles
+        this.elements.counter = document.getElementById('totalImagesCounter');
+        this.elements.prevBtn = document.getElementById('prevPage');
+        this.elements.nextBtn = document.getElementById('nextPage');
+        this.elements.pageInfo = document.getElementById('pageInfo');
+        this.elements.pageInfoDetailed = document.getElementById('pageInfoDetailed');
+        
+        // Upload
+        this.elements.uploadForm = document.getElementById('uploadForm');
+        this.elements.fileInput = document.getElementById('images');
+        this.elements.uploadZone = document.querySelector('.upload-zone');
+        
+        // Bulk actions
+        this.elements.selectAllCheckbox = document.getElementById('selectAll');
+        this.elements.deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+        this.elements.downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+        this.elements.deleteAllBtn = document.getElementById('deleteAllBtn');
+        this.elements.selectedCount = document.getElementById('selectedCount');
+        this.elements.selectedCountText = document.getElementById('selectedCountText');
+        
+        // Progress
+        this.elements.uploadBtn = document.getElementById('uploadBtn');
+        this.elements.uploadProgress = document.getElementById('uploadProgress');
+        this.elements.progressFill = document.getElementById('progressFill');
+        this.elements.progressPercent = document.getElementById('progressPercent');
+        
+        // Info
+        this.elements.fileInfo = document.getElementById('fileInfo');
+        this.elements.previewContainer = document.getElementById('previewContainer');
+    }
+
+    initializeUploadFunctionality() {
+        if (!this.elements.uploadForm || !this.elements.fileInput) return;
+
+        this.elements.fileInput.addEventListener('change', (e) => this.handleFileSelection(e));
+        this.elements.uploadForm.addEventListener('submit', (e) => this.handleUpload(e));
+        this.initializeDragAndDrop();
+    }
+
+    initializeEventListeners() {
+        // Bulk actions
+        if (this.elements.selectAllCheckbox) {
+            this.elements.selectAllCheckbox.addEventListener('change', (e) => this.handleSelectAll(e));
+        }
+        if (this.elements.deleteSelectedBtn) {
+            this.elements.deleteSelectedBtn.addEventListener('click', () => this.deleteSelectedImages());
+        }
+        if (this.elements.downloadSelectedBtn) {
+            this.elements.downloadSelectedBtn.addEventListener('click', () => this.downloadSelectedImages());
+        }
+        if (this.elements.deleteAllBtn) {
+            this.elements.deleteAllBtn.addEventListener('click', () => this.deleteAllImages());
+        }
+        
+        // Pagination
+        if (this.elements.prevBtn) {
+            this.elements.prevBtn.addEventListener('click', () => this.loadImages(this.state.currentPage - 1));
+        }
+        if (this.elements.nextBtn) {
+            this.elements.nextBtn.addEventListener('click', () => this.loadImages(this.state.currentPage + 1));
+        }
+        
+        // Image selection
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('select-image')) {
+                this.toggleImageSelection(e.target.value, e.target.checked);
+            }
+        });
+    }
+
+    initializeDragAndDrop() {
+        const dropZone = this.elements.uploadZone;
+        if (!dropZone) return;
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, this.preventDefaults, false);
+        });
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => this.setDropZoneState(true), false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => this.setDropZoneState(false), false);
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                this.elements.fileInput.files = files;
+                this.handleFileSelection();
+            }
+        }, false);
+    }
+
+    initializeToastSystem() {
+        if (!document.getElementById('toast-container')) {
+            const toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+    }
+
+    // =============================================
+    // UPLOAD MANAGEMENT
+    // =============================================
+
+    handleFileSelection() {
+        const files = this.elements.fileInput.files;
+        
+        if (files.length === 0) {
+            this.resetFileInfo();
+            return;
+        }
+
+        console.log(`📁 ${files.length} files selected`);
+
+        // Validar cantidad de archivos
+        if (files.length > this.config.MAX_FILES_PER_UPLOAD) {
+            this.showAlert('error', `Maximum ${this.config.MAX_FILES_PER_UPLOAD} files allowed per upload`);
+            this.resetFileInput();
+            return;
+        }
+
+        const validationResult = this.validateFiles(files);
+        if (!validationResult.valid) {
+            this.showAlert('error', validationResult.message);
+            this.resetFileInput();
+            return;
+        }
+
+        this.updateFileInfo(files);
+        this.createPreviews(files);
+    }
+
+    async handleUpload(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (this.state.isUploading) {
+            this.showAlert('warning', 'Upload already in progress. Please wait...');
+            return;
+        }
+        
+        const files = this.elements.fileInput.files;
+        
+        if (files.length === 0) {
+            this.showAlert('warning', 'Please select at least one image');
+            return;
+        }
+
+        console.log(`🚀 Starting upload of ${files.length} files`);
+
+        this.state.isUploading = true;
+        this.setUploadState(true);
+
+        try {
+            await this.uploadAllFiles(files);
+            this.showAlert('success', `✅ Successfully uploaded ${files.length} images`);
+            this.resetUploadForm();
+            
+            setTimeout(() => {
+                this.loadImages(1);
+            }, 1000);
+            
+        } catch (error) {
+            console.error('❌ Upload error:', error);
+            this.showAlert('error', error.message || 'Error uploading images');
+        } finally {
+            this.state.isUploading = false;
+            this.setUploadState(false);
+        }
+    }
+
+    async uploadAllFiles(files) {
+        const formData = new FormData();
+        formData.append("lead_id", this.leadId);
+        
+        Array.from(files).forEach((file, index) => {
+            console.log(`📎 Adding file ${index + 1}:`, file.name, `(${this.formatFileSize(file.size)})`);
+            formData.append("images[]", file);
+        });
+
+        try {
+            const response = await fetch("{{ route('lead.images.store') }}", {
+                method: "POST",
+                headers: { 
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: formData,
+            });
+
+            console.log('📨 Upload response status:', response.status);
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('❌ Server returned non-JSON response:', text.substring(0, 200));
+                throw new Error('Server error: Please check the console for details');
+            }
+
+            const result = await response.json();
+            console.log('📨 Server response:', result);
+
+            if (!response.ok) {
+                throw new Error(result.message || `Upload failed with status ${response.status}`);
+            }
+
+            if (!result.success) {
+                throw new Error(result.message || 'Upload failed');
+            }
+
+            this.updateProgress(100);
+            console.log('✅ Upload successful, uploaded:', result.uploaded_count);
+            return result;
+
+        } catch (error) {
+            console.error('❌ Upload error:', error);
+            throw error;
+        }
+    }
+
+    validateFiles(files) {
+        const oversizedFiles = [];
+        const invalidTypeFiles = [];
+        let totalSize = 0;
+        
+        Array.from(files).forEach(file => {
+            totalSize += file.size;
+            
+            if (file.size > this.config.MAX_FILE_SIZE) {
+                oversizedFiles.push({
+                    name: file.name,
+                    size: this.formatFileSize(file.size)
+                });
+            }
+            
+            if (!this.config.ALLOWED_FILE_TYPES.includes(file.type)) {
+                invalidTypeFiles.push(file.name);
+            }
+        });
+
+        if (totalSize > this.config.MAX_TOTAL_SIZE) {
+            return {
+                valid: false,
+                message: `Total files size exceeds ${this.formatFileSize(this.config.MAX_TOTAL_SIZE)}. Please select fewer files.`
+            };
+        }
+        
+        if (oversizedFiles.length > 0) {
+            const fileList = oversizedFiles.map(f => `${f.name} (${f.size})`).join(', ');
+            return {
+                valid: false,
+                message: `The following files exceed ${this.formatFileSize(this.config.MAX_FILE_SIZE)}: ${fileList}`
+            };
+        }
+        
+        if (invalidTypeFiles.length > 0) {
+            return {
+                valid: false,
+                message: `The following files are not supported: ${invalidTypeFiles.join(', ')}. Supported formats: JPG, PNG, WEBP, GIF`
+            };
+        }
+        
+        return { valid: true };
+    }
+
+    createPreviews(files) {
+        if (!this.elements.previewContainer) return;
+        
+        this.elements.previewContainer.innerHTML = '';
+        
+        Array.from(files).forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4 col-lg-3';
+                col.innerHTML = this.createPreviewCard(e.target.result, file, index);
+                this.elements.previewContainer.appendChild(col);
+                
+                const removeBtn = col.querySelector('.remove-preview');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => {
+                        this.removeFileFromInput(index);
+                        col.remove();
+                        this.updateFileInfo();
+                    });
+                }
+            };
+            reader.onerror = () => {
+                console.error('Error reading file:', file.name);
             };
             reader.readAsDataURL(file);
         });
     }
 
-    // ✅ MEJORADO: Upload con mejor manejo
-    function handleUploadSubmit(e) {
-        e.preventDefault();
-        
-        if (isUploading) {
-            showToast('Upload already in progress', 'warning');
-            return;
-        }
+    createPreviewCard(imageSrc, file, index) {
+        return `
+            <div class="card preview-image border-0 shadow-sm">
+                <span class="position-absolute top-0 start-0 m-2 badge bg-secondary bg-opacity-75">
+                    #${index + 1}
+                </span>
+                <img src="${imageSrc}" 
+                     class="card-img-top rounded" 
+                     style="height:120px;object-fit:cover;" 
+                     alt="Preview of ${file.name}"
+                     onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='">
+                <button type="button" class="remove-preview" data-index="${index}" aria-label="Remove ${file.name}">
+                    <i class="bi bi-x"></i>
+                </button>
+                <div class="card-body text-center p-2">
+                    <small class="text-muted text-truncate d-block" title="${file.name}">${this.truncateFileName(file.name)}</small>
+                    <small class="text-muted">${this.formatFileSize(file.size)}</small>
+                </div>
+            </div>`;
+    }
 
-        if (!selectedFiles.length) {
-            showToast('Please select files to upload', 'warning');
-            return;
-        }
-
-        const formData = new FormData(e.target);
+    removeFileFromInput(index) {
+        const dt = new DataTransfer();
+        const files = Array.from(this.elements.fileInput.files);
         
-        // ✅ MEJORADO: Agregar archivos con verificación
-        selectedFiles.forEach((file, index) => {
-            if (file && file instanceof File) {
-                formData.append('images[]', file);
-            }
+        files.forEach((file, i) => {
+            if (i !== index) dt.items.add(file);
         });
+        
+        this.elements.fileInput.files = dt.files;
+        this.updateFileInfo();
+        this.createPreviews(this.elements.fileInput.files);
+    }
 
-        // ✅ MEJORADO: Agregar información adicional
-        formData.append('total_files', selectedFiles.length);
-        formData.append('chunk_index', 0);
+    // =============================================
+    // GALLERY MANAGEMENT
+    // =============================================
 
-        isUploading = true;
-        uploadButton.disabled = true;
-        uploadButton.innerHTML = '<i class="bi bi-cloud-upload me-2"></i> Uploading...';
-        uploadProgress.classList.remove('d-none');
-        uploadStatus.textContent = 'Preparing upload...';
+    async loadInitialImages() {
+        await this.loadImages(1);
+    }
 
-        // ✅ MEJORADO: Usar fetch con timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutos
+    async loadImages(page = 1) {
+        if (!this.elements.gallery) return;
 
-        fetch('{{ route("lead.images.store") }}', {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            }
-        })
-        .then(async response => {
-            clearTimeout(timeoutId);
+        this.showGalleryLoading();
+
+        try {
+            const response = await fetch(`{{ route('lead.images.index', $lead->id) }}?page=${page}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            return data;
-        })
-        .then(data => {
+
             if (data.success) {
-                showToast(data.message || `Successfully uploaded ${selectedFiles.length} image(s)!`, 'success');
-                
-                // Limpiar selección
-                selectedFiles = [];
-                updateFileSelection();
-                renderPreviews();
-                input.value = '';
-                
-                // ✅ MEJORADO: Recargar galería completa
-                reloadGallery();
+                this.renderGallery(data.images.data, data.pagination);
+                this.updatePagination(data.pagination);
+                this.updateUIState(data.images.data.length > 0);
             } else {
-                throw new Error(data.error || 'Upload failed on server');
+                this.showGalleryError('Error loading images from server');
             }
-        })
-        .catch(error => {
-            console.error('Upload error:', error);
-            
-            let errorMessage = 'Upload failed. Please try again.';
-            if (error.name === 'AbortError') {
-                errorMessage = 'Upload timeout. Please try again with fewer files.';
-            } else if (error.message.includes('HTTP error')) {
-                errorMessage = `Server error: ${error.message}`;
-            }
-            
-            showToast(errorMessage, 'error');
-        })
-        .finally(() => {
-            isUploading = false;
-            uploadButton.disabled = false;
-            uploadButton.innerHTML = '<i class="bi bi-cloud-upload me-2"></i> Upload Images';
-            uploadProgress.classList.add('d-none');
-            clearTimeout(timeoutId);
-        });
+        } catch (error) {
+            console.error('Error fetching images:', error);
+            this.showGalleryError('Error loading images. Please try again.');
+        }
     }
 
-    // ✅ NUEVO: Función para recargar galería
-    function reloadGallery() {
-        galleryBox.innerHTML = '';
-        allGalleryImages = [];
-        totalImagesLoaded = 0;
-        currentPage = 1;
-        loadImages(currentPage, false);
-    }
+    renderGallery(images, pagination = null) {
+        if (!this.elements.gallery) return;
 
-    // ========== GALLERY FUNCTIONS MEJORADAS ==========
-    function renderImages(images, append = false) {
-        // ✅ MEJORADO: Manejar append vs replace
-        if (!append) {
-            galleryBox.innerHTML = '';
-            allGalleryImages = [];
-            totalImagesLoaded = 0;
+        if (!images || images.length === 0) {
+            this.showEmptyGallery();
+            return;
         }
 
-        if (images.length > 0) {
-            emptyGallery.classList.add('d-none');
+        if (pagination) {
+            this.state.currentPagination = pagination;
+        }
+
+        const galleryHTML = images.map((img, index) => this.createImageCard(img, index)).join('');
+        this.elements.gallery.innerHTML = galleryHTML;
+        this.updateImageCounter();
+    }
+
+    createImageCard(image, index) {
+        const imageUrl = `/storage/${image.image_path}`;
+        const uploadDate = new Date(image.created_at).toLocaleDateString();
+        const fileSize = image.file_size ? this.formatFileSize(image.file_size) : 'Unknown size';
+        
+        let imageNumber;
+        
+        if (this.state.currentPagination && this.state.currentPagination.from !== undefined) {
+            imageNumber = this.state.currentPagination.from + index;
+        } else if (this.state.currentPage && this.state.imagesPerPage) {
+            imageNumber = ((this.state.currentPage - 1) * this.state.imagesPerPage) + index + 1;
+        } else {
+            imageNumber = index + 1;
         }
         
-        images.forEach((img, index) => {
-            // ✅ NUEVO: Verificar duplicados
-            const existingIndex = allGalleryImages.findIndex(existingImg => existingImg.id === img.id);
-            if (existingIndex !== -1) {
-                console.log('Duplicate image skipped:', img.id);
-                return;
-            }
-
-            const imageNumber = totalImagesLoaded + index + 1;
-            const imageIndex = allGalleryImages.length;
-            allGalleryImages.push(img);
-            
-            galleryBox.insertAdjacentHTML('beforeend', `
-                <div class="col-md-4 col-lg-3" id="image-${img.id}">
-                    <div class="card h-100 shadow-sm border-0 hover-shadow transition-all image-card" data-image-id="${img.id}">
-                        <div class="position-relative">
-                            <!-- Checkbox for selection -->
-                            <div class="position-absolute top-0 start-0 m-2 image-checkbox" style="display: none; z-index: 10;">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="check-${img.id}" 
-                                           onchange="toggleImageSelection(${img.id}, this.closest('.image-card'))"
-                                           style="width: 1.2em; height: 1.2em;">
-                                </div>
-                            </div>
-                            
-                            <img src="${img.url}" class="card-img-top gallery-image" 
-                                 style="height:200px;object-fit:cover;cursor:pointer;" 
-                                 alt="Uploaded image ${imageNumber}"
-                                 data-image-index="${imageIndex}"
-                                 data-image-id="${img.id}"
-                                 data-image-url="${img.url}"
-                                 data-image-name="${img.name || 'image' + imageNumber}">
-                            <!-- Photo Counter Badge -->
-                            <div class="position-absolute top-0 start-0 m-2" style="margin-left: 2.5rem !important;">
-                                <span class="badge bg-primary bg-opacity-90 text-white px-2 py-1">
-                                    #${imageNumber}
-                                </span>
-                            </div>
-                            <!-- Date Badge -->
-                            <div class="position-absolute top-0 end-0 m-2">
-                                <span class="badge bg-dark bg-opacity-75">${formatDate(img.created_at)}</span>
-                            </div>
-                        </div>
-                        <div class="card-body p-3">
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-outline-primary btn-sm view-image-btn" 
-                                        data-image-index="${imageIndex}">
-                                    <i class="bi bi-arrows-fullscreen me-1"></i> View
+        return `
+            <div class="col-xl-3 col-lg-4 col-md-6" id="image-${image.id}">
+                <div class="card h-100 shadow-sm border-0 gallery-card">
+                    <div class="card-img-top position-relative overflow-hidden">
+                        <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 image-counter">
+                            #${imageNumber}
+                        </span>
+                        
+                        <input type="checkbox" 
+                            class="form-check-input position-absolute top-0 end-0 m-2 select-image" 
+                            value="${image.id}"
+                            aria-label="Select image ${imageNumber}">
+                        
+                        <img src="${imageUrl}" 
+                            class="img-fluid w-100" 
+                            style="height: 220px; object-fit: cover;" 
+                            alt="Image ${imageNumber}"
+                            loading="lazy"
+                            onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBmb3VuZDwvdGV4dD48L3N2Zz4='">
+                        
+                        <div class="image-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center">
+                            <div class="btn-group">
+                                <a href="${imageUrl}" 
+                                download="lead-${this.leadId}-image-${imageNumber}.jpg" 
+                                class="btn btn-light btn-sm"
+                                title="Download image ${imageNumber}">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <a href="${imageUrl}" 
+                                target="_blank" 
+                                class="btn btn-light btn-sm"
+                                title="View full size">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-light btn-sm" 
+                                        onclick="leadImagesManager.deleteSingleImage(${image.id})"
+                                        title="Delete image ${imageNumber}">
+                                    <i class="bi bi-trash text-danger"></i>
                                 </button>
-                                <div class="d-flex gap-1">
-                                    <button type="button" class="btn btn-outline-success btn-sm flex-fill" 
-                                            onclick="downloadSingleImage(${img.id})">
-                                        <i class="bi bi-download"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm flex-fill delete-single-btn" 
-                                            data-image-id="${img.id}">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </div>
+                    <div class="card-body text-center">
+                        <small class="text-muted">
+                            <i class="bi bi-calendar me-1"></i>
+                            ${uploadDate}
+                        </small>
+                        <small class="text-muted d-block mt-1">
+                            <i class="bi bi-file-earmark me-1"></i>
+                            ${fileSize}
+                        </small>
+                    </div>
                 </div>
-            `);
-        });
-
-        totalImagesLoaded = allGalleryImages.length; // ✅ CORREGIDO: Usar longitud real
-        updateGalleryCounter();
-        addImageClickListeners();
+            </div>`;
     }
 
-    function loadImages(page = 1, append = false) {
-        if (isLoading) {
-            console.log('Load already in progress, skipping...');
-            return;
+    updatePagination(pagination) {
+        this.state.currentPage = pagination.current_page;
+        this.state.lastPage = pagination.last_page;
+        this.state.currentPagination = pagination;
+        this.state.totalImages = pagination.total;
+        this.state.imagesPerPage = pagination.per_page;
+        
+        if (this.elements.counter) {
+            this.elements.counter.textContent = `${this.state.totalImages} image${this.state.totalImages !== 1 ? 's' : ''}`;
         }
-
-        isLoading = true;
-        if (append) {
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i> Loading...';
+        if (this.elements.pageInfo) {
+            this.elements.pageInfo.textContent = `Page ${this.state.currentPage} of ${this.state.lastPage}`;
         }
-
-        fetch(`{{ url('/leads') }}/${leadId}/images/paginated?page=${page}&per_page=${perPage}`)
-            .then(res => {
-                if (!res.ok) throw new Error('Network response was not ok');
-                return res.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    renderImages(data.images, append);
-                    
-                    if (data.next_page) {
-                        loadMoreBtn.classList.remove('d-none');
-                        loadMoreBtn.dataset.page = data.next_page;
-                        currentPage = data.next_page;
-                    } else {
-                        loadMoreBtn.classList.add('d-none');
-                    }
-                } else {
-                    throw new Error(data.error || 'Failed to load images');
-                }
-            })
-            .catch(err => {
-                console.error('Error loading images:', err);
-                showToast('Error loading images', 'error');
-            })
-            .finally(() => {
-                isLoading = false;
-                if (append) {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.innerHTML = '<i class="bi bi-arrow-down-circle me-2"></i> Load More Images';
-                }
-            });
-    }
-
-    // ========== SELECTION MANAGEMENT ==========
-    selectImagesBtn.addEventListener('click', function() {
-        selectionMode = !selectionMode;
-        toggleSelectionMode();
-    });
-
-    cancelSelectionBtn.addEventListener('click', function() {
-        selectionMode = false;
-        selectedImages.clear();
-        toggleSelectionMode();
-        updateSelectionUI();
-    });
-
-    deleteSelectedBtn.addEventListener('click', function() {
-        deleteSelectedImages();
-    });
-
-    downloadSelectedBtn.addEventListener('click', function() {
-        downloadSelectedImages();
-    });
-
-    function toggleSelectionMode() {
-        if (selectionMode) {
-            selectImagesBtn.classList.add('btn-primary');
-            selectImagesBtn.classList.remove('btn-outline-primary');
-            selectImagesBtn.innerHTML = '<i class="bi bi-check-square-fill me-1"></i> Selecting';
-            bulkActions.classList.remove('d-none');
-        } else {
-            selectImagesBtn.classList.remove('btn-primary');
-            selectImagesBtn.classList.add('btn-outline-primary');
-            selectImagesBtn.innerHTML = '<i class="bi bi-check-square me-1"></i> Select';
-            bulkActions.classList.add('d-none');
-            selectedImages.clear();
+        if (this.elements.pageInfoDetailed) {
+            const from = pagination.from || ((this.state.currentPage - 1) * this.state.imagesPerPage + 1);
+            const to = pagination.to || Math.min(this.state.currentPage * this.state.imagesPerPage, this.state.totalImages);
+            this.elements.pageInfoDetailed.textContent = `Showing ${from} to ${to} of ${this.state.totalImages} images`;
         }
         
-        document.querySelectorAll('.image-checkbox').forEach(checkbox => {
-            checkbox.style.display = selectionMode ? 'block' : 'none';
-        });
-        
-        document.querySelectorAll('.image-card').forEach(card => {
-            card.classList.remove('selected');
-        });
+        if (this.elements.prevBtn) this.elements.prevBtn.disabled = this.state.currentPage <= 1;
+        if (this.elements.nextBtn) this.elements.nextBtn.disabled = this.state.currentPage >= this.state.lastPage;
     }
 
-    function updateSelectionUI() {
-        selectedCount.textContent = selectedImages.size;
-        deleteSelectedBtn.disabled = selectedImages.size === 0;
-        downloadSelectedBtn.disabled = selectedImages.size === 0;
-    }
+    // =============================================
+    // IMAGE ACTIONS
+    // =============================================
 
-    window.toggleImageSelection = function(imageId, cardElement) {
-        if (selectedImages.has(imageId)) {
-            selectedImages.delete(imageId);
-            cardElement.classList.remove('selected');
-        } else {
-            selectedImages.add(imageId);
-            cardElement.classList.add('selected');
-        }
-        updateSelectionUI();
-    };
+    async deleteSingleImage(id) {
+        if (!await this.showConfirmation('Are you sure you want to delete this image?')) return;
 
-    // ========== DOWNLOAD FUNCTIONS ==========
-    function downloadSelectedImages() {
-        if (selectedImages.size === 0) return;
-
-        if (selectedImages.size === 1) {
-            const imageId = Array.from(selectedImages)[0];
-            downloadSingleImage(imageId);
-            return;
-        }
-
-        showToast(`Preparing ${selectedImages.size} images for download...`, 'info');
-
-        let downloaded = 0;
-        selectedImages.forEach(imageId => {
-            setTimeout(() => {
-                downloadSingleImage(imageId);
-                downloaded++;
-                
-                if (downloaded === selectedImages.size) {
-                    showToast(`Successfully downloaded ${downloaded} images`, 'success');
-                }
-            }, downloaded * 300);
-        });
-    }
-
-    function downloadSingleImage(imageId) {
-        const image = allGalleryImages.find(img => img.id == imageId);
-        if (image) {
-            const link = document.createElement('a');
-            link.href = image.url;
-            link.download = image.name || `image-${imageId}.jpg`;
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    }
-
-    // ========== RESTANTE DEL CÓDIGO ==========
-    // ... (las funciones de delete, modal, etc. se mantienen igual)
-
-    function addImageClickListeners() {
-        document.querySelectorAll('.gallery-image').forEach(img => {
-            img.addEventListener('click', function() {
-                if (selectionMode) {
-                    const imageId = parseInt(this.dataset.imageId);
-                    const cardElement = this.closest('.image-card');
-                    toggleImageSelection(imageId, cardElement);
-                } else {
-                    openImageViewer(parseInt(this.dataset.imageIndex));
-                }
-            });
-        });
-        
-        document.querySelectorAll('.view-image-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                openImageViewer(parseInt(this.dataset.imageIndex));
-            });
-        });
-
-        document.querySelectorAll('.delete-single-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const imageId = this.dataset.imageId;
-                deleteSingleImage(imageId);
-            });
-        });
-    }
-
-    function deleteSingleImage(imageId) {
-        if (!confirm('Are you sure you want to delete this image?')) return;
-
-        showToast('Deleting image...', 'info');
-        
-        fetch(`{{ route('lead.images.destroy', '') }}/${imageId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                removeImageFromDOM(imageId);
-                showToast('Image deleted successfully', 'success');
-            } else {
-                showToast(data.error || 'Failed to delete image', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Delete error:', err);
-            showToast('Error deleting image', 'error');
-        });
-    }
-
-    function deleteSelectedImages() {
-        if (selectedImages.size === 0) return;
-        
-        if (!confirm(`Are you sure you want to delete ${selectedImages.size} selected image(s)?`)) {
-            return;
-        }
-
-        showToast(`Deleting ${selectedImages.size} image(s)...`, 'info');
-        
-        const deletePromises = Array.from(selectedImages).map(imageId => 
-            fetch(`{{ route('lead.images.destroy', '') }}/${imageId}`, {
+        try {
+            const response = await fetch(`{{ route('lead.images.destroy', '') }}/${id}`, {
                 method: 'DELETE',
-                headers: {
+                headers: { 
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
-                }
-            }).then(res => res.json())
-        );
-
-        Promise.all(deletePromises)
-            .then(results => {
-                const successCount = results.filter(result => result.success).length;
-                
-                if (successCount > 0) {
-                    selectedImages.forEach(imageId => {
-                        removeImageFromDOM(imageId);
-                    });
-                    
-                    totalImagesLoaded = allGalleryImages.length;
-                    updateGalleryCounter();
-                    
-                    showToast(`Successfully deleted ${successCount} image(s)`, 'success');
-                }
-                
-                selectedImages.clear();
-                selectionMode = false;
-                toggleSelectionMode();
-                updateSelectionUI();
-            })
-            .catch(err => {
-                console.error('Bulk delete error:', err);
-                showToast('Error deleting some images', 'error');
+                },
             });
-    }
 
-    function removeImageFromDOM(imageId) {
-        const imageElement = document.getElementById(`image-${imageId}`);
-        if (imageElement) {
-            imageElement.remove();
-        }
-        
-        const imageIndex = allGalleryImages.findIndex(img => img.id == imageId);
-        if (imageIndex !== -1) {
-            allGalleryImages.splice(imageIndex, 1);
-        }
-        
-        if (selectedImages.has(parseInt(imageId))) {
-            selectedImages.delete(parseInt(imageId));
-            updateSelectionUI();
-        }
-        
-        if (totalImagesLoaded === 0) {
-            emptyGallery.classList.remove('d-none');
-        }
-    }
-
-    function updateGalleryCounter() {
-        galleryCounter.textContent = totalImagesLoaded;
-        const totalImagesCounter = document.getElementById('totalImagesCounter');
-        if (totalImagesCounter) {
-            totalImagesCounter.textContent = totalImagesLoaded;
-        }
-    }
-
-    function openImageViewer(imageIndex) {
-        if (selectionMode) return;
-        
-        currentModalImages = allGalleryImages;
-        currentImageIndex = imageIndex;
-        updateModalImage();
-        imageViewerModal.show();
-    }
-
-    function updateModalImage() {
-        if (currentModalImages.length === 0) return;
-        
-        const currentImage = currentModalImages[currentImageIndex];
-        modalImage.src = currentImage.url;
-        
-        const imageNumber = currentImageIndex + 1;
-        imageModalTitle.textContent = `Image ${imageNumber}`;
-        imageCounter.textContent = `Image ${imageNumber} of ${currentModalImages.length}`;
-        
-        downloadImageBtn.onclick = () => downloadImage(currentImage.url, currentImage.name || `image-${currentImage.id}`);
-        
-        prevImageBtn.style.visibility = currentImageIndex > 0 ? 'visible' : 'hidden';
-        nextImageBtn.style.visibility = currentImageIndex < currentModalImages.length - 1 ? 'visible' : 'hidden';
-    }
-
-    // ========== EVENT LISTENERS ==========
-    ['dragenter', 'dragover'].forEach(ev => {
-        dropArea.addEventListener(ev, e => { 
-            e.preventDefault(); 
-            dropArea.classList.add('border-primary');
-            overlay.classList.remove('d-none');
-        });
-    });
-    
-    ['dragleave', 'drop'].forEach(ev => {
-        dropArea.addEventListener(ev, e => { 
-            e.preventDefault(); 
-            dropArea.classList.remove('border-primary');
-            overlay.classList.add('d-none');
-        });
-    });
-
-    dropArea.addEventListener('drop', e => {
-        e.preventDefault();
-        const files = [...e.dataTransfer.files];
-        if (files.length > 0) {
-            showToast(`Processing ${files.length} file(s)...`, 'info');
-            handleFiles(files);
-        }
-    });
-
-    input.addEventListener('change', e => {
-        const files = [...e.target.files];
-        if (files.length > 0) {
-            showToast(`Processing ${files.length} file(s)...`, 'info');
-            handleFiles(files);
-        }
-    });
-
-    // ✅ CORREGIDO: Usar la nueva función de upload
-    document.getElementById('uploadForm').addEventListener('submit', handleUploadSubmit);
-
-    // Modal Navigation
-    prevImageBtn.addEventListener('click', function() {
-        if (currentImageIndex > 0) {
-            currentImageIndex--;
-            updateModalImage();
-        }
-    });
-
-    nextImageBtn.addEventListener('click', function() {
-        if (currentImageIndex < currentModalImages.length - 1) {
-            currentImageIndex++;
-            updateModalImage();
-        }
-    });
-
-    // Keyboard navigation
-    document.addEventListener('keydown', function(e) {
-        if (imageViewerModal._element.classList.contains('show')) {
-            switch(e.key) {
-                case 'ArrowLeft':
-                    if (currentImageIndex > 0) {
-                        currentImageIndex--;
-                        updateModalImage();
-                    }
-                    break;
-                case 'ArrowRight':
-                    if (currentImageIndex < currentModalImages.length - 1) {
-                        currentImageIndex++;
-                        updateModalImage();
-                    }
-                    break;
-                case 'Escape':
-                    imageViewerModal.hide();
-                    break;
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showAlert('success', 'Image deleted successfully');
+                this.removeImageFromDOM(id);
+                this.state.selectedImages.delete(id.toString());
+                this.updateSelectionState();
+            } else {
+                throw new Error(data.message || 'Error deleting image');
             }
+        } catch (error) {
+            console.error('Delete error:', error);
+            this.showAlert('error', error.message || 'Error deleting image');
         }
-    });
+    }
 
-    loadMoreBtn.addEventListener('click', function () {
-        const nextPage = parseInt(this.dataset.page);
-        if (nextPage) {
-            loadImages(nextPage, true);
+    async deleteSelectedImages() {
+        const selected = Array.from(this.state.selectedImages);
+        if (selected.length === 0) {
+            this.showAlert('warning', 'Please select at least one image');
+            return;
         }
-    });
+        
+        if (!await this.showConfirmation(`Are you sure you want to delete ${selected.length} selected image(s)?`)) return;
 
-    // ========== INITIALIZATION ==========
-    loadImages(currentPage, false);
+        try {
+            const response = await fetch('{{ route("lead.images.bulkDelete") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ ids: selected })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.state.selectedImages.clear();
+                this.showAlert('success', `${data.deleted_count || selected.length} images deleted successfully`);
+                setTimeout(() => {
+                    this.loadImages(this.state.currentPage);
+                }, 500);
+            } else {
+                throw new Error(data.message || 'Error deleting selected images');
+            }
+        } catch (error) {
+            console.error('Bulk delete error:', error);
+            this.showAlert('error', error.message || 'Error deleting selected images');
+        }
+    }
+
+    async deleteAllImages() {
+        if (!await this.showConfirmation('Are you sure you want to delete ALL images? This action cannot be undone.', true)) return;
+
+        try {
+            const response = await fetch('{{ route("lead.images.deleteAll", $lead->id) }}', {
+                method: 'DELETE',
+                headers: { 
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                this.state.selectedImages.clear();
+                this.showAlert('success', 'All images deleted successfully');
+                setTimeout(() => {
+                    this.loadImages(1);
+                }, 500);
+            } else {
+                throw new Error(data.message || 'Error deleting all images');
+            }
+        } catch (error) {
+            console.error('Delete all error:', error);
+            this.showAlert('error', error.message || 'Error deleting all images');
+        }
+    }
+
+    downloadSelectedImages() {
+        const selected = Array.from(this.state.selectedImages);
+        if (selected.length === 0) {
+            this.showAlert('warning', 'Please select at least one image');
+            return;
+        }
+        
+        if (selected.length > 1) {
+            this.showAlert('info', `Starting download of ${selected.length} images...`);
+        }
+        
+        selected.forEach(id => {
+            const imageElement = document.querySelector(`#image-${id} img`);
+            if (imageElement) {
+                const link = document.createElement('a');
+                link.href = imageElement.src;
+                link.download = `lead-${this.leadId}-image-${id}.jpg`;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+        
+        if (selected.length === 1) {
+            this.showAlert('info', 'Image download started');
+        }
+    }
+
+    // =============================================
+    // ALERT & NOTIFICATION SYSTEM - MEJORADO
+    // =============================================
+
+    showAlert(type, message, options = {}) {
+        const {
+            title = this.getAlertTitle(type),
+            duration = this.config.TOAST_DELAY,
+            position = 'top-end',
+            showConfirmButton = false,
+            timer = duration
+        } = options;
+
+        if (typeof Swal !== 'undefined') {
+            // Usar SweetAlert2 si está disponible
+            const Toast = Swal.mixin({
+                toast: true,
+                position: position,
+                showConfirmButton: showConfirmButton,
+                timer: timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+
+            Toast.fire({
+                icon: type,
+                title: message,
+                background: this.getAlertColor(type),
+                color: '#fff'
+            });
+        } else {
+            // Fallback a toasts de Bootstrap
+            this.showToast(message, type);
+        }
+    }
+
+    async showConfirmation(message, isDangerous = false) {
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: isDangerous ? 'warning' : 'question',
+                showCancelButton: true,
+                confirmButtonColor: isDangerous ? '#d33' : '#3085d6',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true
+            });
+            return result.isConfirmed;
+        } else {
+            return confirm(message);
+        }
+    }
+
+    showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        
+        toast.id = toastId;
+        toast.className = `toast align-items-center text-bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi ${this.getToastIcon(type)} me-2 fs-5"></i>
+                    <span class="fs-6">${message}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>`;
+        
+        toastContainer.appendChild(toast);
+        
+        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+            const bsToast = new bootstrap.Toast(toast, { delay: this.config.TOAST_DELAY });
+            bsToast.show();
+            toast.addEventListener('hidden.bs.toast', () => toast.remove());
+        } else {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, this.config.TOAST_DELAY);
+        }
+    }
+
+    getAlertTitle(type) {
+        const titles = {
+            success: 'Success!',
+            error: 'Error!',
+            warning: 'Warning!',
+            info: 'Information',
+            question: 'Confirm'
+        };
+        return titles[type] || 'Notification';
+    }
+
+    getAlertColor(type) {
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8',
+            question: '#6c757d'
+        };
+        return colors[type] || '#6c757d';
+    }
+
+    getToastIcon(type) {
+        const icons = {
+            success: 'bi-check-circle-fill',
+            error: 'bi-exclamation-triangle-fill',
+            warning: 'bi-exclamation-circle-fill',
+            info: 'bi-info-circle-fill'
+        };
+        return icons[type] || 'bi-info-circle-fill';
+    }
+
+    // =============================================
+    // UTILITY FUNCTIONS
+    // =============================================
+
+    preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    setDropZoneState(isActive) {
+        if (!this.elements.uploadZone) return;
+        
+        if (isActive) {
+            this.elements.uploadZone.classList.add('dragover');
+            this.elements.uploadZone.style.borderColor = '#0d6efd';
+            this.elements.uploadZone.style.backgroundColor = 'rgba(13, 110, 253, 0.05)';
+        } else {
+            this.elements.uploadZone.classList.remove('dragover');
+            this.elements.uploadZone.style.borderColor = '';
+            this.elements.uploadZone.style.backgroundColor = '';
+        }
+    }
+
+    updateProgress(percent) {
+        if (this.elements.progressFill) this.elements.progressFill.style.width = percent + '%';
+        if (this.elements.progressPercent) this.elements.progressPercent.textContent = Math.round(percent) + '%';
+    }
+
+    setUploadState(isUploading) {
+        if (this.elements.uploadBtn) {
+            this.elements.uploadBtn.disabled = isUploading;
+            this.elements.uploadBtn.innerHTML = isUploading 
+                ? '<i class="bi bi-arrow-repeat spinner-border spinner-border-sm me-2"></i> Uploading...' 
+                : '<i class="bi bi-cloud-arrow-up me-2"></i> Upload All';
+        }
+        
+        if (this.elements.uploadProgress) {
+            this.elements.uploadProgress.classList.toggle('d-none', !isUploading);
+        }
+        
+        if (!isUploading) {
+            this.updateProgress(0);
+        }
+    }
+
+    resetUploadForm() {
+        console.log('🔄 Resetting upload form...');
+        
+        if (this.elements.fileInput) this.elements.fileInput.value = '';
+        if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = '';
+        if (this.elements.fileInfo) this.elements.fileInfo.textContent = '';
+        if (this.elements.uploadBtn) this.elements.uploadBtn.disabled = true;
+    }
+
+    resetFileInput() {
+        if (this.elements.fileInput) this.elements.fileInput.value = '';
+        this.resetFileInfo();
+    }
+
+    resetFileInfo() {
+        if (this.elements.fileInfo) this.elements.fileInfo.textContent = '';
+        if (this.elements.uploadBtn) this.elements.uploadBtn.disabled = true;
+        if (this.elements.previewContainer) this.elements.previewContainer.innerHTML = '';
+    }
+
+    updateFileInfo() {
+        const files = this.elements.fileInput?.files;
+        
+        if (!files || files.length === 0) {
+            this.resetFileInfo();
+        } else {
+            const totalSize = Array.from(files).reduce((acc, file) => acc + file.size, 0);
+            if (this.elements.fileInfo) {
+                this.elements.fileInfo.innerHTML = `
+                    <i class="bi bi-folder2 me-1"></i>
+                    <strong>${files.length}</strong> file${files.length !== 1 ? 's' : ''} selected • 
+                    <strong>${this.formatFileSize(totalSize)}</strong>
+                `;
+            }
+            if (this.elements.uploadBtn) this.elements.uploadBtn.disabled = false;
+        }
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    truncateFileName(filename, maxLength = 20) {
+        if (filename.length <= maxLength) return filename;
+        return filename.substring(0, maxLength - 3) + '...';
+    }
+
+    // =============================================
+    // SELECTION MANAGEMENT
+    // =============================================
+
+    toggleImageSelection(imageId, isSelected) {
+        if (isSelected) {
+            this.state.selectedImages.add(imageId);
+        } else {
+            this.state.selectedImages.delete(imageId);
+        }
+        this.updateSelectionState();
+    }
+
+    updateSelectionState() {
+        const selected = this.state.selectedImages.size;
+        
+        if (this.elements.deleteSelectedBtn) this.elements.deleteSelectedBtn.disabled = selected === 0;
+        if (this.elements.downloadSelectedBtn) this.elements.downloadSelectedBtn.disabled = selected === 0;
+        if (this.elements.selectedCount) this.elements.selectedCount.style.display = selected > 0 ? 'inline-block' : 'none';
+        if (this.elements.selectedCountText) this.elements.selectedCountText.textContent = selected;
+        
+        const totalCheckboxes = document.querySelectorAll('.select-image').length;
+        if (this.elements.selectAllCheckbox) {
+            this.elements.selectAllCheckbox.checked = selected > 0 && selected === totalCheckboxes;
+            this.elements.selectAllCheckbox.indeterminate = selected > 0 && selected < totalCheckboxes;
+        }
+    }
+
+    handleSelectAll(e) {
+        const checkboxes = document.querySelectorAll('.select-image');
+        const isChecked = e.target.checked;
+        
+        checkboxes.forEach(cb => {
+            cb.checked = isChecked;
+            this.toggleImageSelection(cb.value, isChecked);
+        });
+    }
+
+    updateImageCounter() {
+        const total = document.querySelectorAll('#galleryContainer .col-xl-3').length;
+        if (this.elements.counter) this.elements.counter.textContent = total + ' image' + (total !== 1 ? 's' : '');
+        if (this.elements.deleteAllBtn) this.elements.deleteAllBtn.disabled = total === 0;
+    }
+
+    // =============================================
+    // UI STATE MANAGEMENT
+    // =============================================
+
+    updateUIState(hasImages) {
+        if (this.elements.dynamicGallery) this.elements.dynamicGallery.style.display = hasImages ? 'block' : 'none';
+        if (this.elements.emptyState) this.elements.emptyState.style.display = hasImages ? 'none' : 'block';
+        
+        const bulkActionsCard = document.getElementById('bulkActionsCard');
+        if (bulkActionsCard) {
+            bulkActionsCard.style.display = hasImages ? 'block' : 'none';
+        }
+    }
+
+    showGalleryLoading() {
+        if (this.elements.gallery) {
+            this.elements.gallery.innerHTML = `
+                <div class='col-12 text-center text-muted py-5'>
+                    <div class='spinner-border text-primary mb-3' style='width: 3rem; height: 3rem;'></div>
+                    <p class='mt-2 fs-5'>Loading images...</p>
+                </div>`;
+        }
+    }
+
+    showGalleryError(message) {
+        if (this.elements.gallery) {
+            this.elements.gallery.innerHTML = `
+                <div class='col-12 text-center text-danger py-5'>
+                    <i class='bi bi-exclamation-triangle display-4 d-block mb-3'></i>
+                    <p class='fs-5'>${message}</p>
+                    <button class='btn btn-primary mt-2 rounded-pill px-4' onclick='leadImagesManager.loadImages(${this.state.currentPage})'>
+                        <i class='bi bi-arrow-clockwise me-2'></i>Try Again
+                    </button>
+                </div>`;
+        }
+    }
+
+    showEmptyGallery() {
+        if (this.elements.gallery) {
+            this.elements.gallery.innerHTML = `
+                <div class='col-12 text-center text-muted py-5'>
+                    <i class='bi bi-images display-1 d-block mb-3 opacity-25'></i>
+                    <h4 class='text-dark mb-3'>No images uploaded yet</h4>
+                    <p class='text-muted mb-4'>Start by uploading some images to the gallery.</p>
+                    <button class='btn btn-primary rounded-pill px-4' onclick="document.getElementById('images').click()">
+                        <i class='bi bi-cloud-arrow-up me-2'></i>Upload Photos
+                    </button>
+                </div>`;
+        }
+    }
+
+    removeImageFromDOM(id) {
+        const imageElement = document.getElementById(`image-${id}`);
+        if (imageElement) {
+            imageElement.style.opacity = '0';
+            imageElement.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                imageElement.remove();
+                this.updateUIState(document.querySelectorAll('.gallery-card').length > 0);
+                this.updateImageCounter();
+            }, 300);
+        }
+    }
+}
+
+// =============================================
+// INITIALIZATION
+// =============================================
+
+let leadImagesManager;
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOM Content Loaded - Initializing LeadImagesManager');
+    leadImagesManager = new LeadImagesManager();
 });
 
-// ========== GLOBAL FUNCTIONS ==========
-window.removeFile = (index) => {
-    if (window.selectedFiles && window.selectedFiles[index]) {
-        const removedFile = window.selectedFiles[index];
-        window.selectedFiles.splice(index, 1);
-        
-        if (window.updateFileSelection) window.updateFileSelection();
-        if (window.renderPreviews) window.renderPreviews();
-        
-        showToast(`Removed "${removedFile.name}"`, 'info');
-    }
-};
-
-window.clearSelection = () => {
-    if (window.selectedFiles) {
-        const fileCount = window.selectedFiles.length;
-        window.selectedFiles = [];
-        
-        if (window.updateFileSelection) window.updateFileSelection();
-        if (window.renderPreviews) window.renderPreviews();
-        
-        const input = document.getElementById('imagesInput');
-        if (input) input.value = '';
-        
-        if (fileCount > 0) {
-            showToast(`Cleared ${fileCount} file(s)`, 'info');
-        }
-    }
-};
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
-}
-
-function downloadImage(imageUrl, fileName) {
-    const link = document.createElement('a');
-    link.href = imageUrl;
-    link.download = fileName || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `alert alert-${type === 'error' ? 'danger' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show position-fixed`;
-    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    toast.innerHTML = `
-        <strong>${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️'}</strong>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 5000);
-}
-
-// Exponer funciones globales
-window.downloadSingleImage = function(imageId) {
-    // Esta función será manejada por el event listener interno
-};
+window.leadImagesManager = leadImagesManager;
 </script>
 
-<style>
-.image-card.selected {
-    border: 3px solid #0d6efd !important;
-    background-color: rgba(13, 110, 253, 0.05);
-}
 
-.image-card {
-    transition: all 0.3s ease;
-}
 
-.image-checkbox .form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
 
-.hover-shadow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
-}
 
-.transition-all {
-    transition: all 0.3s ease;
-}
 
-.border-dashed {
-    border-style: dashed!important;
-}
 
-.modal-image {
-    border-radius: 0.5rem;
-}
 
-.btn-navigation {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
 
-.btn-navigation:hover {
-    transform: scale(1.1);
-}
 
-.preview-selected {
-    border: 3px solid #0d6efd !important;
-}
 
-#imageViewerModal .modal-content {
-    background: rgba(0,0,0,0.9);
-}
-
-#imageViewerModal .modal-header {
-    background: rgba(0,0,0,0.8);
-}
-
-.gallery-image:hover {
-    opacity: 0.8;
-}
-</style>
-
-         
         <!-- Documents Section - Minimalist Design -->
         <div class="tab-pane fade" id="documents">
             <!-- Header -->
@@ -2930,10 +3449,10 @@ window.downloadSingleImage = function(imageId) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("Imagen subida correctamente.");
+                    alert("Image uploaded correctly");
                     location.reload(); // Recargar la galería
                 } else {
-                    alert("Error al subir la imagen.");
+                    alert("Error uploading image.");
                 }
             })
             .catch(error => console.error("Error sending image:", error));
@@ -2963,7 +3482,7 @@ window.downloadSingleImage = function(imageId) {
         .then(data => {
             if (data.success) {
                 document.getElementById(`image-${imageId}`).remove();
-                alert("Imagen eliminada correctamente.");
+                alert("Image removed successfully");
             } else {
                 alert(data.error);
             }

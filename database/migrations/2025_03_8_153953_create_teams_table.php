@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('phone')->nullable(); // ✅ Campo agregado
             $table->string('password');
             $table->enum('role', ['company_admin', 'manager', 'sales', 'guest', 'project_manager', 'crew'])->default('sales');
             $table->boolean('is_active')->default(true);
@@ -24,4 +25,4 @@ return new class extends Migration {
     {
         Schema::dropIfExists('team');
     }
-};
+}; 

@@ -20,43 +20,206 @@ class GuestDashboardController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::guard('team')->user();
-        $sellerId = $request->input('seller_id');
+        $user   = Auth::guard('team')->user();   // Manager logueado
+        $userId = $user->user_id;                // Admin dueño de los leads
 
-        // Leads del admin asociado a este manager
-        $query = Lead::with('team')->where('user_id', $user->user_id);
+        // === QUERY BASE: leads del admin asociado al manager ===
+        $query = Lead::with('team')->where('user_id', $userId);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE BÚSQUEDA (search)
+        |--------------------------------------------------------------------------
+        */
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                ->orWhere('last_name', 'like', '%' . $search . '%')
+                ->orWhere('email', 'like', '%' . $search . '%')
+                ->orWhere('phone', 'like', '%' . $search . '%')
+                ->orWhere('street', 'like', '%' . $search . '%')
+                ->orWhere('city', 'like', '%' . $search . '%')
+                ->orWhere('state', 'like', '%' . $search . '%');
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE ESTADO (status) - MULTISELECT
+        |--------------------------------------------------------------------------
+        */
+        if ($request->has('status')) {
+            $statusMap = [
+                'leads'     => 1,
+                'prospect'  => 2,
+                'approved'  => 3,
+                'completed' => 4,
+                'invoiced'  => 5,
+                'finish'    => 6,
+                'cancelled' => 7,
+            ];
+
+            $statuses = $request->status;
+
+            // Normalizar a array
+            if (!is_array($statuses)) {
+                $statuses = [$statuses];
+            }
+
+            // Filtrar estados válidos y mapear a número
+            $validStatuses = [];
+            foreach ($statuses as $status) {
+                if ($status !== 'all' && isset($statusMap[$status])) {
+                    $validStatuses[] = $statusMap[$status];
+                }
+            }
+
+            if (!empty($validStatuses)) {
+                $query->whereIn('estado', $validStatuses);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE VENDEDOR (seller_id)
+        |--------------------------------------------------------------------------
+        */
+        $sellerId = $request->input('seller_id');
 
         if ($sellerId && $sellerId !== 'all') {
             $query->where('team_id', $sellerId);
         }
 
-        $leads = $query->paginate(10)->appends(['seller_id' => $sellerId]);
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE ASIGNACIÓN (assignment)
+        |--------------------------------------------------------------------------
+        | assignment = 'assigned' / 'unassigned' / 'all'
+        */
+        if ($request->has('assignment') && $request->assignment !== 'all') {
+            if ($request->assignment === 'assigned') {
+                $query->whereNotNull('team_id');
+            } else {
+                $query->whereNull('team_id');
+            }
+        }
 
-        $sellers = Team::where('user_id', $user->user_id)->where('role', 'sales')->get();
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE ÚLTIMO CONTACTO (lastContact)
+        |--------------------------------------------------------------------------
+        | lastContact = today / week / month / older / all
+        */
+        if ($request->has('lastContact') && $request->lastContact !== 'all') {
+            $now = now();
 
+            switch ($request->lastContact) {
+                case 'today':
+                    $query->whereDate('last_touched_at', $now->toDateString());
+                    break;
+
+                case 'week':
+                    $query->where('last_touched_at', '>=', $now->copy()->subDays(7));
+                    break;
+
+                case 'month':
+                    $query->where('last_touched_at', '>=', $now->copy()->subDays(30));
+                    break;
+
+                case 'older':
+                    // IMPORTANTE: agrupar el OR para no romper otros filtros
+                    $query->where(function ($q) use ($now) {
+                        $q->where('last_touched_at', '<', $now->copy()->subDays(30))
+                        ->orWhereNull('last_touched_at');
+                    });
+                    break;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTRO DE MONTO DE CONTRATO (amount)
+        |--------------------------------------------------------------------------
+        | amount = 0-1000 / 1000-5000 / 5000+ / all
+        */
+        if ($request->has('amount') && $request->amount !== 'all') {
+            switch ($request->amount) {
+                case '0-1000':
+                    $query->where('contract_value', '>', 0)
+                        ->where('contract_value', '<=', 1000);
+                    break;
+
+                case '1000-5000':
+                    $query->where('contract_value', '>', 1000)
+                        ->where('contract_value', '<=', 5000);
+                    break;
+
+                case '5000+':
+                    $query->where('contract_value', '>', 5000);
+                    break;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINACIÓN (manteniendo filtros en la URL)
+        |--------------------------------------------------------------------------
+        */
+        $leads = $query->paginate(10)->appends($request->except('page'));
+
+        /*
+        |--------------------------------------------------------------------------
+        | LISTA DE VENDEDORES (sellers)
+        |--------------------------------------------------------------------------
+        */
+        $sellers = Team::where('user_id', $userId)
+            ->where('role', 'sales')
+            ->get();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CONTADORES POR ESTADO (statusCounts)
+        |--------------------------------------------------------------------------
+        */
         $statusCounts = [
-            'leads' => Lead::where('estado', 1)->where('user_id', $user->user_id)->count(),
-            'prospect' => Lead::where('estado', 2)->where('user_id', $user->user_id)->count(),
-            'approved' => Lead::where('estado', 3)->where('user_id', $user->user_id)->count(),
-            'completed' => Lead::where('estado', 4)->where('user_id', $user->user_id)->count(),
-            'invoiced' => Lead::where('estado', 5)->where('user_id', $user->user_id)->count(),
+            'leads'     => Lead::where('estado', 1)->where('user_id', $userId)->count(),
+            'prospect'  => Lead::where('estado', 2)->where('user_id', $userId)->count(),
+            'approved'  => Lead::where('estado', 3)->where('user_id', $userId)->count(),
+            'completed' => Lead::where('estado', 4)->where('user_id', $userId)->count(),
+            'invoiced'  => Lead::where('estado', 5)->where('user_id', $userId)->count(),
+            'finish'    => Lead::where('estado', 6)->where('user_id', $userId)->count(),
+            'cancelled' => Lead::where('estado', 7)->where('user_id', $userId)->count(),
         ];
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUMA DE CONTRACT_VALUE POR ESTADO (statusSums)
+        |--------------------------------------------------------------------------
+        */
         $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
-            ->where('user_id', $user->user_id)
+            ->where('user_id', $userId)
             ->groupBy('estado')
             ->pluck('total', 'estado')
             ->toArray();
 
         $statusSums = [
-            'leads' => $statusSumsRaw[1] ?? 0,
-            'prospect' => $statusSumsRaw[2] ?? 0,
-            'approved' => $statusSumsRaw[3] ?? 0,
+            'leads'     => $statusSumsRaw[1] ?? 0,
+            'prospect'  => $statusSumsRaw[2] ?? 0,
+            'approved'  => $statusSumsRaw[3] ?? 0,
             'completed' => $statusSumsRaw[4] ?? 0,
-            'invoiced' => $statusSumsRaw[5] ?? 0,
+            'invoiced'  => $statusSumsRaw[5] ?? 0,
+            'finish'    => $statusSumsRaw[6] ?? 0,
+            'cancelled' => $statusSumsRaw[7] ?? 0,
         ];
 
-        return view('manageTeam.guest.dashboard', compact('leads', 'sellers', 'sellerId', 'statusCounts', 'statusSums'));
+        return view('manageTeam.guest.dashboard', compact(
+            'leads',
+            'sellers',
+            'sellerId',
+            'statusCounts',
+            'statusSums'
+        ));
     }
 
     
@@ -92,6 +255,8 @@ class GuestDashboardController extends Controller
     
         return view('manageTeam.guest.view', compact('lead', 'messages', 'images', 'statusMap'));
     }
+
+
 
 
     public function assignStatusManage(Request $request, $id)

@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\JobRequest;
 use App\Models\Emergencies;
 use App\Models\Lead;
-
+use Illuminate\Http\Request;
+use App\Models\Team;
+use Illuminate\Support\Facades\DB;
 
 class CrewDashboardController extends Controller
 {
@@ -23,35 +25,204 @@ class CrewDashboardController extends Controller
     }
 
 
+   public function index(Request $request)
+{
+    $user   = Auth::guard('team')->user();
+    $userId = $user->user_id; // Admin dueño de los leads
 
-    public function index()
-    {
-        $user = Auth::guard('team')->user();
-    
-        // Obtener los leads que pertenecen al vendedor actual
-        $leads = Lead::where('team_id', $user->id)->paginate(10);
-    
-        // Contar leads por estado SOLO del vendedor autenticado
-        $statusCounts = [
-            'leads'     => Lead::where('team_id', $user->id)->where('estado', 1)->count(),
-            'prospect'  => Lead::where('team_id', $user->id)->where('estado', 2)->count(),
-            'approved'  => Lead::where('team_id', $user->id)->where('estado', 3)->count(),
-            'completed' => Lead::where('team_id', $user->id)->where('estado', 4)->count(),
-            'invoiced'  => Lead::where('team_id', $user->id)->where('estado', 5)->count(),
-        ];
-    
-        // Status mapping with names and Bootstrap colors
-        $statusMap = [
-            1 => ['name' => 'Lead', 'color' => 'bg-warning'], // Yellow
-            2 => ['name' => 'Prospect', 'color' => 'bg-orange'], // Orange
-            3 => ['name' => 'Approved', 'color' => 'bg-success'], // Green
-            4 => ['name' => 'Completed', 'color' => 'bg-primary'], // Blue
-            5 => ['name' => 'Invoiced', 'color' => 'bg-danger'] // Red
-        ];
+    // Solo mostrar leads del admin dueño
+    $query = Lead::with('team')->where('user_id', $userId);
 
-        return view('manageTeam.crew.dashboard', compact('leads', 'statusMap', 'statusCounts'));
+    // FILTRO DE BÚSQUEDA
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('first_name', 'like', '%' . $search . '%')
+              ->orWhere('last_name', 'like', '%' . $search . '%')
+              ->orWhere('email', 'like', '%' . $search . '%')
+              ->orWhere('phone', 'like', '%' . $search . '%')
+              ->orWhere('street', 'like', '%' . $search . '%')
+              ->orWhere('city', 'like', '%' . $search . '%')
+              ->orWhere('state', 'like', '%' . $search . '%');
+        });
     }
-    
+
+    // MAPA DE ESTADOS (para filtros y para el mapa de nombres/colores)
+    $statusMapKeys = [
+        'leads'     => 1,
+        'prospect'  => 2, 
+        'approved'  => 3,
+        'completed' => 4,
+        'invoiced'  => 5,
+        'finish'    => 6,
+        'cancelled' => 7,
+    ];
+
+    $statusMap = [
+        1 => ['name' => 'Lead',      'color' => 'bg-warning'],
+        2 => ['name' => 'Prospect',  'color' => 'bg-orange'],
+        3 => ['name' => 'Approved',  'color' => 'bg-success'],
+        4 => ['name' => 'Completed', 'color' => 'bg-primary'],
+        5 => ['name' => 'Invoiced',  'color' => 'bg-danger'],
+        6 => ['name' => 'Finish',    'color' => 'bg-info'],
+        7 => ['name' => 'Cancelled', 'color' => 'bg-secondary'],
+    ];
+
+    // FILTRO DE ESTADO (múltiples estados)
+    if ($request->has('status')) {
+        $statuses = $request->status;
+
+        if (!is_array($statuses)) {
+            $statuses = [$statuses];
+        }
+
+        $validStatuses = [];
+        foreach ($statuses as $status) {
+            if ($status !== 'all' && isset($statusMapKeys[$status])) {
+                $validStatuses[] = $statusMapKeys[$status];
+            }
+        }
+
+        if (!empty($validStatuses)) {
+            $query->whereIn('estado', $validStatuses);
+        }
+    }
+
+    // FILTRO DE VENDEDOR
+    if ($request->has('seller') && $request->seller != 'all') {
+        $query->where('team_id', $request->seller);
+    }
+
+    // FILTRO DE ASIGNACIÓN
+    if ($request->has('assignment') && $request->assignment != 'all') {
+        if ($request->assignment == 'assigned') {
+            $query->whereNotNull('team_id');
+        } else {
+            $query->whereNull('team_id');
+        }
+    }
+
+    // FILTRO DE ÚLTIMO CONTACTO
+    if ($request->has('lastContact') && $request->lastContact != 'all') {
+        $now = now();
+        switch ($request->lastContact) {
+            case 'today':
+                $query->whereDate('last_touched_at', $now->toDateString());
+                break;
+            case 'week':
+                $query->where('last_touched_at', '>=', $now->copy()->subDays(7));
+                break;
+            case 'month':
+                $query->where('last_touched_at', '>=', $now->copy()->subDays(30));
+                break;
+            case 'older':
+                $query->where(function ($q) use ($now) {
+                    $q->where('last_touched_at', '<', $now->copy()->subDays(30))
+                      ->orWhereNull('last_touched_at');
+                });
+                break;
+        }
+    }
+
+    // FILTRO DE MONTO
+    if ($request->has('amount') && $request->amount != 'all') {
+        switch ($request->amount) {
+            case '0-1000':
+                $query->where('contract_value', '>', 0)
+                      ->where('contract_value', '<=', 1000);
+                break;
+            case '1000-5000':
+                $query->where('contract_value', '>', 1000)
+                      ->where('contract_value', '<=', 5000);
+                break;
+            case '5000+':
+                $query->where('contract_value', '>', 5000);
+                break;
+        }
+    }
+
+    // Paginación manteniendo filtros
+    $leads = $query->paginate(10)->appends($request->except('page'));
+
+    // Vendedores del mismo admin
+    $teams = Team::where('user_id', $userId)->get()->filter(function ($team) {
+        return $team->role === 'sales';
+    });
+
+    // Contadores por estado solo de este admin
+    $statusCounts = [
+        'leads'     => Lead::where('estado', 1)->where('user_id', $userId)->count(),
+        'prospect'  => Lead::where('estado', 2)->where('user_id', $userId)->count(),
+        'approved'  => Lead::where('estado', 3)->where('user_id', $userId)->count(),
+        'completed' => Lead::where('estado', 4)->where('user_id', $userId)->count(),
+        'invoiced'  => Lead::where('estado', 5)->where('user_id', $userId)->count(),
+        'finish'    => Lead::where('estado', 6)->where('user_id', $userId)->count(),
+        'cancelled' => Lead::where('estado', 7)->where('user_id', $userId)->count(),
+    ];
+
+    // ACTIVE JOBS (excluyendo cancelled)
+    $activeJobs = collect($statusCounts)->except('cancelled')->sum();
+
+    // SUMAS POR ESTADO (contract_value)
+    $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
+        ->where('user_id', $userId)
+        ->groupBy('estado')
+        ->pluck('total', 'estado')
+        ->toArray();
+
+    $statusSums = [
+        'leads'     => $statusSumsRaw[1] ?? 0,
+        'prospect'  => $statusSumsRaw[2] ?? 0,
+        'approved'  => $statusSumsRaw[3] ?? 0,
+        'completed' => $statusSumsRaw[4] ?? 0,
+        'invoiced'  => $statusSumsRaw[5] ?? 0,
+        'finish'    => $statusSumsRaw[6] ?? 0,
+        'cancelled' => $statusSumsRaw[7] ?? 0,
+    ];
+
+    return view('manageTeam.crew.dashboard', compact(
+        'leads',
+        'statusMap',
+        'statusCounts',
+        'statusSums',
+        'teams',
+        'activeJobs'
+    ));
+}
+
+
+    public function show($id) 
+    {
+            // Obtener el Lead con sus relaciones
+            $lead = Lead::with([
+                'messages.user',
+                'messages.team',
+                'images',
+                'files',
+                'expenses',     // ✅ gastos
+                'finanzas',      // ✅ pagos
+                'team' // <-- AÑADIDO AQUÍ
+
+            ])->findOrFail($id);
+                
+            // Obtener mensajes del chat
+            $messages = $lead->messages->sortBy('created_at');
+        
+            // Obtener imágenes ordenadas
+            $images = $lead->images->sortByDesc('created_at');
+        
+            // Mapeo de estados con colores
+            $statusMap = [
+                1 => ['name' => 'Lead', 'color' => 'bg-warning'], 
+                2 => ['name' => 'Prospect', 'color' => 'bg-orange'], 
+                3 => ['name' => 'Approved', 'color' => 'bg-success'], 
+                4 => ['name' => 'Completed', 'color' => 'bg-primary'], 
+                5 => ['name' => 'Invoiced', 'color' => 'bg-danger']
+            ];
+        
+            return view('manageTeam.crew.lead_details', compact('lead', 'messages', 'images', 'statusMap'));
+    }
+
 
     
     public function calendar()

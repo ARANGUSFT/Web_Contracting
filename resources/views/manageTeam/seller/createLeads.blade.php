@@ -1,14 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Página de Inicio')
 
 @section('content')
 
 
 
-   <div class="py-12">
+    <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-          
+            
             <form action="{{ route('seller.store') }}" method="POST" enctype="multipart/form-data"><br>
                 @csrf
 
@@ -590,7 +589,11 @@
                     </div>
                     
                     
+              
             
+            
+            
+
 
                     <!-- Submit Button -->
                     <div class="form-group mt-4">
@@ -600,255 +603,258 @@
 
 
                 </div>
-            
+        
             </form>
-       
+
         </div>
     </div>
 
 
+
  
+     {{-- estilos --}}
+     <style>
+        /* Estilo general de las pestañas */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
 
-        {{-- estilos --}}
-        <style>
-            /* Estilo general de las pestañas */
-            .nav-tabs {
-                display: flex;
-                justify-content: space-around;
-                margin-top: 20px;
-                border-bottom: 2px solid #dee2e6;
-            }
+        .nav-tabs .nav-item {
+            flex-grow: 1;
+            text-align: center;
+        }
 
-            .nav-tabs .nav-item {
-                flex-grow: 1;
-                text-align: center;
-            }
+        .nav-tabs .nav-link {
+            border: none;
+            background: none;
+            font-weight: 600;
+            padding: 12px 0;
+            color: #007bff;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+        }
 
-            .nav-tabs .nav-link {
-                border: none;
-                background: none;
-                font-weight: 600;
-                padding: 12px 0;
-                color: #007bff;
-                border-bottom: 3px solid transparent;
-                transition: 0.3s;
-            }
+        .nav-tabs .nav-link:hover {
+            color: #0056b3;
+        }
 
-            .nav-tabs .nav-link:hover {
-                color: #0056b3;
-            }
+        .nav-tabs .nav-link.active {
+            color: #0056b3;
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
 
-            .nav-tabs .nav-link.active {
-                color: #0056b3;
-                border-color: #007bff;
-                background-color: #f8f9fa;
-            }
+        /* Contenido de pestañas */
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            background-color: #fff;
+        }
 
-            /* Contenido de pestañas */
-            .tab-content {
-                padding: 20px;
-                border: 1px solid #dee2e6;
-                border-top: none;
-                border-radius: 0 0 5px 5px;
-                background-color: #fff;
-            }
+        /* Estilo del área de subida */
+        .drop-zone {
+            border: 2px dashed #007bff;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-            /* Estilo del área de subida */
-            .drop-zone {
-                border: 2px dashed #007bff;
-                border-radius: 8px;
-                padding: 30px;
-                text-align: center;
-                cursor: pointer;
-                transition: background-color 0.3s ease;
-            }
+        .drop-zone:hover {
+            background-color: #e9f5ff;
+        }
 
-            .drop-zone:hover {
-                background-color: #e9f5ff;
-            }
+        .drop-zone-text {
+            font-weight: 500;
+            color: #007bff;
+        }
 
-            .drop-zone-text {
-                font-weight: 500;
-                color: #007bff;
-            }
+        /* Input y botón */
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-            /* Input y botón */
-            .form-group {
-                margin-bottom: 20px;
-            }
+        .form-group label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 8px;
+        }
 
-            .form-group label {
-                font-weight: 600;
-                display: block;
-                margin-bottom: 8px;
-            }
+        .form-control[type="file"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
 
-            .form-control[type="file"] {
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-            }
+        /* Estilo del botón submit */
+        button[type="submit"] {
+            padding: 10px 20px;
+            font-weight: 600;
+            border-radius: 5px;
+        }
 
-            /* Estilo del botón submit */
-            button[type="submit"] {
-                padding: 10px 20px;
-                font-weight: 600;
-                border-radius: 5px;
-            }
-
-        </style>
+    </style>
 
 
-        <style>
-            .nav-tabs {
-                display: flex;
-                justify-content: space-around;
-                margin-top: 20px;
-                border-bottom: 2px solid #dee2e6;
-            }
 
-            .nav-tabs .nav-link {
-                font-weight: 600;
-                padding: 12px 0;
-                border: none;
-                color: #007bff;
-                border-bottom: 3px solid transparent;
-                transition: all 0.3s ease;
-            }
+    <style>
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
 
-            .nav-tabs .nav-link.active {
-                border-color: #007bff;
-                color: #0056b3;
-                background-color: #f1f8ff;
-            }
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            padding: 12px 0;
+            border: none;
+            color: #007bff;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
 
-            .tab-content {
-                padding: 20px;
-                border: 1px solid #dee2e6;
-                border-top: none;
-                border-radius: 0 0 5px 5px;
-                background-color: #fff;
-            }
+        .nav-tabs .nav-link.active {
+            border-color: #007bff;
+            color: #0056b3;
+            background-color: #f1f8ff;
+        }
 
-            .form-label {
-                font-weight: 600;
-            }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            background-color: #fff;
+        }
 
-            .preview-list {
-                margin-top: 10px;
-                padding-left: 0;
-                list-style: none;
-            }
+        .form-label {
+            font-weight: 600;
+        }
 
-            .preview-list li {
-                font-size: 0.9rem;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: #f8f9fa;
-                padding: 6px 10px;
-                margin-bottom: 4px;
-                border-radius: 4px;
-            }
+        .preview-list {
+            margin-top: 10px;
+            padding-left: 0;
+            list-style: none;
+        }
 
-            .preview-list li span {
-                flex: 1;
-            }
+        .preview-list li {
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 6px 10px;
+            margin-bottom: 4px;
+            border-radius: 4px;
+        }
 
-            .remove-btn {
-                background: none;
-                border: none;
-                color: #dc3545;
-                font-weight: bold;
-                cursor: pointer;
-                margin-left: 10px;
-            }
-        </style>
+        .preview-list li span {
+            flex: 1;
+        }
 
-        <style>
-            .preview-list {
-                list-style: none;
-                padding: 0;
-                margin-top: 10px;
-            }
-            
-            .preview-list li {
-                background: #f8f9fa;
-                padding: 8px 12px;
-                border-radius: 4px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-        </style>
+        .remove-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+
+    <style>
+        .preview-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        
+        .preview-list li {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const fileInputs = document.querySelectorAll('input[type="file"][data-preview]');
     
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const fileInputs = document.querySelectorAll('input[type="file"][data-preview]');
-        
-                fileInputs.forEach(input => {
-                    input.addEventListener('change', function () {
-                        const previewId = this.getAttribute('data-preview');
-                        const previewList = document.getElementById(previewId);
-        
-                        // Limpiar vista previa anterior
-                        previewList.innerHTML = '';
-        
-                        if (this.files.length > 0) {
-                            const file = this.files[0];
-                            const listItem = document.createElement('li');
-        
-                            const fileName = document.createElement('span');
-                            fileName.textContent = file.name;
-        
-                            const removeBtn = document.createElement('button');
-                            removeBtn.classList.add('remove-btn');
-                            removeBtn.innerHTML = '&times;';
-                            removeBtn.type = 'button';
-                            removeBtn.onclick = () => {
-                                this.value = ''; // Limpiar input
-                                previewList.innerHTML = ''; // Limpiar preview
-                            };
-        
-                            listItem.appendChild(fileName);
-                            listItem.appendChild(removeBtn);
-                            previewList.appendChild(listItem);
-                        }
-                    });
+            fileInputs.forEach(input => {
+                input.addEventListener('change', function () {
+                    const previewId = this.getAttribute('data-preview');
+                    const previewList = document.getElementById(previewId);
+    
+                    // Limpiar vista previa anterior
+                    previewList.innerHTML = '';
+    
+                    if (this.files.length > 0) {
+                        const file = this.files[0];
+                        const listItem = document.createElement('li');
+    
+                        const fileName = document.createElement('span');
+                        fileName.textContent = file.name;
+    
+                        const removeBtn = document.createElement('button');
+                        removeBtn.classList.add('remove-btn');
+                        removeBtn.innerHTML = '&times;';
+                        removeBtn.type = 'button';
+                        removeBtn.onclick = () => {
+                            this.value = ''; // Limpiar input
+                            previewList.innerHTML = ''; // Limpiar preview
+                        };
+    
+                        listItem.appendChild(fileName);
+                        listItem.appendChild(removeBtn);
+                        previewList.appendChild(listItem);
+                    }
                 });
             });
-        </script>
-    
+        });
+    </script>
 
 
 
-        <!-- Estilos New adress -->
-        <style>
-                    .hidden-section {
-                        display: none; /* Se oculta por defecto */
-                        transition: all 0.3s ease-in-out;
-                    }
-                    .bg-highlight {
-                        background-color: #f8f9fa; /* Color de fondo cuando se expande */
-                        border: 2px solid #007bff; /* Borde azul para destacar */
-                        padding: 15px;
-                        border-radius: 5px;
-                    }
-        </style>
-        <!-- Script para mostrar/ocultar los campos de New Address -->
-        <script>
-            function toggleAddressForm(selectElement, addressDivId) {
-                const addressDiv = document.getElementById(addressDivId);
-                if (selectElement.value === "new") {
-                    addressDiv.style.display = "block";
-                    addressDiv.classList.add("bg-highlight");
-                } else {
-                    addressDiv.style.display = "none";
-                    addressDiv.classList.remove("bg-highlight");
+
+
+
+
+    <!-- Estilos New adress -->
+    <style>
+                .hidden-section {
+                    display: none; /* Se oculta por defecto */
+                    transition: all 0.3s ease-in-out;
                 }
+                .bg-highlight {
+                    background-color: #f8f9fa; /* Color de fondo cuando se expande */
+                    border: 2px solid #007bff; /* Borde azul para destacar */
+                    padding: 15px;
+                    border-radius: 5px;
+                }
+    </style>
+    <!-- Script para mostrar/ocultar los campos de New Address -->
+    <script>
+        function toggleAddressForm(selectElement, addressDivId) {
+            const addressDiv = document.getElementById(addressDivId);
+            if (selectElement.value === "new") {
+                addressDiv.style.display = "block";
+                addressDiv.classList.add("bg-highlight");
+            } else {
+                addressDiv.style.display = "none";
+                addressDiv.classList.remove("bg-highlight");
             }
-        </script>
-
+        }
+    </script>
 
 
 

@@ -25,13 +25,16 @@ class UserCredentialsNotification extends Notification
 
     public function toMail($notifiable)
     {
+        $appName = "Contracting Alliance Inc";
+        
         return (new MailMessage)
-            ->subject('Tus credenciales de acceso')
-            ->greeting('Hola ' . $notifiable->name . ',')
-            ->line('Se ha creado una cuenta para ti. A continuación, te proporcionamos tus credenciales de acceso:')
-            ->line('**Correo:** ' . $this->email)
-            ->line('**Contraseña:** ' . $this->password)
-            ->action('Iniciar sesión', $this->loginUrl)
-            ->line('Por favor, cambia tu contraseña después de iniciar sesión.');
+            ->subject("Your Account Credentials - {$appName}")
+            ->view('emails.user-credentials', [
+                'name' => $notifiable->name,
+                'email' => $this->email,
+                'password' => $this->password,
+                'loginUrl' => $this->loginUrl,
+                'appName' => $appName
+            ]);
     }
 }

@@ -3,43 +3,139 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
-use App\Models\Team; // Asegúrate de importar el modelo Team
+use App\Models\Team;
 use App\Models\Lead_approvals;
-
+use Illuminate\Support\Facades\Storage;
 use App\Notifications\LeadAssignedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Http\Request;
 
 class LeadController extends Controller
 {
     public function index(Request $request)
     {
-        $sellerId = $request->input('seller_id');
-
         // Solo mostrar leads del admin autenticado
         $query = Lead::with('team')->where('user_id', auth()->id());
 
-        if ($sellerId && $sellerId !== 'all') {
-            $query->where('team_id', $sellerId);
+        // FILTRO DE BÚSQUEDA
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', '%' . $search . '%')
+                  ->orWhere('last_name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%')
+                  ->orWhere('street', 'like', '%' . $search . '%')
+                  ->orWhere('city', 'like', '%' . $search . '%')
+                  ->orWhere('state', 'like', '%' . $search . '%');
+            });
         }
 
-        $leads = $query->paginate(10)->appends(['seller_id' => $sellerId]);
+        // FILTRO DE ESTADO - CORREGIDO PARA MANEJAR MÚLTIPLES ESTADOS
+        if ($request->has('status')) {
+            $statusMap = [
+                'leads' => 1,
+                'prospect' => 2, 
+                'approved' => 3,
+                'completed' => 4,
+                'invoiced' => 5,
+                'finish' => 6,
+                'cancelled' => 7
+            ];
+            
+            $statuses = $request->status;
+            
+            // Si es un string, convertirlo a array
+            if (!is_array($statuses)) {
+                $statuses = [$statuses];
+            }
+            
+            // Filtrar solo los estados válidos y mapear a valores numéricos
+            $validStatuses = [];
+            foreach ($statuses as $status) {
+                if ($status !== 'all' && isset($statusMap[$status])) {
+                    $validStatuses[] = $statusMap[$status];
+                }
+            }
+            
+            // Aplicar filtro solo si hay estados válidos
+            if (!empty($validStatuses)) {
+                $query->whereIn('estado', $validStatuses);
+            }
+        }
+
+        // FILTRO DE VENDEDOR
+        if ($request->has('seller') && $request->seller != 'all') {
+            $query->where('team_id', $request->seller);
+        }
+
+        // FILTRO DE ASIGNACIÓN
+        if ($request->has('assignment') && $request->assignment != 'all') {
+            if ($request->assignment == 'assigned') {
+                $query->whereNotNull('team_id');
+            } else {
+                $query->whereNull('team_id');
+            }
+        }
+
+        // FILTRO DE ÚLTIMO CONTACTO
+        if ($request->has('lastContact') && $request->lastContact != 'all') {
+            $now = now();
+            switch ($request->lastContact) {
+                case 'today':
+                    $query->whereDate('last_touched_at', $now->toDateString());
+                    break;
+                case 'week':
+                    $query->where('last_touched_at', '>=', $now->copy()->subDays(7));
+                    break;
+                case 'month':
+                    $query->where('last_touched_at', '>=', $now->copy()->subDays(30));
+                    break;
+                case 'older':
+                    $query->where('last_touched_at', '<', $now->copy()->subDays(30))
+                          ->orWhereNull('last_touched_at');
+                    break;
+            }
+        }
+
+        // FILTRO DE MONTO
+        if ($request->has('amount') && $request->amount != 'all') {
+            switch ($request->amount) {
+                case '0-1000':
+                    $query->where('contract_value', '>', 0)
+                          ->where('contract_value', '<=', 1000);
+                    break;
+                case '1000-5000':
+                    $query->where('contract_value', '>', 1000)
+                          ->where('contract_value', '<=', 5000);
+                    break;
+                case '5000+':
+                    $query->where('contract_value', '>', 5000);
+                    break;
+            }
+        }
+
+        // Paginación manteniendo todos los parámetros
+        $leads = $query->paginate(10)->appends($request->except('page'));
 
         $teams = Team::where('user_id', auth()->id())->get()->filter(function ($team) {
             return $team->role === 'sales';
         });
         
-        // Contadores por estado (solo para este admin) - AGREGADO ESTADO 6
+        // Contadores por estado (solo para este admin)
         $statusCounts = [
             'leads' => Lead::where('estado', 1)->where('user_id', auth()->id())->count(),
             'prospect' => Lead::where('estado', 2)->where('user_id', auth()->id())->count(),
             'approved' => Lead::where('estado', 3)->where('user_id', auth()->id())->count(),
             'completed' => Lead::where('estado', 4)->where('user_id', auth()->id())->count(),
             'invoiced' => Lead::where('estado', 5)->where('user_id', auth()->id())->count(),
-            'canceled' => Lead::where('estado', 6)->where('user_id', auth()->id())->count(), // ✅ NUEVO ESTADO 6
+            'finish' => Lead::where('estado', 6)->where('user_id', auth()->id())->count(),
+            'cancelled' => Lead::where('estado', 7)->where('user_id', auth()->id())->count(),
         ];
+
+        // CALCULAR ACTIVE JOBS (excluyendo cancelled)
+        $activeJobs = collect($statusCounts)->except('cancelled')->sum();
 
         $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
             ->where('user_id', auth()->id())
@@ -53,15 +149,16 @@ class LeadController extends Controller
             'approved' => $statusSumsRaw[3] ?? 0,
             'completed' => $statusSumsRaw[4] ?? 0,
             'invoiced' => $statusSumsRaw[5] ?? 0,
-            'canceled' => $statusSumsRaw[6] ?? 0, // ✅ NUEVO ESTADO 6
+            'finish' => $statusSumsRaw[6] ?? 0,
+            'cancelled' => $statusSumsRaw[7] ?? 0,
         ];
 
-        return view('leads.list', compact('leads', 'statusCounts', 'statusSums', 'teams', 'sellerId'));
+        return view('leads.list', compact('leads', 'statusCounts', 'statusSums', 'teams', 'activeJobs'));
     }
 
     public function assignStatus(Request $request, $id)
     {
-        $request->validate(['status' => 'required|integer|between:1,6']); // ✅ Ya incluye el 6
+        $request->validate(['status' => 'required|integer|between:1,7']); // ✅ Ya incluye el 6
     
         $lead = Lead::findOrFail($id);
         $lead->estado = $request->status;
@@ -193,7 +290,8 @@ class LeadController extends Controller
             3 => ['name' => 'Approved', 'color' => 'bg-success'], 
             4 => ['name' => 'Completed', 'color' => 'bg-primary'], 
             5 => ['name' => 'Invoiced', 'color' => 'bg-danger'],
-            6 => ['name' => 'Canceled', 'color' => 'bg-secondary'] // ✅ NUEVO ESTADO 6
+            6 => ['name' => 'Finish', 'color' => 'bg-secondary'], // ✅ NUEVO ESTADO 6
+            7 => ['name' => 'Cancelled', 'color' => 'bg-secondary'] // ✅ NUEVO ESTADO 7
         ];
     
         return view('leads.view', compact('lead', 'messages', 'images', 'statusMap'));
@@ -207,21 +305,58 @@ class LeadController extends Controller
         return view('leads.editLead', compact('lead', 'teams', 'images'));
     }
 
+    
     public function update(Request $request, Lead $lead)
     {
-        // Validar datos
+        // 1. Validación
         $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name'   => 'required|string|max:255',
+            'last_name'    => 'required|string|max:255',
             'company_name' => 'nullable|string|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
+            'phone'        => 'required|string|max:20',
+            'email'        => 'required|email|max:255',
+
+            'location_photo'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
+            'remove_location_photo' => 'nullable|in:0,1',
         ]);
 
-        // Actualizar datos
-        $lead->update($request->all());
+        // 2. Actualizar SOLO los campos que no deben tocar el estado
+        $lead->update($request->only([
+            'first_name',
+            'last_name',
+            'company_name',
+            'phone',
+            'email',
+            // aquí puedes ir agregando más campos de texto si quieres
+        ]));
 
-        return redirect()->route('leads.index')->with('success', 'Lead actualizado correctamente.');
+        // Siempre trabajamos con un array
+        $photos = $lead->location_photo ?? [];
+        if (!is_array($photos)) {
+            $photos = [$photos];
+        }
+
+        // 3. Si marcó "Remove", borrar TODAS las fotos de esa sección
+        if ($request->boolean('remove_location_photo')) {
+            foreach ($photos as $photo) {
+                Storage::disk('public')->delete($photo);
+            }
+            $photos = []; // vaciar el array
+        }
+
+        // 4. Si subió una nueva foto, agregarla al array
+        if ($request->hasFile('location_photo')) {
+            $path = $request->file('location_photo')->store('leads/location_photos', 'public');
+            $photos[] = $path; // agregamos al array
+        }
+
+        // 5. Guardar el array actualizado
+        $lead->location_photo = $photos;
+        $lead->save();
+
+        return redirect()
+            ->route('leads.index')
+            ->with('success', 'Lead actualizado correctamente.');
     }
 
     public function destroy(Lead $lead)

@@ -253,12 +253,11 @@ Route::middleware(['auth:web,team'])->group(function () {
         Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
         Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
     // Lead Images
+        Route::get('/leads/{lead}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
         Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
-        Route::get('/leads/{lead_id}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
         Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
-        Route::get('/leads/{lead_id}/gallery', [LeadImageController::class, 'index'])->name('leads.gallery');
-        Route::get('/leads/{leadId}/images/paginated', [LeadImageController::class, 'getLeadImagesPaginated'])->name('lead.images.paginated');
-
+        Route::post('/leads/images/bulk-delete', [LeadImageController::class, 'bulkDelete'])->name('lead.images.bulkDelete');
+        Route::delete('/leads/{lead}/images/delete-all', [LeadImageController::class, 'deleteAll'])->name('lead.images.deleteAll');
     // Actualizar y Elimianr Documentos
         Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
         Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
@@ -345,10 +344,16 @@ Route::prefix('manager')->middleware(['auth:team', 'team.active'])->group(functi
     Route::put('/profile/password', [ProfileTeamController::class, 'updatePassword'])->name('manager.profile.password.update');
 });
 
+
 // 🔹 Panel de Crew
 Route::prefix('crew')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [CrewDashboardController::class, 'index'])->name('crew.dashboard');
     Route::get('/calendar', [CrewDashboardController::class, 'calendar'])->name('crew.calendar');
+    
+    // Gestión de Leads
+    Route::get('/leads', [CrewDashboardController::class, 'index'])->name('crew.leads'); // Alternativa para listar leads
+    Route::get('/leads/{id}', [CrewDashboardController::class, 'show'])->name('crew.view');
+    Route::put('/leads/{id}/status', [CrewDashboardController::class, 'updateLeadStatus'])->name('crew.leads.updateStatus');
     
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('crew.profile.edit');
@@ -360,6 +365,7 @@ Route::prefix('crew')->middleware(['auth:team', 'team.active'])->group(function 
 Route::prefix('project')->middleware(['auth:team', 'team.active'])->group(function () {
     Route::get('/dashboard', [ProjectDashboardController::class, 'index'])->name('project.dashboard');
     Route::get('/calendar', [ProjectDashboardController::class, 'calendar'])->name('project.calendar');
+    Route::get('/leads/{id}', [ProjectDashboardController::class, 'show'])->name('project.view');
 
     // Perfil
     Route::get('/profile', [ProfileTeamController::class, 'edit'])->name('project.profile.edit');

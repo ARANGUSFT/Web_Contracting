@@ -4,19 +4,24 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up()
     {
         Schema::create('lead_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('lead_id')->constrained()->onDelete('cascade');
-            $table->nullableMorphs('uploaded_by'); // Permite que el campo sea opcional
+            $table->unsignedBigInteger('lead_id');
             $table->string('image_path');
+            $table->string('file_name')->nullable();
+            $table->bigInteger('file_size')->nullable();
+            $table->string('file_hash', 64)->nullable();
+            $table->string('mime_type', 100)->nullable();
             $table->unsignedBigInteger('user_id')->nullable();
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             $table->timestamps();
+
+            $table->index(['lead_id', 'file_hash']);
         });
-    }  
+    }
 
     public function down()
     {
