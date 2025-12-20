@@ -46,9 +46,7 @@ Route::get('/', function () {
 });
 
 // Dashboard general (para usuarios autenticados en "users")
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [LeadController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::get('/leads/{lead_id}/chat', function ($lead_id) {
     return view('leads.chat', ['lead_id' => $lead_id]);

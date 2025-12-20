@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2">
     <div class="container">
         <!-- 🔹 LOGO -->
-        <a class="navbar-brand d-flex align-items-center" href="#">
+        <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
             <img src="{{ asset('img/logo.png') }}" alt="Logo" height="36" class="me-2">
         </a>
 

@@ -364,4 +364,120 @@ class LeadController extends Controller
         $lead->delete();
         return redirect()->route('leads.index')->with('success', 'Lead eliminado.');
     }
+
+
+public function dashboard()
+{
+    $userId = auth()->id();
+    
+    // Obtener los últimos leads
+    $leads = Lead::where('user_id', $userId)
+        ->orderBy('created_at', 'desc')
+        ->take(10)
+        ->get();
+    
+    // Obtener el equipo de ventas
+    $teams = Team::where('user_id', $userId)
+        ->where('role', 'sales')
+        ->withCount('leads')
+        ->get();
+    
+    // Contadores por estado (con los nombres exactos que usas en el frontend)
+    $statusCounts = [
+        'leads' => Lead::where('estado', 1)->where('user_id', $userId)->count(),
+        'prospect' => Lead::where('estado', 2)->where('user_id', $userId)->count(),
+        'approved' => Lead::where('estado', 3)->where('user_id', $userId)->count(),
+        'completed' => Lead::where('estado', 4)->where('user_id', $userId)->count(),
+        'invoiced' => Lead::where('estado', 5)->where('user_id', $userId)->count(),
+        'finish' => Lead::where('estado', 6)->where('user_id', $userId)->count(),
+        'cancelled' => Lead::where('estado', 7)->where('user_id', $userId)->count(),
+    ];
+    
+    // Sumas por estado
+    $statusSumsRaw = Lead::select('estado', DB::raw('SUM(contract_value) as total'))
+        ->where('user_id', $userId)
+        ->groupBy('estado')
+        ->pluck('total', 'estado')
+        ->toArray();
+    
+    $statusSums = [
+        'leads' => $statusSumsRaw[1] ?? 0,
+        'prospect' => $statusSumsRaw[2] ?? 0,
+        'approved' => $statusSumsRaw[3] ?? 0,
+        'completed' => $statusSumsRaw[4] ?? 0,
+        'invoiced' => $statusSumsRaw[5] ?? 0,
+        'finish' => $statusSumsRaw[6] ?? 0,
+        'cancelled' => $statusSumsRaw[7] ?? 0,
+    ];
+    
+    // Calcular trabajos activos (excluyendo cancelled)
+    $activeJobs = collect($statusCounts)->except('cancelled')->sum();
+    
+    // 🔥 CORRECCIÓN CRÍTICA: Datos para gráficas usando $statusCounts EXISTENTE
+    // Mapeo de estados a colores Bootstrap
+    $statusColorMap = [
+        'leads' => ['Leads', 'info'],
+        'prospect' => ['Prospect', 'warning'],
+        'approved' => ['Approved', 'success'],
+        'completed' => ['Completed', 'primary'],
+        'invoiced' => ['Invoiced', 'secondary'],
+        'finish' => ['Finish', 'dark'],
+        'cancelled' => ['Cancelled', 'danger'],
+    ];
+    
+    // Crear $chartStatusData usando $statusCounts que YA existe
+    $chartStatusData = [];
+    foreach ($statusColorMap as $statusKey => [$label, $color]) {
+        // Asegurarse de que el key existe en $statusCounts
+        $count = $statusCounts[$statusKey] ?? 0;
+        
+        $chartStatusData[] = [
+            'name' => $label,
+            'y' => $count,
+            'color' => 'var(--bs-' . $color . ')'
+        ];
+    }
+    
+    // Datos para gráfica de barras (Tendencia últimos 6 meses)
+    $monthlyLabels = [];
+    $monthlyValueData = [];
+    
+    // Obtener los últimos 6 meses
+    for ($i = 5; $i >= 0; $i--) {
+        $date = now()->subMonths($i);
+        $monthlyLabels[] = $date->format('M');
+        
+        // Sumar contract_value por mes para este usuario
+        $monthValue = Lead::where('user_id', $userId)
+            ->whereYear('created_at', $date->year)
+            ->whereMonth('created_at', $date->month)
+            ->sum('contract_value');
+        
+        $monthlyValueData[] = $monthValue ?? 0;
+    }
+    
+    // Métricas adicionales
+    $totalLeads = array_sum($statusCounts);
+    $totalValue = array_sum($statusSums);
+    $approvalRate = $totalLeads > 0 
+        ? round((($statusCounts['approved'] ?? 0) / $totalLeads) * 100, 1)
+        : 0;
+    
+    // DEBUG: Verificar que los datos existen (puedes eliminar esto después)
+    // dd(compact('chartStatusData', 'statusCounts'));
+    
+    return view('dashboard', compact(
+        'leads', 
+        'teams', 
+        'statusCounts', 
+        'statusSums', 
+        'activeJobs',
+        'chartStatusData',
+        'monthlyLabels',
+        'monthlyValueData',
+        'totalLeads',
+        'totalValue',
+        'approvalRate'
+    ));
+}
 }
