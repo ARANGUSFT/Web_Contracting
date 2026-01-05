@@ -8,6 +8,10 @@ use App\Http\Controllers\CrewController;
 use App\Http\Controllers\InsuranceController;
 use App\Http\Controllers\FotoController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\CompanyLocationController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\CrewStateItemController;
+use App\Http\Controllers\InvoiceController;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Team\ProfileTeamController;
@@ -36,8 +40,7 @@ use App\Http\Controllers\LeadFilesController;
 use App\Http\Controllers\LeadFinanzaController;
 use App\Http\Controllers\LeadExpensesController;
 use App\Http\Controllers\QuoteController;
-use App\Http\Controllers\InvoicesController;
-use App\Http\Controllers\InvoicePaymentsController;
+
 
 
 // Página de inicio
@@ -144,44 +147,60 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::put('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class, 'update'])->name('subcontractors.insurances.update');
     Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
 
+    // Locations (Estados por empresa)
+    Route::get('locations', [CompanyLocationController::class,'index'])->name('locations.index');
+    Route::get('locations/create', [CompanyLocationController::class,'create'])->name('locations.create');
+    Route::post('locations', [CompanyLocationController::class,'store'])->name('locations.store');
+    Route::get('locations/{location}/edit', [CompanyLocationController::class,'edit'])->name('locations.edit');
+    Route::put('locations/{location}', [CompanyLocationController::class,'update'])->name('locations.update');
+    Route::delete('locations/{location}', [CompanyLocationController::class,'destroy'])->name('locations.destroy');
 
-    // Invoices (listado + guardar paid/due)
-    Route::resource('invoices', InvoicesController::class)->only(['index','store']);
-
-    // Abre/crea invoice por calendar y va al historial de pagos
-    Route::get('invoices/{calendar}/open', [InvoicesController::class, 'open'])
-        ->whereNumber('calendar')
-        ->name('invoices.open');
-
-    // Historial de pagos de un invoice
-    Route::get('invoices/{invoice}/payments', [InvoicePaymentsController::class, 'index'])
-        ->whereNumber('invoice')
-        ->name('invoices.payments.index');
-
-    // Registrar pago (con fecha, motivo y adjuntos)
-    Route::post('invoices/{invoice}/payments', [InvoicePaymentsController::class, 'store'])
-        ->whereNumber('invoice')
-        ->name('invoices.payments.store');
+    //Add price state
+    Route::get('locations/{location}/items', [ItemController::class,'index'])->name('locations.items.index');
+    Route::get('locations/{location}/items/create', [ItemController::class,'create'])->name('locations.items.create');
+    Route::post('locations/{location}/items', [ItemController::class,'store'])->name('locations.items.store');
+    Route::get('locations/{location}/items/{item}/edit',[ItemController::class, 'edit'])->name('locations.items.edit');
+    Route::put('locations/{location}/items/{item}',[ItemController::class, 'update'])->name('locations.items.update');
+    Route::delete('locations/{location}/items/{item}',[ItemController::class, 'destroy'])->name('locations.items.destroy');
 
 
-    // Download
-    Route::get('invoices/{invoice}/payments/{payment}/files/{index}/download', [InvoicePaymentsController::class, 'download'])
-        ->whereNumber('invoice')->whereNumber('payment')->whereNumber('index')
-        ->name('invoices.payments.download');
+    // Ver estados de una crew
+    Route::get('crews/{crew}/states', [CrewStateItemController::class, 'states'])->name('crews.states');
+
+    // Ver items por estado
+    Route::get('crews/{crew}/states/{state}/items',[CrewStateItemController::class, 'index'])->name('crews.states.items.index');
+
+    // Crear item
+    Route::post('crews/{crew}/states/{state}/items',[CrewStateItemController::class, 'store'])->name('crews.states.items.store');
+    Route::get('crews/{crew}/states/{state}/items/{item}/edit',[CrewStateItemController::class, 'edit'])->name('crews.states.items.edit');
+    Route::put('crews/{crew}/states/{state}/items/{item}',[CrewStateItemController::class, 'update'])->name('crews.states.items.update');
+
+    // Eliminar item
+    Route::delete('crew-state-items/{item}',[CrewStateItemController::class, 'destroy'])->name('crew-state-items.destroy');
 
 
+ 
+   
 
-    // ✅ Editar pago (UPDATE)
-    Route::put('invoices/{invoice}/payments/{payment}', [InvoicePaymentsController::class, 'update'])
-        ->whereNumber('invoice')->whereNumber('payment')
-        ->name('invoices.payments.update');
+    Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
 
 
-    // Eliminar pago del historial
-    Route::delete('invoices/{invoice}/payments/{payment}', [InvoicePaymentsController::class, 'destroy'])
-        ->whereNumber('invoice')
-        ->whereNumber('payment')
-        ->name('invoices.payments.destroy');
+    Route::get('locations/{location}/items/json', 
+    [ItemController::class, 'itemsJson']
+    )->name('locations.items.json');
+
+
+    Route::get(
+        'companies/{company}/locations',
+        [CompanyLocationController::class, 'byCompany']
+    )->name('companies.locations');
+
+
 
 });
 

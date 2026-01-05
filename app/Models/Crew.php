@@ -15,11 +15,13 @@ class Crew extends Model
         'email',
         'phone',
         'states',
+        'has_trailer',   // ✅ NUEVO
         'is_active', // <-- Añadido
     ];
 
     protected $casts = [
         'states' => 'array',
+        'has_trailer' => 'boolean', // ✅ NUEVO
         'is_active' => 'boolean', // <-- Añadido
     ];
 
@@ -38,4 +40,8 @@ class Crew extends Model
         return $this->hasMany(JobRequest::class);
     }
     
+      public function stateItems()
+    {
+        return $this->hasMany(CrewStateItem::class);
+    }
 }

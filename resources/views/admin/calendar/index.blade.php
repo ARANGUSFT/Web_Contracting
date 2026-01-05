@@ -542,12 +542,21 @@
                 </div>
             </div>
         </div>
+
+        
         
         <div class="col-md-4 text-md-end">
             <button class="btn settings-toggle" data-bs-toggle="offcanvas" data-bs-target="#companiesCanvas">
                 <i class="fas fa-palette me-2"></i> Customize View
             </button>
+
+               <a href="{{ route('superadmin.users.index') }}" 
+           class="inline-flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+        </a>
         </div>
+
+        
     </div>
 
     <!-- Contenedor del calendario -->

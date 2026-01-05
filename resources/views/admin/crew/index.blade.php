@@ -34,7 +34,8 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
+
         <!-- Total Crews -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
             <div class="flex items-center justify-between">
@@ -48,7 +49,7 @@
             </div>
             <div class="mt-4 flex items-center text-sm text-gray-500">
                 <i class="fas fa-arrow-up text-green-500 mr-1"></i>
-                <span>All active work teams</span>
+                <span>All work teams</span>
             </div>
         </div>
 
@@ -57,7 +58,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600 mb-1">Assigned</p>
-                    <h3 class="text-3xl font-bold text-gray-900">{{ $crews->filter(fn($crew) => $crew->subcontractors->isNotEmpty())->count() }}</h3>
+                    <h3 class="text-3xl font-bold text-gray-900">
+                        {{ $crews->filter(fn($crew) => $crew->subcontractors->isNotEmpty())->count() }}
+                    </h3>
                 </div>
                 <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-user-check text-green-500 text-lg"></i>
@@ -74,7 +77,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600 mb-1">Active</p>
-                    <h3 class="text-3xl font-bold text-gray-900">{{ $crews->where('is_active', true)->count() }}</h3>
+                    <h3 class="text-3xl font-bold text-gray-900">
+                        {{ $crews->where('is_active', true)->count() }}
+                    </h3>
                 </div>
                 <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-bolt text-emerald-500 text-lg"></i>
@@ -91,7 +96,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-600 mb-1">Available</p>
-                    <h3 class="text-3xl font-bold text-gray-900">{{ $crews->filter(fn($crew) => $crew->subcontractors->isEmpty())->count() }}</h3>
+                    <h3 class="text-3xl font-bold text-gray-900">
+                        {{ $crews->filter(fn($crew) => $crew->subcontractors->isEmpty())->count() }}
+                    </h3>
                 </div>
                 <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-clock text-amber-500 text-lg"></i>
@@ -102,7 +109,28 @@
                 <span>Ready for assignment</span>
             </div>
         </div>
+
+        <!-- With Trailer -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 group">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">With Trailer</p>
+                    <h3 class="text-3xl font-bold text-gray-900">
+                        {{ $crews->where('has_trailer', true)->count() }}
+                    </h3>
+                </div>
+                <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-truck-moving text-indigo-500 text-lg"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-gray-500">
+                <i class="fas fa-check text-indigo-500 mr-1"></i>
+                <span>Equipped crews</span>
+            </div>
+        </div>
+
     </div>
+
 
     <!-- Search and Filters -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
@@ -214,6 +242,26 @@
                                     <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                                 </select>
                             </div>
+
+                            <!-- Trailer Filter -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Trailer
+                                </label>
+                                <select name="trailer"
+                                        class="block w-full border border-gray-300 rounded-lg
+                                            focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                                            bg-white transition-all duration-200 shadow-sm py-2.5">
+                                    <option value="">All</option>
+                                    <option value="1" {{ request('trailer') === '1' ? 'selected' : '' }}>
+                                        Has Trailer
+                                    </option>
+                                    <option value="0" {{ request('trailer') === '0' ? 'selected' : '' }}>
+                                        No Trailer
+                                    </option>
+                                </select>
+                            </div>
+
                         </div>
                     </div>
 
@@ -238,23 +286,26 @@
 
     <!-- Crew List -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        @if ($crews->isEmpty())
-            <!-- Empty State -->
-            <div class="text-center py-16">
-                <div class="max-w-sm mx-auto">
-                    <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                        <i class="fas fa-users text-gray-400 text-3xl"></i>
+            @if ($crews->isEmpty())
+                <!-- Empty State -->
+                <div class="text-center py-16">
+                    <div class="max-w-sm mx-auto">
+                        <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <i class="fas fa-users text-gray-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-3">No crews yet</h3>
+                        <p class="text-gray-500 mb-6">Start building your team by adding the first crew</p>
+                        <a href="{{ route('superadmin.crew.create') }}" 
+                        class="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-plus"></i>
+                            <span>Create First Crew</span>
+                        </a>
                     </div>
-                    <h3 class="text-xl font-semibold text-gray-900 mb-3">No crews yet</h3>
-                    <p class="text-gray-500 mb-6">Start building your team by adding the first crew</p>
-                    <a href="{{ route('superadmin.crew.create') }}" 
-                       class="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        <i class="fas fa-plus"></i>
-                        <span>Create First Crew</span>
-                    </a>
                 </div>
-            </div>
-        @else
+            @else
+
+
+
             <!-- Crew Grid -->
             <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 p-6">
                 @foreach ($crews as $crew)
@@ -281,19 +332,42 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-1">
+                            <div class="flex flex-wrap items-center gap-2 justify-end">
+
+                                {{-- Assigned / Available --}}
                                 @if($crew->subcontractors->isNotEmpty())
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-200">
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
+                                                bg-green-100 text-green-700 border border-green-200">
                                         <i class="fas fa-user-check"></i>
                                         Assigned
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-200">
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
+                                                bg-amber-100 text-amber-700 border border-amber-200">
                                         <i class="fas fa-clock"></i>
                                         Available
                                     </span>
                                 @endif
+
+                                {{-- Trailer --}}
+                                @if($crew->has_trailer)
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
+                                                bg-indigo-100 text-indigo-700 border border-indigo-200"
+                                        title="This crew has a trailer">
+                                        <i class="fas fa-truck-moving"></i>
+                                        Trailer
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
+                                                bg-gray-100 text-gray-600 border border-gray-200"
+                                        title="This crew does not have a trailer">
+                                        <i class="fas fa-truck"></i>
+                                        No Trailer
+                                    </span>
+                                @endif
+
                             </div>
+
                         </div>
                     </div>
 
@@ -338,6 +412,22 @@
                                 </div>
                             </div>
                         @endif
+
+
+
+
+                        <a href="{{ route('superadmin.crews.states', $crew->id) }}"
+                        class="inline-flex items-center gap-2
+                                bg-green-50 hover:bg-green-100
+                                text-green-700 px-3 py-2 rounded-lg
+                                font-medium text-sm border border-green-200
+                                hover:border-green-300 transition-all"
+                        title="Manage items by state">
+                            
+                            <i class="fas fa-list-ul"></i>
+                            <span>Items by State</span>
+                        </a>
+
 
                         <!-- Subcontractors -->
                         @if($crew->subcontractors->isNotEmpty())
@@ -410,6 +500,8 @@
                 </div>
                 @endforeach
             </div>
+
+
 
             <!-- Pagination -->
             @if($crews->hasPages())

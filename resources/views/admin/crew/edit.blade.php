@@ -127,6 +127,58 @@
                     </div>
                 </div>
 
+
+                <!-- Trailer Availability -->
+                <div class="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">
+                                Trailer Availability
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                Indicate if this crew operates with its own trailer
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <!-- fallback -->
+                            <input type="hidden" name="has_trailer" value="0">
+
+                            <span class="text-sm font-medium {{ $crew->has_trailer ? 'text-blue-600' : 'text-gray-400' }}">
+                                {{ $crew->has_trailer ? 'With Trailer' : 'No Trailer' }}
+                            </span>
+
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox"
+                                    name="has_trailer"
+                                    value="1"
+                                    class="sr-only peer"
+                                    {{ old('has_trailer', $crew->has_trailer) ? 'checked' : '' }}>
+
+                                <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none
+                                            peer-focus:ring-2 peer-focus:ring-blue-300
+                                            rounded-full peer
+                                            peer-checked:after:translate-x-6
+                                            peer-checked:after:border-white
+                                            after:content-['']
+                                            after:absolute after:top-0.5 after:left-0.5
+                                            after:bg-white after:border-gray-300 after:border
+                                            after:rounded-full after:h-5 after:w-5
+                                            after:transition-all
+                                            peer-checked:bg-blue-600">
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    @error('has_trailer')
+                        <div class="text-red-500 text-sm mt-2">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
+
+
                 <!-- Status Toggle -->
                 <div class="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-200">
                     <div class="flex items-center justify-between">

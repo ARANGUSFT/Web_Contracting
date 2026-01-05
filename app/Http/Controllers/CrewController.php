@@ -28,6 +28,18 @@ class CrewController extends Controller
         }
     }
 
+    // ✅ Status filter
+    if ($request->status === 'active') {
+        $query->where('is_active', true);
+    } elseif ($request->status === 'inactive') {
+        $query->where('is_active', false);
+    }
+
+    // 🚚 Trailer filter (NUEVO)
+    if ($request->filled('trailer')) {
+        $query->where('has_trailer', (bool) $request->trailer);
+    }
+
     $crews = $query->paginate(10)->appends($request->query());
 
     return view('admin.crew.index', compact('crews'));
@@ -38,8 +50,10 @@ class CrewController extends Controller
     public function create()
     {
         $subcontractors = Subcontractors::where('is_active', true)->get();
+
         return view('admin.crew.create', compact('subcontractors'));
     }
+
 
     public function store(Request $request)
     {
@@ -50,19 +64,23 @@ class CrewController extends Controller
             'phone' => 'nullable|string|max:255',
             'states' => 'nullable|array',
             'states.*' => 'string|max:2',
-            'is_active' => 'nullable|in:0,1', // Acepta "0" o "1" como valores válidos
+            'is_active' => 'nullable|in:0,1',
+            'has_trailer' => 'nullable|in:0,1', // ✅ NUEVO
             'subcontractors' => 'array|nullable',
             'subcontractors.*' => 'exists:subcontractors,id',
         ]);
+
     
         $crew = Crew::create([
-            'name' => $validated['name'],
-            'company' => $validated['company'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'states' => $validated['states'] ?? [],
-            'is_active' => $request->boolean('is_active'), // Convierte correctamente a true/false
+            'name'        => $validated['name'],
+            'company'     => $validated['company'],
+            'email'       => $validated['email'],
+            'phone'       => $validated['phone'] ?? null,
+            'states'      => $validated['states'] ?? [],
+            'is_active'   => $request->boolean('is_active'),
+            'has_trailer' => $request->boolean('has_trailer'), // ✅ CLAVE
         ]);
+
     
         if (!empty($validated['subcontractors'])) {
             $crew->subcontractors()->sync($validated['subcontractors']);
@@ -81,6 +99,7 @@ class CrewController extends Controller
         return view('admin.crew.edit', compact('crew', 'subcontractors'));
     }
 
+
     public function update(Request $request, Crew $crew)
     {
         $validated = $request->validate([
@@ -90,19 +109,23 @@ class CrewController extends Controller
             'phone' => 'nullable|string|max:255',
             'states' => 'nullable|array',
             'states.*' => 'string|max:2',
-            'is_active' => 'sometimes|boolean',
+            'is_active' => 'nullable|in:0,1',
+            'has_trailer' => 'nullable|in:0,1', // ✅ NUEVO
             'subcontractors' => 'array|nullable',
             'subcontractors.*' => 'exists:subcontractors,id',
         ]);
+
     
         $crew->update([
-            'name' => $validated['name'],
-            'company' => $validated['company'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
-            'states' => $validated['states'] ?? [],
-            'is_active' => $request->boolean('is_active'), // convierte correctamente
+            'name'        => $validated['name'],
+            'company'     => $validated['company'],
+            'email'       => $validated['email'],
+            'phone'       => $validated['phone'] ?? null,
+            'states'      => $validated['states'] ?? [],
+            'is_active'   => $request->boolean('is_active'),
+            'has_trailer' => $request->boolean('has_trailer'), // ✅ CLAVE
         ]);
+
     
         $crew->subcontractors()->sync($validated['subcontractors'] ?? []);
     

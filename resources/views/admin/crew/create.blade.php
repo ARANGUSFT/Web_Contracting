@@ -160,6 +160,56 @@
                         </div>
                     </div>
 
+                    <!-- Trailer Availability -->
+                    <div class="mb-8">
+                        <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-truck text-blue-500"></i>
+                            Trailer Availability
+                        </h4>
+
+                        <div class="flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                            
+                            <!-- Toggle -->
+                            <div class="flex items-center gap-3">
+                                <div class="relative inline-block w-12 h-6">
+                                    <!-- hidden fallback -->
+                                    <input type="hidden" name="has_trailer" value="0">
+
+                                    <input type="checkbox"
+                                        id="has_trailer"
+                                        name="has_trailer"
+                                        value="1"
+                                        {{ old('has_trailer') ? 'checked' : '' }}
+                                        class="absolute w-12 h-6 rounded-full bg-gray-300 checked:bg-blue-600
+                                                cursor-pointer transition-colors duration-200 appearance-none">
+
+                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full
+                                                transition-transform duration-200
+                                                {{ old('has_trailer') ? 'translate-x-6' : '' }}">
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <label for="has_trailer" class="text-sm font-medium text-gray-700 cursor-pointer">
+                                        Has Trailer
+                                    </label>
+                                    <p class="text-xs text-gray-500">
+                                        This crew operates with its own trailer
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Badge -->
+                            <div class="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
+                                {{ old('has_trailer') ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700' }}">
+                                <i class="fas {{ old('has_trailer') ? 'fa-truck' : 'fa-ban' }}"></i>
+                                <span>{{ old('has_trailer') ? 'With Trailer' : 'No Trailer' }}</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+
                     <!-- Status Toggle -->
                     <div class="mb-8">
                         <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">

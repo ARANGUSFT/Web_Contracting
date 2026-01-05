@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>Admin Panel | @yield('title')</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+   <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -478,7 +482,9 @@
                         <span class="nav-text">Insurance</span>
                     </a>
                 </div>
-                
+
+
+
                 <div class="nav-item" data-route="superadmin.invoices.index">
                     <a href="{{ route('superadmin.invoices.index') }}" class="nav-link">
                         <div class="nav-icon">
@@ -487,6 +493,20 @@
                         <span class="nav-text">Invoices</span>
                     </a>
                 </div>
+                
+               
+
+                <div class="nav-item" data-route="#">
+                    <a href="{{ route('superadmin.locations.index') }}" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <span class="nav-text">Company Locations</span>
+                    </a>
+                </div>
+
+
+
             </nav>
         </div>
         
@@ -565,12 +585,25 @@
                     <span class="nav-text">Insurance</span>
                 </a>
                 
-                <a href="{{ route('superadmin.invoices.index') }}" class="nav-link" data-route="superadmin.invoices.index">
+                <a href="#" class="nav-link" data-route="superadmin.invoices.index">
                     <div class="nav-icon">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
                     <span class="nav-text">Invoices</span>
                 </a>
+
+                <a href="#"
+                class="nav-link"
+                data-route="superadmin.company_locations.index">
+                    <div class="nav-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span class="nav-text">Company Locations</span>
+                </a>
+
+
+          
+
             </nav>
         </div>
         
@@ -845,5 +878,10 @@
             setActiveMenu();
         });
     </script>
+
+
+ 
+
+
 </body>
 </html>
