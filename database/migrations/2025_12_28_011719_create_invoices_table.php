@@ -16,12 +16,23 @@ return new class extends Migration {
                   ->constrained()
                   ->cascadeOnDelete();
 
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            // Empresa (user)
+            $table->foreignId('user_id')
+                  ->constrained()
+                  ->cascadeOnDelete();
+
+            // ✅ CREW (NUEVO)
+            $table->foreignId('crew_id')
+                  ->nullable()
+                  ->constrained('crews')
+                  ->nullOnDelete();
 
 
             // Información del cliente
             $table->string('customer_email')->nullable();
             $table->string('bill_to')->nullable();
+            $table->string('address')->nullable(); 
+
 
             // Datos de la factura
             $table->string('invoice_number')->unique();

@@ -106,7 +106,10 @@ class User extends Authenticatable
         return $this->hasMany(EventNote::class);
     }
 
-
+public function companyLocations()
+    {
+        return $this->hasMany(CompanyLocation::class, 'user_id');
+    }
 
     public function sentMessages()
     {

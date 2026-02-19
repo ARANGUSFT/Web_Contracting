@@ -25,6 +25,12 @@ class Crew extends Model
         'is_active' => 'boolean', // <-- Añadido
     ];
 
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+
     public function subcontractors()
     {
         return $this->belongsToMany(Subcontractors::class, 'crew_subcontractor', 'crew_id', 'subcontractor_id')->withTimestamps();
@@ -40,8 +46,5 @@ class Crew extends Model
         return $this->hasMany(JobRequest::class);
     }
     
-      public function stateItems()
-    {
-        return $this->hasMany(CrewStateItem::class);
-    }
+     
 }

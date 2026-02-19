@@ -8,9 +8,13 @@ use App\Http\Controllers\CrewController;
 use App\Http\Controllers\InsuranceController;
 use App\Http\Controllers\FotoController;
 use App\Http\Controllers\ChatController;
+
 use App\Http\Controllers\CompanyLocationController;
 use App\Http\Controllers\ItemController;
-use App\Http\Controllers\CrewStateItemController;
+use App\Http\Controllers\ItemCategoryController;
+
+use App\Http\Controllers\LocationItemPriceController;
+
 use App\Http\Controllers\InvoiceController;
 
 use App\Http\Controllers\ProfileController;
@@ -68,78 +72,176 @@ Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name
 
 
 
-Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')->group(function () {
+Route::middleware(['auth', 'is-admin'])
+    ->prefix('superadmin')
+    ->as('superadmin.')
+    ->group(function () {
 
-    Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
-    // Rutas personalizadas con el mismo controlador
-    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
-    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
-    // Dashboard Contratista
-    Route::get('/contractors', [AdminUserController::class, 'contractors'])->name('users.contractors');
-    Route::get('/contractors/{user}/edit', [AdminUserController::class, 'editContractors'])->name('contractors.edit');
-    Route::put('/contractors/{user}', [AdminUserController::class, 'updateContractors'])->name('contractors.update');
-    Route::delete('/contractors/{user}/documents/{index}', [AdminUserController::class, 'deleteContractorDocument'])->name('contractors.documents.delete');
-    Route::patch('/contractors/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('contractors.toggle-active');
-    Route::delete('/contractors/{user}', [AdminUserController::class, 'destroyContractors'])->name('contractors.destroy');
-    Route::get('/contractors/filter', [AdminUserController::class, 'filter'])->name('contractors.filter');
-    // Dashboard Subcontratista
-    Route::get('/subcontractors', [SubcontractorsController::class, 'index'])->name('subcontractors.index');
-    Route::get('/subcontractors/create', [SubcontractorsController::class, 'create'])->name('subcontractors.create');
-    Route::post('/subcontractors', [SubcontractorsController::class, 'store'])->name('subcontractors.store');
-    Route::get('/subcontractors/{subcontractor}/edit', [SubcontractorsController::class, 'edit'])->name('subcontractors.edit');
-    Route::put('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'update'])->name('subcontractors.update');
-    Route::delete('/subcontractors/{subcontractor}', [SubcontractorsController::class, 'destroy'])->name('subcontractors.destroy');
-    
-    // Offers
-    Route::get('calendar',           [EventCalendarController::class,'index'])->name('calendar.index');
-    Route::get('calendar/events',    [EventCalendarController::class,'events'])->name('calendar.events');
+    /* ==========================================================
+     | DASHBOARD
+     ========================================================== */
+    Route::get('/', fn () => redirect()->route('superadmin.users.index'))
+        ->name('dashboard');
+
+
+    /* ==========================================================
+     | USERS / COMPANIES
+     ========================================================== */
+    Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('users', [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
+    // Contractors
+    Route::get('contractors', [AdminUserController::class, 'contractors'])->name('users.contractors');
+    Route::get('contractors/{user}/edit', [AdminUserController::class, 'editContractors'])->name('contractors.edit');
+    Route::put('contractors/{user}', [AdminUserController::class, 'updateContractors'])->name('contractors.update');
+    Route::patch('contractors/{user}/toggle-active', [AdminUserController::class, 'toggleActive'])->name('contractors.toggle-active');
+    Route::delete('contractors/{user}', [AdminUserController::class, 'destroyContractors'])->name('contractors.destroy');
+    Route::get('contractors/filter', [AdminUserController::class, 'filter'])->name('contractors.filter');
+    Route::delete('contractors/{user}/documents/{index}',[AdminUserController::class, 'deleteContractorDocument'])->name('contractors.documents.delete');
+
+
+    /* ==========================================================
+     | SUBCONTRACTORS
+     ========================================================== */
+    Route::get('subcontractors', [SubcontractorsController::class, 'index'])->name('subcontractors.index');
+    Route::get('subcontractors/create', [SubcontractorsController::class, 'create'])->name('subcontractors.create');
+    Route::post('subcontractors', [SubcontractorsController::class, 'store'])->name('subcontractors.store');
+    Route::get('subcontractors/{subcontractor}/edit', [SubcontractorsController::class, 'edit'])->name('subcontractors.edit');
+    Route::put('subcontractors/{subcontractor}', [SubcontractorsController::class, 'update'])->name('subcontractors.update');
+    Route::delete('subcontractors/{subcontractor}', [SubcontractorsController::class, 'destroy'])->name('subcontractors.destroy');
+
+
+    /* ==========================================================
+     | ITEMS (GLOBAL CATALOG)
+     ========================================================== */
+    Route::get('items', [ItemController::class, 'index'])->name('items.index');
+    Route::get('items/create', [ItemController::class, 'create'])->name('items.create');
+    Route::post('items', [ItemController::class, 'store'])->name('items.store');
+    Route::get('items/{item}/edit', [ItemController::class, 'edit'])->name('items.edit');
+    Route::put('items/{item}', [ItemController::class, 'update'])->name('items.update');
+    Route::delete('items/{item}', [ItemController::class, 'destroy'])->name('items.destroy');
+
+
+        
+    Route::resource(
+        'item-categories',
+        ItemCategoryController::class
+    )->except(['show'])
+    ->names('item-categories');
+
+
+    /* ==========================================================
+     | COMPANY LOCATIONS (EMPRESA + ESTADO)
+     ========================================================== */
+    // ================= LOCATIONS (GLOBAL) =================
+        Route::get('locations', [CompanyLocationController::class, 'index'])
+            ->name('locations.index');
+
+        Route::get('locations/create', [CompanyLocationController::class, 'create'])
+            ->name('locations.create');
+
+        Route::post('locations', [CompanyLocationController::class, 'store'])
+            ->name('locations.store');
+
+        Route::get('locations/{location}/edit', [CompanyLocationController::class, 'edit'])
+            ->name('locations.edit');
+
+        Route::put('locations/{location}', [CompanyLocationController::class, 'update'])
+            ->name('locations.update');
+
+        Route::delete('locations/{location}', [CompanyLocationController::class, 'destroy'])
+            ->name('locations.destroy');
+
+        // ================= LOCATIONS PER COMPANY (🔥 PRINCIPAL) =================
+        Route::get(
+            'companies/{company}/locations',
+            [CompanyLocationController::class, 'manage']
+        )->name('companies.locations.manage');
+
+        Route::post(
+            'companies/{company}/locations',
+            [CompanyLocationController::class, 'storeForCompany']
+        )->name('companies.locations.store');
+
+        // ================= PRICES PER LOCATION =================
+        Route::get(
+            'locations/{location}/prices',
+            [LocationItemPriceController::class, 'index']
+        )->name('locations.prices.index');
+
+        Route::post(
+            'locations/{location}/prices',
+            [LocationItemPriceController::class, 'store']
+        )->name('locations.prices.store');
+
+        // ================= AJAX =================
+        Route::get(
+            'companies/{company}/locations/ajax',
+            [CompanyLocationController::class, 'byCompany']
+        )->name('companies.locations.ajax');
+
+
+
+
+    /* ==========================================================
+     | CREWS
+     ========================================================== */
+    Route::get('crews', [CrewController::class, 'index'])->name('crew.index');
+    Route::get('crews/create', [CrewController::class, 'create'])->name('crew.create');
+    Route::post('crews', [CrewController::class, 'store'])->name('crew.store');
+    Route::get('crews/{crew}/edit', [CrewController::class, 'edit'])->name('crew.edit');
+    Route::put('crews/{crew}', [CrewController::class, 'update'])->name('crew.update');
+    Route::delete('crews/{crew}', [CrewController::class, 'destroy'])->name('crew.destroy');
+    Route::get('crews/{crew}', [CrewController::class, 'show'])->name('crew.show');
+    Route::get('crews/{crew}/assign', [CrewController::class, 'assign'])->name('crew.assign');
+    Route::post('crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
+
+
+  
+
+
+    /* ==========================================================
+     | CALENDAR / EVENTS
+     ========================================================== */
+    Route::get('calendar', [EventCalendarController::class,'index'])->name('calendar.index');
+    Route::get('calendar/events', [EventCalendarController::class,'events'])->name('calendar.events');
     Route::get('calendar/event/{type}/{id}', [EventCalendarController::class,'show'])->name('calendar.show');
-    Route::post('calendar/assign',   [EventCalendarController::class,'assignCrew'])->name('calendar.assign');
+    Route::post('calendar/assign', [EventCalendarController::class,'assignCrew'])->name('calendar.assign');
     Route::post('calendar/company/color', [EventCalendarController::class,'updateColor'])->name('calendar.company.updateColor');
-    Route::post('calendar/company/update-visibility', [EventCalendarController::class, 'updateVisibility'])->name('calendar.company.updateVisibility');
-     
+    Route::post('calendar/company/update-visibility', [EventCalendarController::class,'updateVisibility'])->name('calendar.company.updateVisibility');
     Route::post('calendar/note', [EventCalendarController::class, 'storeNote'])->name('calendar.storeNote');
     Route::get('calendar/notes', [EventCalendarController::class, 'fetchNotes'])->name('calendar.fetchNotes');
 
 
-    // Crew
-    Route::get('/crews', [CrewController::class, 'index'])->name('crew.index');
-    Route::get('/crews/create', [CrewController::class, 'create'])->name('crew.create');
-    Route::post('/crews', [CrewController::class, 'store'])->name('crew.store');
-    Route::get('/crews/{crew}/edit', [CrewController::class, 'edit'])->name('crew.edit');
-    Route::put('/crews/{crew}', [CrewController::class, 'update'])->name('crew.update');
-    Route::delete('/crews/{crew}', [CrewController::class, 'destroy'])->name('crew.destroy');
-
-    // 🔁 Asignación de subcontratistas
-    Route::get('/crews/{crew}', [CrewController::class, 'show'])->name('crew.show'); // Para ver y asignar
-    // Rutas para asignar subcontratistas a una crew
-    Route::get('/crews/{crew}/assign', [CrewController::class, 'assign'])->name('crew.assign');
-    Route::post('/crews/{crew}/assign', [CrewController::class, 'assignStore'])->name('crew.assign.store');
-
-
-  // Photos (área admin, nombres superadmin.photos.*)
+    /* ==========================================================
+     | PHOTOS
+     ========================================================== */
     Route::prefix('photos')->as('photos.')->group(function () {
-        Route::get('projects',         [FotoController::class, 'projects'])->name('projects');
+        Route::get('projects', [FotoController::class, 'projects'])->name('projects');
         Route::get('{tipo}/{id}/view', [FotoController::class, 'view'])->name('view');
-        Route::post('share',           [FotoController::class, 'createShareWeb'])->name('share');
-        Route::post('unshare',         [FotoController::class, 'revokeShareWeb'])->name('unshare');
+        Route::post('share', [FotoController::class, 'createShareWeb'])->name('share');
+        Route::post('unshare', [FotoController::class, 'revokeShareWeb'])->name('unshare');
     });
 
 
+    /* ==========================================================
+     | CHAT
+     ========================================================== */
+    Route::get('chat', [ChatController::class, 'chatView'])->name('chat.view');
+    Route::get('chat/{userId}', [ChatController::class, 'index'])->name('chat.messages');
+    Route::post('chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::post('chat/{userId}/read', [ChatController::class, 'markRead'])->name('chat.read');
+    Route::get('chat-unread/count', [ChatController::class, 'unreadCount'])->name('chat.unread');
+    Route::get('chat-users', [ChatController::class, 'users'])->name('chat.users');
 
-    // Vista principal del chat
-    Route::get('/chat', [ChatController::class, 'chatView'])->name('chat.view');
-    Route::get('/chat/{userId}', [ChatController::class, 'index'])->name('chat.messages');
-    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
-    Route::post('/chat/{userId}/read', [ChatController::class, 'markRead'])->name('chat.read');
-    Route::get('/chat-unread/count', [ChatController::class, 'unreadCount'])->name('chat.unread');
-    Route::get('/chat-users', [ChatController::class, 'users'])->name('chat.users');
 
-    // Insurance
+    /* ==========================================================
+     | INSURANCE
+     ========================================================== */
     Route::get('subcontractors/insurances', [InsuranceController::class,'index'])->name('subcontractors.insurances.index');
     Route::get('subcontractors/{sub}/insurances/create', [InsuranceController::class,'create'])->name('subcontractors.insurances.create');
     Route::post('subcontractors/{sub}/insurances', [InsuranceController::class,'store'])->name('subcontractors.insurances.store');
@@ -147,62 +249,54 @@ Route::middleware(['auth', 'is-admin'])->prefix('superadmin')->as('superadmin.')
     Route::put('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class, 'update'])->name('subcontractors.insurances.update');
     Route::delete('subcontractors/{sub}/insurances/{ins}', [InsuranceController::class,'destroy'])->name('subcontractors.insurances.destroy');
 
-    // Locations (Estados por empresa)
-    Route::get('locations', [CompanyLocationController::class,'index'])->name('locations.index');
-    Route::get('locations/create', [CompanyLocationController::class,'create'])->name('locations.create');
-    Route::post('locations', [CompanyLocationController::class,'store'])->name('locations.store');
-    Route::get('locations/{location}/edit', [CompanyLocationController::class,'edit'])->name('locations.edit');
-    Route::put('locations/{location}', [CompanyLocationController::class,'update'])->name('locations.update');
-    Route::delete('locations/{location}', [CompanyLocationController::class,'destroy'])->name('locations.destroy');
 
-    //Add price state
-    Route::get('locations/{location}/items', [ItemController::class,'index'])->name('locations.items.index');
-    Route::get('locations/{location}/items/create', [ItemController::class,'create'])->name('locations.items.create');
-    Route::post('locations/{location}/items', [ItemController::class,'store'])->name('locations.items.store');
-    Route::get('locations/{location}/items/{item}/edit',[ItemController::class, 'edit'])->name('locations.items.edit');
-    Route::put('locations/{location}/items/{item}',[ItemController::class, 'update'])->name('locations.items.update');
-    Route::delete('locations/{location}/items/{item}',[ItemController::class, 'destroy'])->name('locations.items.destroy');
-
-
-    // Ver estados de una crew
-    Route::get('crews/{crew}/states', [CrewStateItemController::class, 'states'])->name('crews.states');
-
-    // Ver items por estado
-    Route::get('crews/{crew}/states/{state}/items',[CrewStateItemController::class, 'index'])->name('crews.states.items.index');
-
-    // Crear item
-    Route::post('crews/{crew}/states/{state}/items',[CrewStateItemController::class, 'store'])->name('crews.states.items.store');
-    Route::get('crews/{crew}/states/{state}/items/{item}/edit',[CrewStateItemController::class, 'edit'])->name('crews.states.items.edit');
-    Route::put('crews/{crew}/states/{state}/items/{item}',[CrewStateItemController::class, 'update'])->name('crews.states.items.update');
-
-    // Eliminar item
-    Route::delete('crew-state-items/{item}',[CrewStateItemController::class, 'destroy'])->name('crew-state-items.destroy');
-
-
- 
-   
-
+    /* ==========================================================
+     | INVOICES
+     ========================================================== */
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('invoices/create', [InvoiceController::class, 'create'])->name('invoices.create');
     Route::post('invoices', [InvoiceController::class, 'store'])->name('invoices.store');
     Route::get('invoices/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
     Route::get('invoices/{invoice}/edit', [InvoiceController::class, 'edit'])->name('invoices.edit');
     Route::put('invoices/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::get('invoices/location/{location}/items',[InvoiceController::class, 'itemsByLocation'])->name('invoices.items.by-location');
+    Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
 
 
-    Route::get('locations/{location}/items/json', 
-    [ItemController::class, 'itemsJson']
-    )->name('locations.items.json');
 
 
-    Route::get(
-        'companies/{company}/locations',
-        [CompanyLocationController::class, 'byCompany']
-    )->name('companies.locations');
 
 
+
+
+    Route::get('invoices/{invoice}/prepare', [InvoiceController::class, 'prepareInvoice'])
+     ->name('invoices.prepare');
+
+    Route::post('invoices/{invoice}/generate-custom-pdf', [InvoiceController::class, 'generateCustomPdf'])
+        ->name('invoices.generateCustomPdf');
+
+
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])
+    ->name('invoices.pdf');
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Route::get('/g/{token}', [FotoController::class, 'publicGallery'])->name('photos.public');

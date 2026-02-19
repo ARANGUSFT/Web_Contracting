@@ -6,38 +6,36 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('items', function (Blueprint $table) {
             $table->id();
 
-            // 🔑 RELACIÓN DIRECTA CON EL ESTADO
-            $table->foreignId('company_location_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->foreignId('category_id')
+                ->nullable()
+                ->constrained('item_categories')
+                ->nullOnDelete();
 
-            // Item info
             $table->string('name');
-            $table->text('description')->nullable();
 
-            // 💰 PRECIO DEL ITEM EN ESTE ESTADO
-            $table->decimal('price', 10, 2)->default(0);
+            // 💰 PRECIO GLOBAL (OPCIONAL)
+            $table->decimal('global_price', 10, 2)->nullable();
 
-            // Orden y estado
+            // 💰 PRECIO CREW CON TRAILER
+            $table->decimal('crew_price_with_trailer', 10, 2)->nullable();
+
+            // 💰 PRECIO CREW SIN TRAILER
+            $table->decimal('crew_price_without_trailer', 10, 2)->nullable();
+
+            // Orden visual
+            $table->integer('sort_order')->default(0);
+
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();
         });
-
-
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('items');

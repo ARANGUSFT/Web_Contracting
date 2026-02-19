@@ -98,7 +98,7 @@
                             </h6>
                             <span class="badge bg-danger rounded-pill unread-badge d-none" data-unread-badge="{{ $u->id }}">0</span>
                           </div>
-                          <small class="text-muted text-truncate d-block user-company">
+                          <small class="mb-0 fw-semibold text-truncate user-name">
                             {{ $u->company_name }}
                           </small>
                           <small class="text-muted user-last-message d-none d-md-block">Click to start conversation</small>
@@ -141,19 +141,7 @@
                       {{ $hasUsers ? 'Online' : 'No users available' }}
                     </small>
                   </div>
-                  <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary rounded-circle chat-actions-btn" 
-                            type="button" data-bs-toggle="dropdown"
-                            style="width: 36px; height: 36px;">
-                      <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                      <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2 opacity-75"></i>View profile</a></li>
-                      <li><a class="dropdown-item" href="#"><i class="fas fa-archive me-2 opacity-75"></i>Archive chat</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-ban me-2"></i>Block user</a></li>
-                    </ul>
-                  </div>
+                 
                 </div>
 
                 {{-- Caja de mensajes + badge Nuevos --}}

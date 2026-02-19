@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Admin Panel | @yield('title')</title>
     
@@ -416,6 +416,7 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50">
     <!-- Mobile backdrop -->
     <div id="mobile-backdrop" class="mobile-backdrop"></div>
@@ -435,9 +436,10 @@
             </div>
         </div>
         
-        <!-- Navigation -->
+      <!-- Navigation -->
         <div class="flex-1 overflow-y-auto py-4">
             <nav class="space-y-1 px-2">
+
                 <div class="nav-item" data-route="superadmin.users.index">
                     <a href="{{ route('superadmin.users.index') }}" class="nav-link">
                         <div class="nav-icon">
@@ -446,8 +448,8 @@
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </div>
-                
-                <div class="nav-item" data-route="superadmin.crew.index">
+
+                <div class="nav-item" data-route="superadmin.crew.*">
                     <a href="{{ route('superadmin.crew.index') }}" class="nav-link">
                         <div class="nav-icon">
                             <i class="fas fa-users"></i>
@@ -456,7 +458,7 @@
                     </a>
                 </div>
 
-                <div class="nav-item" data-route="superadmin.photos.projects">
+                <div class="nav-item" data-route="superadmin.photos.*">
                     <a href="{{ route('superadmin.photos.projects') }}" class="nav-link">
                         <div class="nav-icon">
                             <i class="fas fa-images"></i>
@@ -465,7 +467,7 @@
                     </a>
                 </div>
 
-                <div class="nav-item" data-route="superadmin.chat.view">
+                <div class="nav-item" data-route="superadmin.chat.*">
                     <a href="{{ route('superadmin.chat.view') }}" class="nav-link">
                         <div class="nav-icon">
                             <i class="fas fa-comments"></i>
@@ -474,7 +476,7 @@
                     </a>
                 </div>
 
-                <div class="nav-item" data-route="superadmin.subcontractors.insurances.index">
+                <div class="nav-item" data-route="superadmin.subcontractors.insurances.*">
                     <a href="{{ route('superadmin.subcontractors.insurances.index') }}" class="nav-link">
                         <div class="nav-icon">
                             <i class="fas fa-shield-alt"></i>
@@ -483,20 +485,46 @@
                     </a>
                 </div>
 
-
-
-                <div class="nav-item" data-route="superadmin.invoices.index">
-                    <a href="{{ route('superadmin.invoices.index') }}" class="nav-link">
-                        <div class="nav-icon">
-                            <i class="fas fa-file-invoice-dollar"></i>
-                        </div>
-                        <span class="nav-text">Invoices</span>
-                    </a>
+                {{-- CONFIGURACIÓN BASE --}}
+                <div class="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-400 px-2">
+                    Configuration
                 </div>
-                
-               
 
-                <div class="nav-item" data-route="#">
+               <div class="nav-item" data-route="superadmin.items.* superadmin.item-categories.*">
+
+                {{-- ITEMS (PADRE) --}}
+                <div class="nav-link cursor-pointer flex items-center justify-between"
+                    onclick="this.nextElementSibling.classList.toggle('hidden')">
+                    <div class="flex items-center gap-2">
+                        <div class="nav-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <span class="nav-text">Items</span>
+                    </div>
+                    <i class="fas fa-chevron-down text-xs opacity-60"></i>
+                </div>
+
+                {{-- SUBMENU --}}
+                <div class="ml-7 mt-1 space-y-1 hidden">
+
+                    <a href="{{ route('superadmin.items.index') }}"
+                    class="nav-link text-sm py-1">
+                        <i class="fas fa-list-ul text-xs mr-2"></i>
+                        All Items
+                    </a>
+
+                    <a href="{{ route('superadmin.item-categories.index') }}"
+                    class="nav-link text-sm py-1">
+                        <i class="fas fa-tags text-xs mr-2"></i>
+                        Categories
+                    </a>
+
+                </div>
+            </div>
+
+
+
+                <div class="nav-item" data-route="superadmin.locations.*">
                     <a href="{{ route('superadmin.locations.index') }}" class="nav-link">
                         <div class="nav-icon">
                             <i class="fas fa-map-marker-alt"></i>
@@ -505,10 +533,23 @@
                     </a>
                 </div>
 
+                {{-- OPERACIÓN --}}
+                <div class="mt-4 pt-2 border-t border-gray-200 text-xs text-gray-400 px-2">
+                    Operations
+                </div>
 
+                <div class="nav-item" data-route="superadmin.invoices.*">
+                    <a href="{{ route('superadmin.invoices.index') }}" class="nav-link">
+                        <div class="nav-icon">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <span class="nav-text">Invoices</span>
+                    </a>
+                </div>
 
             </nav>
         </div>
+
         
         <!-- User Section -->
         <div class="p-4 border-t border-white/10">

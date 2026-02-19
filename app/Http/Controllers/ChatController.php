@@ -150,12 +150,22 @@ class ChatController extends Controller
         $me = Auth::user();
 
         $users = $me->is_admin
-            ? User::where('is_admin', false)->orderBy('name')->get(['id','name','email'])
-            : User::where('is_admin', true)->orderBy('name')->get(['id','name','email']);
+            ? User::where('is_admin', false)
+                ->orderBy('name')
+                ->get(['id','name','company_name'])
+            : User::where('is_admin', true)
+                ->orderBy('name')
+                ->get(['id','name','company_name']);
 
-        $view = $me->is_admin ? 'admin.chat_admin.index' : 'chat_contractor.user';
-        return view($view, compact('users'));
+        $firstUser = $users->first();
+
+        $view = $me->is_admin 
+            ? 'admin.chat_admin.index' 
+            : 'chat_contractor.user';
+
+        return view($view, compact('users','firstUser'));
     }
+
 
     /**
      * GET /superadmin/chat-users (solo admins)
@@ -171,8 +181,9 @@ class ChatController extends Controller
         $users = User::where('is_admin', false)
             ->where('id', '!=', $me->id)
             ->orderBy('name')
-            ->get(['id','name','email']);
+            ->get(['id','name','last_name','email','company_name','avatar']);
 
         return $this->jsonNoCache($users);
     }
+
 }

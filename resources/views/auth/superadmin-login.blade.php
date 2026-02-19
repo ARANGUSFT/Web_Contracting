@@ -47,7 +47,7 @@
       <div class="relative flex justify-center">
         <div class="flex flex-col items-center">
           <div class="h-24 w-24 bg-white/20 rounded-2xl flex items-center justify-center p-3 backdrop-blur-sm mb-4">
-            <img src="{{ asset('img/logo.png') }}" alt="Contracting Alliance Inc. Logo" class="h-16 w-auto object-contain" />
+            <img src="{{ asset('img/dd.png') }}" alt="Contracting Alliance Inc. Logo" class="h-16 w-auto object-contain" />
           </div>
           <h2 class="text-2xl font-bold text-white text-center mt-2">Contracting Alliance</h2>
           <p class="text-white/80 text-sm mt-1">Administrative System</p>

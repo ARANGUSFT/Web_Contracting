@@ -88,7 +88,8 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <!-- Fila 1: Lead Source + Teléfono + Ext + Tipo -->
+                                <div class="col-md-4">
                                     <label for="lead_source" class="form-label">Lead Source</label>
                                     <select class="form-select" id="lead_source" name="lead_source">
                                         <option value="">Select Source</option>
@@ -109,17 +110,18 @@
                                         <option value="14">Yard Sign</option>
                                     </select>
                                 </div>
-                    
+
                                 <div class="col-md-3">
                                     <label for="phone" class="form-label">Phone</label>
-                                    <input type="tel" class="form-control" id="phone" name="phone" placeholder="( ) ___-____" required>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                        placeholder="(123) 456-7890" required>
                                 </div>
-                    
+
                                 <div class="col-md-2">
                                     <label for="phone_ext" class="form-label">Ext</label>
                                     <input type="text" class="form-control" id="phone_ext" name="phone_ext">
                                 </div>
-                    
+
                                 <div class="col-md-3">
                                     <label for="phone_type" class="form-label">Type</label>
                                     <select id="phone_type" name="phone_type" class="form-select">
@@ -129,92 +131,97 @@
                                         <option value="work">Work</option>
                                     </select>
                                 </div>
-                    
+
+                                <!-- Fila 2: Email -->
                                 <div class="col-md-6">
                                     <label for="email" class="form-label">Email</label>
                                     <input type="email" id="email" name="email" class="form-control">
                                 </div>
-                    
+
+                                <!-- Separador y dirección -->
                                 <h6 class="mt-4">Location Address</h6>
+
+                                <!-- Fila 3: Street y Suite -->
                                 <div class="col-md-6">
                                     <label for="street" class="form-label">Street <span class="text-danger">*</span></label>
                                     <input type="text" id="street" name="street" class="form-control" required>
                                 </div>
-                    
+
                                 <div class="col-md-6">
                                     <label for="suite" class="form-label">Suite/Apt/Unit</label>
                                     <input type="text" id="suite" name="suite" class="form-control">
                                 </div>
-                    
+
+                                <!-- Fila 4: City, State, Zip, Country -->
                                 <div class="col-md-3">
                                     <label for="city" class="form-label">City <span class="text-danger">*</span></label>
                                     <input type="text" id="city" name="city" class="form-control" required>
                                 </div>
-                    
+
                                 <div class="col-md-3">
                                     <label for="state" class="form-label">State <span class="text-danger">*</span></label>
                                     <select id="state" name="state" class="form-select" required>
                                         <option value="" disabled selected>Choose...</option>
-                                                    <option value="AL">AL</option>
-                                                    <option value="AK">AK</option>
-                                                    <option value="AZ">AZ</option>
-                                                    <option value="AR">AR</option>
-                                                    <option value="CA">CA</option>
-                                                    <option value="CO">CO</option>
-                                                    <option value="CT">CT</option>
-                                                    <option value="DE">DE</option>
-                                                    <option value="FL">FL</option>
-                                                    <option value="GA">GA</option>
-                                                    <option value="HI">HI</option>
-                                                    <option value="ID">ID</option>
-                                                    <option value="IL">IL</option>
-                                                    <option value="IN">IN</option>
-                                                    <option value="IA">IA</option>
-                                                    <option value="KS">KS</option>
-                                                    <option value="KY">KY</option>
-                                                    <option value="LA">LA</option>
-                                                    <option value="ME">ME</option>
-                                                    <option value="MD">MD</option>
-                                                    <option value="MA">MA</option>
-                                                    <option value="MI">MI</option>
-                                                    <option value="MN">MN</option>
-                                                    <option value="MS">MS</option>
-                                                    <option value="MO">MO</option>
-                                                    <option value="MT">MT</option>
-                                                    <option value="NE">NE</option>
-                                                    <option value="NV">NV</option>
-                                                    <option value="NH">NH</option>
-                                                    <option value="NJ">NJ</option>
-                                                    <option value="NM">NM</option>
-                                                    <option value="NY">NY</option>
-                                                    <option value="NC">NC</option>
-                                                    <option value="ND">ND</option>
-                                                    <option value="OH">OH</option>
-                                                    <option value="OK">OK</option>
-                                                    <option value="OR">OR</option>
-                                                    <option value="PA">PA</option>
-                                                    <option value="PR">PR</option>
-                                                    <option value="RI">RI</option>
-                                                    <option value="SC">SC</option>
-                                                    <option value="SD">SD</option>
-                                                    <option value="TN">TN</option>
-                                                    <option value="TX">TX</option>
-                                                    <option value="UT">UT</option>
-                                                    <option value="VT">VT</option>
-                                                    <option value="VA">VA</option>
-                                                    <option value="WA">WA</option>
-                                                    <option value="DC">DC</option>
-                                                    <option value="WV">WV</option>
-                                                    <option value="WI">WI</option>
-                                                    <option value="WY">WY</option>
+                                        <option value="AL">AL</option>
+                                        <option value="AK">AK</option>
+                                        <option value="AZ">AZ</option>
+                                        <option value="AR">AR</option>
+                                        <option value="CA">CA</option>
+                                        <option value="CO">CO</option>
+                                        <option value="CT">CT</option>
+                                        <option value="DE">DE</option>
+                                        <option value="FL">FL</option>
+                                        <option value="GA">GA</option>
+                                        <option value="HI">HI</option>
+                                        <option value="ID">ID</option>
+                                        <option value="IL">IL</option>
+                                        <option value="IN">IN</option>
+                                        <option value="IA">IA</option>
+                                        <option value="KS">KS</option>
+                                        <option value="KY">KY</option>
+                                        <option value="LA">LA</option>
+                                        <option value="ME">ME</option>
+                                        <option value="MD">MD</option>
+                                        <option value="MA">MA</option>
+                                        <option value="MI">MI</option>
+                                        <option value="MN">MN</option>
+                                        <option value="MS">MS</option>
+                                        <option value="MO">MO</option>
+                                        <option value="MT">MT</option>
+                                        <option value="NE">NE</option>
+                                        <option value="NV">NV</option>
+                                        <option value="NH">NH</option>
+                                        <option value="NJ">NJ</option>
+                                        <option value="NM">NM</option>
+                                        <option value="NY">NY</option>
+                                        <option value="NC">NC</option>
+                                        <option value="ND">ND</option>
+                                        <option value="OH">OH</option>
+                                        <option value="OK">OK</option>
+                                        <option value="OR">OR</option>
+                                        <option value="PA">PA</option>
+                                        <option value="PR">PR</option>
+                                        <option value="RI">RI</option>
+                                        <option value="SC">SC</option>
+                                        <option value="SD">SD</option>
+                                        <option value="TN">TN</option>
+                                        <option value="TX">TX</option>
+                                        <option value="UT">UT</option>
+                                        <option value="VT">VT</option>
+                                        <option value="VA">VA</option>
+                                        <option value="WA">WA</option>
+                                        <option value="DC">DC</option>
+                                        <option value="WV">WV</option>
+                                        <option value="WI">WI</option>
+                                        <option value="WY">WY</option>
                                     </select>
                                 </div>
-                    
+
                                 <div class="col-md-3">
                                     <label for="zip" class="form-label">Zip <span class="text-danger">*</span></label>
                                     <input type="text" id="zip" name="zip" class="form-control" required>
                                 </div>
-                    
+
                                 <div class="col-md-3">
                                     <label for="country" class="form-label">Country</label>
                                     <input type="text" id="country" name="country" value="US" class="form-control">

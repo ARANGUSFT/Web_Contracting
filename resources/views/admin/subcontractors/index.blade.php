@@ -1,5 +1,5 @@
 @extends('admin.layouts.superadmin')
-@section('title', 'Subcontractors')
+@section('title', 'Crew Manager')
 
 @section('actions')
     <div class="flex space-x-2">
