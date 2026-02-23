@@ -22,6 +22,7 @@ return new class extends Migration {
                 ->nullOnDelete();
 
             $table->string('description');
+            $table->text('note')->nullable(); // 🔥 aquí sin after()
             $table->integer('quantity')->default(1);
             $table->decimal('price', 10, 2);
             $table->decimal('total', 10, 2);

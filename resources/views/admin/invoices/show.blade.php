@@ -110,6 +110,9 @@
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-5 py-3">
                                     <div class="text-sm font-medium text-gray-900">{{ $item->description }}</div>
+                                    @if($item->note)
+                                        <div class="text-xs text-gray-500 mt-1 italic">{{ $item->note }}</div>
+                                    @endif
                                 </td>
                                 <td class="px-5 py-3 text-center">
                                     <span class="text-sm text-gray-900 font-medium">{{ $item->quantity }}</span>
@@ -152,9 +155,8 @@
             </div>
 
             {{-- Notes & Memo --}}
-            @if($invoice->notes || $invoice->memo)
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @if($invoice->notes)
+                {{-- Notes --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,11 +164,14 @@
                         </svg>
                         <h3 class="text-lg font-semibold text-gray-800">Notes</h3>
                     </div>
-                    <div class="text-gray-700 whitespace-pre-line">{{ $invoice->notes }}</div>
+                    @if($invoice->notes)
+                        <div class="text-gray-700 whitespace-pre-line">{{ $invoice->notes }}</div>
+                    @else
+                        <div class="text-gray-400 italic">No notes provided</div>
+                    @endif
                 </div>
-                @endif
                 
-                @if($invoice->memo)
+                {{-- Memo --}}
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,11 +179,13 @@
                         </svg>
                         <h3 class="text-lg font-semibold text-gray-800">Internal Memo</h3>
                     </div>
-                    <div class="text-gray-700 whitespace-pre-line">{{ $invoice->memo }}</div>
+                    @if($invoice->memo)
+                        <div class="text-gray-700 whitespace-pre-line">{{ $invoice->memo }}</div>
+                    @else
+                        <div class="text-gray-400 italic">No memo provided</div>
+                    @endif
                 </div>
-                @endif
             </div>
-            @endif
         </div>
 
         {{-- Right Column --}}
@@ -218,7 +225,6 @@
                     @endif
                 </div>
             </div>
-
 
             {{-- Company & Location --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">

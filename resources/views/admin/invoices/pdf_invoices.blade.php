@@ -163,14 +163,32 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($invoice->items as $item)
-                    <tr>
-                        <td>{{ $item->description }}</td>
-                        <td class="text-right">${{ number_format($item->price, 2) }}</td>
-                        <td class="text-right">{{ $item->quantity }}</td>
-                        <td class="text-right">${{ number_format($item->total, 2) }}</td>
-                    </tr>
-                @endforeach
+               @foreach($invoice->items as $item)
+    <tr>
+        <td>
+            {{ $item->description }}
+
+            @if($item->note)
+                <div style="font-size:10px; color:#777; margin-top:4px;">
+                    {{ $item->note }}
+                </div>
+            @endif
+        </td>
+
+        <td class="text-right">
+            ${{ number_format($item->price, 2) }}
+        </td>
+
+        <td class="text-right">
+            {{ $item->quantity }}
+        </td>
+
+        <td class="text-right">
+            ${{ number_format($item->total, 2) }}
+        </td>
+    </tr>
+@endforeach
+
             </tbody>
         </table>
     </div>

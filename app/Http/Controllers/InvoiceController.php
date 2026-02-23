@@ -194,7 +194,7 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'company_location_id' => 'required|exists:company_locations,id',
             'invoice_number'      => 'required|string|max:50|unique:invoices,invoice_number',
-            'crew_id' => 'nullable|exists:crews,id',
+            'crew_id'             => 'nullable|exists:crews,id',
             'invoice_date'        => 'required|date',
             'due_date'            => 'nullable|date',
             'customer_email'      => 'nullable|email',
@@ -204,10 +204,11 @@ class InvoiceController extends Controller
             'tax'                 => 'nullable|numeric|min:0',
 
             'items'               => 'required|array|min:1',
-            'items.*.id'          => 'required|integer',
+            'items.*.id'          => 'nullable|integer', // 🔥 CAMBIO
             'items.*.name'        => 'required|string',
             'items.*.price'       => 'required|numeric|min:0',
             'items.*.quantity'    => 'required|integer|min:1',
+            'items.*.note'        => 'nullable|string|max:2000',
 
             'memo'                => 'nullable|string',
             'notes'               => 'nullable|string',
@@ -218,14 +219,13 @@ class InvoiceController extends Controller
 
         try {
 
-            // 1️⃣ CREATE INVOICE
             $invoice = Invoice::create([
                 'user_id'             => auth()->id(),
                 'company_location_id' => $validated['company_location_id'],
                 'crew_id'             => $validated['crew_id'] ?? null,
                 'customer_email'      => $validated['customer_email'] ?? null,
                 'bill_to'             => $validated['bill_to'] ?? null,
-                'address'             => $validated['address'] ?? null, 
+                'address'             => $validated['address'] ?? null,
                 'invoice_number'      => $validated['invoice_number'],
                 'invoice_date'        => $validated['invoice_date'],
                 'due_date'            => $validated['due_date'] ?? null,
@@ -237,7 +237,6 @@ class InvoiceController extends Controller
                 'total'               => 0,
             ]);
 
-            // 2️⃣ ITEMS (PRECIO CONGELADO)
             $subtotal = 0;
 
             foreach ($validated['items'] as $item) {
@@ -246,21 +245,20 @@ class InvoiceController extends Controller
                 $subtotal += $lineTotal;
 
                 $invoice->items()->create([
-                    'item_id'     => $item['id'],
+                    'item_id'     => !empty($item['id']) ? $item['id'] : null, // 🔥 SAFE
                     'description' => $item['name'],
-                    'price'       => $item['price'], // 👈 viene de item_prices
+                    'price'       => $item['price'],
                     'quantity'    => $item['quantity'],
+                    'note'        => $item['note'] ?? null,
                     'total'       => $lineTotal,
                 ]);
             }
 
-            // 3️⃣ TOTALS
             $invoice->update([
                 'subtotal' => $subtotal,
                 'total'    => $subtotal + ($invoice->tax ?? 0),
             ]);
 
-            // 4️⃣ ATTACHMENTS
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
 
@@ -295,10 +293,11 @@ class InvoiceController extends Controller
 
 
 
+
     public function edit(Invoice $invoice)
     {
         $companies = User::whereNotNull('company_name')->get();
-        $crews = Crew::where('is_active', true)->get(); // 👈 debes agregar esto
+        $crews = Crew::where('is_active', true)->get();
 
         $invoiceItems = $invoice->items->map(function ($i) {
             return [
@@ -306,6 +305,7 @@ class InvoiceController extends Controller
                 'name'     => $i->description,
                 'price'    => $i->price,
                 'quantity' => $i->quantity,
+                'note'     => $i->note, // 🔥 IMPORTANTE
             ];
         });
 
@@ -313,7 +313,7 @@ class InvoiceController extends Controller
             'invoice',
             'companies',
             'invoiceItems',
-            'crews' // 👈 no olvides pasar los crews a la vista
+            'crews'
         ));
     }
 
@@ -324,7 +324,7 @@ class InvoiceController extends Controller
     {
             $validated = $request->validate([
                 'company_location_id' => 'required|exists:company_locations,id',
-                'crew_id'             => 'nullable|exists:crews,id', // 👈 AÑADIR
+                'crew_id'             => 'nullable|exists:crews,id',
                 'invoice_date'        => 'required|date',
                 'due_date'            => 'nullable|date',
                 'customer_email'      => 'nullable|email',
@@ -333,9 +333,14 @@ class InvoiceController extends Controller
                 'status'              => 'required|in:draft,sent,paid',
 
                 'items'               => 'required|array|min:1',
-                'items.*.id'          => 'required|exists:items,id',
+                'items.*.id'          => 'nullable|integer', // 🔥 igual que store
+                'items.*.name'        => 'required|string',  // 🔥 necesario
                 'items.*.price'       => 'required|numeric|min:0',
                 'items.*.quantity'    => 'required|integer|min:1',
+                'items.*.note'        => 'nullable|string|max:2000',
+
+                'memo'                => 'nullable|string',
+                'notes'               => 'nullable|string',
             ]);
 
 
@@ -359,9 +364,9 @@ class InvoiceController extends Controller
                 ]);
 
 
-                /* =============================
-                2️⃣ RESET ITEMS (CLAVE 🔥)
-                ============================== */
+               /* =============================
+                2️⃣ RESET ITEMS
+                ============================= */
                 $invoice->items()->delete();
 
                 $subtotal = 0;
@@ -371,13 +376,12 @@ class InvoiceController extends Controller
                     $lineTotal = $item['price'] * $item['quantity'];
                     $subtotal += $lineTotal;
 
-                    $itemModel = Item::find($item['id']); // ✔ seguro por validation
-
                     $invoice->items()->create([
-                        'item_id'     => $itemModel->id,
-                        'description' => $itemModel->name, // ✔ NO dependes del JS
+                        'item_id'     => !empty($item['id']) ? $item['id'] : null,
+                        'description' => $item['name'], // 🔥 importante
                         'price'       => $item['price'],
                         'quantity'    => $item['quantity'],
+                        'note'        => $item['note'] ?? null,
                         'total'       => $lineTotal,
                     ]);
                 }
@@ -386,8 +390,17 @@ class InvoiceController extends Controller
                 3️⃣ UPDATE TOTALS
                 ============================== */
                 $invoice->update([
-                    'subtotal' => $subtotal,
-                    'total'    => $subtotal,
+                    'company_location_id' => $validated['company_location_id'],
+                    'crew_id'             => $validated['crew_id'] ?? null,
+                    'customer_email'      => $validated['customer_email'] ?? null,
+                    'bill_to'             => $validated['bill_to'] ?? null,
+                    'address'             => $validated['address'] ?? null,
+                    'invoice_date'        => $validated['invoice_date'],
+                    'due_date'            => $validated['due_date'] ?? null,
+                    'status'              => $validated['status'],
+                    'memo'                => $validated['memo'] ?? null,
+                    'notes'               => $validated['notes'] ?? null,
+                    'tax'                 => 0,
                 ]);
 
                 DB::commit();
@@ -445,7 +458,7 @@ class InvoiceController extends Controller
         $pdf = Pdf::loadView('admin.invoices.pdf_invoices', compact('invoice'))
                 ->setPaper('a4');
 
-        return $pdf->download("Factura-{$invoice->invoice_number}.pdf");
+        return $pdf->download("Invoice-{$invoice->invoice_number}.pdf");
     }
 
 
@@ -455,45 +468,35 @@ class InvoiceController extends Controller
     {
         $invoice->load(['items.item', 'crew', 'payoutItems']);
 
-        DB::transaction(function () use ($invoice) {
+   DB::transaction(function () use ($invoice) {
 
-            foreach ($invoice->items as $invoiceItem) {
+    foreach ($invoice->items as $invoiceItem) {
 
-                $existingPayout = $invoice->payoutItems()
-                    ->where('description', $invoiceItem->description)
-                    ->first();
+        $existingPayout = $invoice->payoutItems()
+            ->where('description', $invoiceItem->description)
+            ->first();
 
-                $price = 0;
+        if (!$existingPayout) {
 
-                if ($invoiceItem->item && $invoice->crew) {
-                    $price = $invoiceItem->item->getCrewPrice(
-                        $invoice->crew->has_trailer
-                    );
-                }
+            $price = 0;
 
-                // 🔥 Si no existe payout → crearlo
-                if (!$existingPayout) {
-
-                    $invoice->payoutItems()->create([
-                        'description' => $invoiceItem->description,
-                        'quantity'    => $invoiceItem->quantity,
-                        'price'       => $price,
-                        'total'       => $price * $invoiceItem->quantity,
-                    ]);
-
-                } else {
-
-                    // 🔥 Si existe → sincronizar cantidad y total
-                    if ($existingPayout->quantity != $invoiceItem->quantity) {
-
-                        $existingPayout->update([
-                            'quantity' => $invoiceItem->quantity,
-                            'total'    => $existingPayout->price * $invoiceItem->quantity,
-                        ]);
-                    }
-                }
+            if ($invoiceItem->item && $invoice->crew) {
+                $price = $invoiceItem->item->getCrewPrice(
+                    $invoice->crew->has_trailer
+                );
             }
-        });
+
+            $invoice->payoutItems()->create([
+                'description' => $invoiceItem->description,
+                'quantity'    => $invoiceItem->quantity,
+                'price'       => $price,
+                'total'       => $price * $invoiceItem->quantity,
+            ]);
+        }
+
+        // ❌ ELIMINAMOS LA SINCRONIZACIÓN
+    }
+});
 
         // 🔥 Cargar items con categoría para el select agrupado
         $availableItems = Item::with('category')
@@ -552,7 +555,7 @@ class InvoiceController extends Controller
             'items'   => $invoice->payoutItems,
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->download("Invoice-{$invoice->invoice_number}-Payout.pdf");
+        return $pdf->download("Payout-{$invoice->invoice_number}-Payout.pdf");
     }
 
 

@@ -10,6 +10,7 @@ class InvoiceItem extends Model
         'invoice_id',
         'item_id',
         'description',
+        'note', // 🔥 agregar esto
         'quantity',
         'price',
         'total'

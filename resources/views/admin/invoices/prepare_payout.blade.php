@@ -277,55 +277,53 @@
                             <th class="text-center border-0" style="width: 50px;"></th>
                         </tr>
                     </thead>
-              <tbody id="invoiceItemsTableBody">
-@foreach($invoice->payoutItems as $index => $item)
-<tr class="border-top">
+                    <tbody id="invoiceItemsTableBody">
+                        @foreach($invoice->payoutItems as $index => $item)
+                        <tr class="border-top">
 
-    <td class="ps-3">
-        <input type="hidden"
-               name="items[{{ $index }}][description]"
-               value="{{ $item->description }}">
-        <div class="text-dark">
-            {{ $item->description }}
-        </div>
-    </td>
+                            <td class="ps-3">
+                                <input type="hidden"
+                                    name="items[{{ $index }}][description]"
+                                    value="{{ $item->description }}">
+                                <div class="text-dark">
+                                    {{ $item->description }}
+                                </div>
+                            </td>
 
-    <td>
-        <input type="number"
-               step="0.01"
-               name="items[{{ $index }}][price]"
-               class="form-control form-control-sm text-end price-input"
-               value="{{ old('items.' . $index . '.price', $item->price) }}"
-               style="width: 100px;">
-    </td>
+                            <td>
+                                <input type="number"
+                                    step="0.01"
+                                    name="items[{{ $index }}][price]"
+                                    class="form-control form-control-sm text-end price-input"
+                                    value="{{ old('items.' . $index . '.price', $item->price) }}"
+                                    style="width: 100px;">
+                            </td>
 
-    <td>
-        <input type="number"
-               name="items[{{ $index }}][quantity]"
-               class="form-control form-control-sm text-end quantity-input"
-               value="{{ $item->quantity }}"
-               style="width: 80px;">
-    </td>
+                            <td>
+                                <input type="number"
+                                    name="items[{{ $index }}][quantity]"
+                                    class="form-control form-control-sm text-end quantity-input"
+                                    value="{{ $item->quantity }}"
+                                    style="width: 80px;">
+                            </td>
 
-    <td class="text-end text-dark fw-medium">
-        $<span class="subtotal-text">
-            {{ number_format($item->price * $item->quantity, 2) }}
-        </span>
-    </td>
+                            <td class="text-end text-dark fw-medium">
+                                $<span class="subtotal-text">
+                                    {{ number_format($item->price * $item->quantity, 2) }}
+                                </span>
+                            </td>
 
-    <td class="text-center">
-        <button type="button"
-                class="btn btn-sm btn-link text-danger"
-                onclick="removeRow(this)">
-            <i class="fas fa-times"></i>
-        </button>
-    </td>
+                            <td class="text-center">
+                                <button type="button"
+                                        class="btn btn-sm btn-link text-danger"
+                                        onclick="removeRow(this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </td>
 
-</tr>
-@endforeach
-</tbody>
-
-
+                        </tr>
+                        @endforeach
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -358,7 +356,7 @@
                     <i class="fas fa-arrow-left me-1"></i> Back
                 </a>
                 <button type="submit" class="btn btn-dark">
-                    <i class="fas fa-file-pdf me-2"></i> Generate PDF Invoice
+                    <i class="fas fa-file-pdf me-2"></i> Generate PDF Payout
                 </button>
             </div>
         </div>
