@@ -590,6 +590,16 @@
         }
     }
 
+    // New function to update price when input changes
+    function updateItemPrice(index, newPrice) {
+        let price = parseFloat(newPrice);
+        if (isNaN(price) || price < 0) price = 0;
+        invoiceItems[index].price = price;
+        renderInvoiceItems();   // re-renders the table to reflect the new price and totals
+        updateQuickInfo();
+        validateForm();
+    }
+
     function renderInvoiceItems() {
         const tbody = document.getElementById('invoiceItems');
         let subtotal = 0;
@@ -623,7 +633,15 @@
                             <button class="btn btn-outline-secondary" type="button" onclick="updateItemQuantity(${index}, 1)">+</button>
                         </div>
                     </td>
-                    <td class="text-end">$${item.price.toFixed(2)}</td>
+                    <td class="text-end" style="width: 120px;">
+                        <input type="number"
+                               class="form-control form-control-sm text-end"
+                               value="${item.price.toFixed(2)}"
+                               step="0.01"
+                               min="0"
+                               onchange="updateItemPrice(${index}, this.value)"
+                               style="width: 100px; display: inline-block;">
+                    </td>
                     <td class="text-end fw-semibold">$${itemTotal.toFixed(2)}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-danger" onclick="removeInvoiceItem(${index})">

@@ -1,40 +1,33 @@
 @extends('admin.layouts.superadmin')
 
 @section('content')
-<div class="container-fluid px-4 py-4 max-w-7xl mx-auto">
+<div class="container-fluid px-4 py-6 max-w-7xl mx-auto">
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-3 mb-2">
-                <h1 class="text-2xl font-bold text-gray-900">Invoice {{ $invoice->invoice_number }}</h1>
-                <span class="px-3 py-1 text-xs font-medium rounded-full 
-                    {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' :
-                       ($invoice->status === 'sent' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
-                    {{ ucfirst($invoice->status) }}
-                </span>
-            </div>
-            <div class="flex items-center gap-4 text-sm text-gray-600">
-                <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}
-                </span>
-                @if($invoice->due_date)
-                <span class="flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Due {{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}
-                </span>
-                @endif
-            </div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-gray-900">Invoice {{ $invoice->invoice_number }}</h1>
+            <span class="px-3 py-1 text-xs font-medium rounded-full 
+                {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' :
+                   ($invoice->status === 'sent' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800') }}">
+                {{ ucfirst($invoice->status) }}
+            </span>
         </div>
         
         <div class="flex items-center gap-2">
+        
+
+
+            <a href="{{ route('superadmin.invoices.index') }}" 
+                   class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Invoices
+            </a>
+
             @if($invoice->status === 'draft')
             <a href="{{ route('superadmin.invoices.edit', $invoice) }}" 
-               class="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
+               class="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-all duration-200 shadow-sm hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
@@ -44,7 +37,7 @@
             
             <a href="{{ route('superadmin.invoices.pdf', $invoice) }}" 
                target="_blank"
-               class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
+               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
                 </svg>
@@ -53,76 +46,58 @@
         </div>
     </div>
 
-    {{-- Stats Bar --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">${{ number_format($invoice->total, 2) }}</p>
+    {{-- Stats Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-sm font-medium text-gray-500">Total Amount</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">${{ number_format($invoice->total, 2) }}</p>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Items</p>
-            <p class="text-xl font-bold text-gray-900 mt-1">{{ $invoice->items->count() }}</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-sm font-medium text-gray-500">Items</p>
+            <p class="text-2xl font-bold text-gray-900 mt-1">{{ $invoice->items->count() }}</p>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</p>
-            <p class="text-base font-medium text-gray-900 mt-1 truncate">{{ $invoice->bill_to ?? '—' }}</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-sm font-medium text-gray-500">Customer</p>
+            <p class="text-base font-semibold text-gray-900 mt-1 truncate" title="{{ $invoice->bill_to }}">{{ $invoice->bill_to ?? '—' }}</p>
         </div>
-        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Company</p>
-            <p class="text-base font-medium text-gray-900 mt-1 truncate">{{ $invoice->companyLocation->company->company_name ?? '—' }}</p>
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+            <p class="text-sm font-medium text-gray-500">Company</p>
+            <p class="text-base font-semibold text-gray-900 mt-1 truncate" title="{{ $invoice->companyLocation->company->company_name ?? '' }}">{{ $invoice->companyLocation->company->company_name ?? '—' }}</p>
         </div>
     </div>
 
+    {{-- Main Content: Two Columns --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- Left Column --}}
+        {{-- Left Column (2/3 width) --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Items Table --}}
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="px-5 py-4 border-b border-gray-200 bg-gray-50/50">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-800">Invoice Items</h3>
-                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded-full">
-                            {{ $invoice->items->count() }} items
-                        </span>
-                    </div>
+                <div class="px-5 py-4 border-b border-gray-200 bg-gray-50/80">
+                    <h3 class="text-lg font-semibold text-gray-800">Invoice Items</h3>
                 </div>
                 
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Description
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
-                                    Qty
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
-                                    Unit Price
-                                </th>
-                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
-                                    Total
-                                </th>
+                                <th class="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-5 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                                <th class="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
                             @foreach($invoice->items as $item)
-                            <tr class="hover:bg-gray-50 transition-colors">
+                            <tr class="hover:bg-gray-50/80 transition-colors duration-150">
                                 <td class="px-5 py-3">
                                     <div class="text-sm font-medium text-gray-900">{{ $item->description }}</div>
                                     @if($item->note)
                                         <div class="text-xs text-gray-500 mt-1 italic">{{ $item->note }}</div>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3 text-center">
-                                    <span class="text-sm text-gray-900 font-medium">{{ $item->quantity }}</span>
-                                </td>
-                                <td class="px-5 py-3 text-right">
-                                    <span class="text-sm text-gray-900">${{ number_format($item->price, 2) }}</span>
-                                </td>
-                                <td class="px-5 py-3 text-right">
-                                    <span class="text-sm font-bold text-gray-900">${{ number_format($item->total, 2) }}</span>
-                                </td>
+                                <td class="px-5 py-3 text-center text-sm text-gray-900">{{ $item->quantity }}</td>
+                                <td class="px-5 py-3 text-right text-sm text-gray-900">${{ number_format($item->price, 2) }}</td>
+                                <td class="px-5 py-3 text-right text-sm font-bold text-gray-900">${{ number_format($item->total, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -130,24 +105,20 @@
                 </div>
                 
                 {{-- Totals --}}
-                <div class="border-t border-gray-200">
-                    <div class="flex justify-end px-5 py-4">
-                        <div class="w-full max-w-xs">
-                            <div class="space-y-2">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600">Subtotal</span>
-                                    <span class="font-medium text-gray-900">${{ number_format($invoice->subtotal, 2) }}</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600">Tax</span>
-                                    <span class="font-medium text-gray-900">${{ number_format($invoice->tax, 2) }}</span>
-                                </div>
-                                <div class="border-t border-gray-200 pt-2">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-lg font-semibold text-gray-900">Total</span>
-                                        <span class="text-xl font-bold text-gray-900">${{ number_format($invoice->total, 2) }}</span>
-                                    </div>
-                                </div>
+                <div class="border-t border-gray-200 px-5 py-4 bg-gray-50/80">
+                    <div class="flex justify-end">
+                        <div class="w-full max-w-xs space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Subtotal</span>
+                                <span class="font-medium text-gray-900">${{ number_format($invoice->subtotal, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Tax</span>
+                                <span class="font-medium text-gray-900">${{ number_format($invoice->tax, 2) }}</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-2 flex justify-between">
+                                <span class="font-semibold text-gray-900">Total</span>
+                                <span class="font-bold text-gray-900">${{ number_format($invoice->total, 2) }}</span>
                             </div>
                         </div>
                     </div>
@@ -156,13 +127,12 @@
 
             {{-- Notes & Memo --}}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{-- Notes --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
                         </svg>
-                        <h3 class="text-lg font-semibold text-gray-800">Notes</h3>
+                        <h4 class="font-semibold text-gray-800">Notes</h4>
                     </div>
                     @if($invoice->notes)
                         <div class="text-gray-700 whitespace-pre-line">{{ $invoice->notes }}</div>
@@ -171,13 +141,12 @@
                     @endif
                 </div>
                 
-                {{-- Memo --}}
-                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                     <div class="flex items-center gap-2 mb-3">
                         <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <h3 class="text-lg font-semibold text-gray-800">Internal Memo</h3>
+                        <h4 class="font-semibold text-gray-800">Internal Memo</h4>
                     </div>
                     @if($invoice->memo)
                         <div class="text-gray-700 whitespace-pre-line">{{ $invoice->memo }}</div>
@@ -188,80 +157,55 @@
             </div>
         </div>
 
-        {{-- Right Column --}}
+        {{-- Right Column (1/3 width) --}}
         <div class="space-y-6">
             {{-- Customer Information --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Customer Information</h3>
-                
                 <div class="space-y-4">
-                    {{-- Bill To --}}
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Bill To</p>
+                        <p class="text-sm font-medium text-gray-500">Bill To</p>
                         <p class="text-gray-900 font-medium">{{ $invoice->bill_to ?? '—' }}</p>
                     </div>
-
-                    {{-- Address --}}
                     @if($invoice->address)
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Address</p>
+                        <p class="text-sm font-medium text-gray-500">Address</p>
                         <p class="text-gray-900">{{ $invoice->address }}</p>
                     </div>
                     @endif
-
-                    {{-- Email --}}
                     @if($invoice->customer_email)
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Email</p>
-                        <div class="flex items-center gap-2 text-gray-900">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                            </svg>
-                            <a href="mailto:{{ $invoice->customer_email }}" class="hover:text-gray-600">
-                                {{ $invoice->customer_email }}
-                            </a>
-                        </div>
+                        <p class="text-sm font-medium text-gray-500">Email</p>
+                        <a href="mailto:{{ $invoice->customer_email }}" class="text-gray-900 hover:text-gray-600 transition-colors">
+                            {{ $invoice->customer_email }}
+                        </a>
                     </div>
                     @endif
                 </div>
             </div>
 
             {{-- Company & Location --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Company & Location</h3>
-                
                 <div class="space-y-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Company</p>
+                        <p class="text-sm font-medium text-gray-500">Company</p>
                         <p class="text-gray-900 font-medium">{{ $invoice->companyLocation->company->company_name ?? '—' }}</p>
                     </div>
-                    
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Location</p>
-                        <div class="flex items-center gap-2 text-gray-900">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            <span>
-                                {{ $invoice->companyLocation->city ?? '' }}{{ $invoice->companyLocation->city && $invoice->companyLocation->state ? ', ' : '' }}
-                                {{ $invoice->companyLocation->state ?? '' }}
-                            </span>
-                        </div>
+                        <p class="text-sm font-medium text-gray-500">Location</p>
+                        <p class="text-gray-900">
+                            {{ $invoice->companyLocation->city ?? '' }}{{ $invoice->companyLocation->city && $invoice->companyLocation->state ? ', ' : '' }}
+                            {{ $invoice->companyLocation->state ?? '' }}
+                        </p>
                     </div>
-                    
                     @if($invoice->crew)
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Crew</p>
-                        <div class="flex items-center gap-2 text-gray-900">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                            </svg>
-                            <span>{{ $invoice->crew->name }}</span>
+                        <p class="text-sm font-medium text-gray-500">Crew</p>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-900">{{ $invoice->crew->name }}</span>
                             @if($invoice->crew->has_trailer)
-                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-                                Trailer
-                            </span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">Trailer</span>
                             @endif
                         </div>
                     </div>
@@ -270,82 +214,40 @@
             </div>
 
             {{-- Invoice Details --}}
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Invoice Details</h3>
-                
                 <div class="space-y-4">
                     <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Invoice Number</p>
+                        <p class="text-sm font-medium text-gray-500">Invoice Number</p>
                         <p class="text-gray-900 font-medium">{{ $invoice->invoice_number }}</p>
                     </div>
-                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-sm font-medium text-gray-500 mb-1">Issue Date</p>
-                            <div class="flex items-center gap-2 text-gray-900">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                <span>{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</span>
-                            </div>
+                            <p class="text-sm font-medium text-gray-500">Issue Date</p>
+                            <p class="text-gray-900">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</p>
                         </div>
-                        
                         @if($invoice->due_date)
                         <div>
-                            <p class="text-sm font-medium text-gray-500 mb-1">Due Date</p>
-                            <div class="flex items-center gap-2 text-gray-900">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <span>{{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}</span>
-                            </div>
+                            <p class="text-sm font-medium text-gray-500">Due Date</p>
+                            <p class="text-gray-900">{{ \Carbon\Carbon::parse($invoice->due_date)->format('M d, Y') }}</p>
                         </div>
                         @endif
-                    </div>
-                    
-                    <div>
-                        <p class="text-sm font-medium text-gray-500 mb-1">Status</p>
-                        <div class="flex items-center gap-2">
-                            @if($invoice->status === 'paid')
-                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                Paid
-                            </span>
-                            @elseif($invoice->status === 'sent')
-                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                </svg>
-                                Sent
-                            </span>
-                            @else
-                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 text-sm font-medium rounded-full">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                                Draft
-                            </span>
-                            @endif
-                        </div>
                     </div>
                 </div>
             </div>
 
             {{-- Attachments --}}
             @if($invoice->attachments->count())
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow duration-200">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-800">Attachments</h3>
                     <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-medium rounded-full">
                         {{ $invoice->attachments->count() }} files
                     </span>
                 </div>
-                
                 <div class="space-y-2">
                     @foreach($invoice->attachments as $file)
-                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50/80 transition-colors duration-150">
                         <div class="flex items-center gap-3">
                             <div class="p-2 bg-gray-100 rounded-lg">
                                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -353,7 +255,7 @@
                                 </svg>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-900 truncate max-w-[180px]">
+                                <p class="text-sm font-medium text-gray-900 truncate max-w-[160px]" title="{{ basename($file->original_name) }}">
                                     {{ basename($file->original_name) }}
                                 </p>
                                 <p class="text-xs text-gray-500">
@@ -376,7 +278,7 @@
         </div>
     </div>
 
-    {{-- Footer Actions --}}
+    {{-- Footer --}}
     <div class="mt-8 pt-6 border-t border-gray-200">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="text-sm text-gray-500">
@@ -385,66 +287,74 @@
                     • Updated {{ \Carbon\Carbon::parse($invoice->updated_at)->format('M d, Y') }}
                 @endif
             </div>
-            
-            <div class="flex items-center gap-3">
-                <a href="{{ route('superadmin.invoices.index') }}" 
-                   class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                    </svg>
-                    Back to Invoices
-                </a>
-                
-                @if($invoice->status === 'draft')
-                <a href="{{ route('superadmin.invoices.edit', $invoice) }}" 
-                   class="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    Edit Invoice
-                </a>
-                @endif
-            </div>
+          
         </div>
     </div>
 </div>
 
+{{-- Estilos mejorados --}}
 <style>
-    /* Custom scrollbar */
+    /* Scroll personalizado más elegante */
     .overflow-x-auto::-webkit-scrollbar {
-        height: 6px;
+        height: 8px;
     }
-    
     .overflow-x-auto::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
+        background: #f1f5f9;
+        border-radius: 4px;
     }
-    
     .overflow-x-auto::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
+        background: #94a3b8;
+        border-radius: 4px;
     }
-    
-    /* Smooth transitions */
+    .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+
+    /* Transiciones suaves para todos los elementos */
     * {
-        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    
-    /* Truncate text with ellipsis */
+
+    /* Estilos para los badges de estado */
+    .badge-paid {
+        @apply bg-green-100 text-green-800;
+    }
+    .badge-sent {
+        @apply bg-blue-100 text-blue-800;
+    }
+    .badge-draft {
+        @apply bg-gray-100 text-gray-800;
+    }
+
+    /* Mejorar la apariencia de las tarjetas */
+    .card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Líneas divisorias más suaves */
+    .border-gray-200 {
+        border-color: #e9eef2;
+    }
+
+    /* Sombra por defecto en tarjetas */
+    .shadow-sm {
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    /* Hover en filas de tabla */
+    tr:hover {
+        background-color: #fafbfc;
+    }
+
+    /* Texto truncado con tooltip */
     .truncate {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-    }
-    
-    /* Ensure consistent spacing */
-    .space-y-6 > * + * {
-        margin-top: 1.5rem;
-    }
-    
-    /* Better table row hover */
-    tr:hover {
-        background-color: #f9fafb;
     }
 </style>
 @endsection

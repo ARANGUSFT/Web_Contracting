@@ -255,9 +255,15 @@
                                                 </button>
                                             </div>
                                         </td>
-                                        <td class="text-end">
-                                            <span class="price-display">${{ number_format($item['price'], 2) }}</span>
-                                        </td>
+                                       <td class="text-end">
+    <input type="number"
+           class="form-control form-control-sm text-end"
+           value="{{ number_format($item['price'], 2, '.', '') }}"
+           step="0.01"
+           min="0"
+           onchange="updateItemPrice({{ $loop->index }}, this.value)"
+           style="width: 100px; display: inline-block;">
+</td>
                                         <td class="text-end fw-medium">
                                             ${{ number_format($item['price'] * $item['quantity'], 2) }}
                                         </td>
@@ -700,6 +706,15 @@
         }
     }
 
+    // Nueva función para actualizar el precio cuando se edita el input
+    function updateItemPrice(index, newPrice) {
+        let price = parseFloat(newPrice);
+        if (isNaN(price) || price < 0) price = 0;
+        invoiceItems[index].price = price;
+        renderInvoiceItems();   // Re-renderiza para actualizar totales
+        validateForm();         // Revalida el formulario (por si cambia algo)
+    }
+
     // ==================== RENDER ITEMS ====================
     function renderInvoiceItems() {
         const tbody = document.getElementById('invoiceItems');
@@ -744,7 +759,15 @@
                             </button>
                         </div>
                     </td>
-                    <td class="text-end">${formatCurrency(item.price)}</td>
+                    <td class="text-end" style="width: 120px;">
+                        <input type="number"
+                            class="form-control form-control-sm text-end"
+                            value="${item.price.toFixed(2)}"
+                            step="0.01"
+                            min="0"
+                            onchange="updateItemPrice(${index}, this.value)"
+                            style="width: 100px; display: inline-block;">
+                    </td>
                     <td class="text-end fw-medium">${formatCurrency(total)}</td>
                     <td class="text-center">
                         <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${index})">

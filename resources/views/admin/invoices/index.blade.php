@@ -32,17 +32,17 @@
 
     {{-- Stats Bar --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total</p>
-            <div class="flex items-baseline mt-1">
-                <p class="text-xl font-bold text-gray-900">{{ $invoices->total() }}</p>
-                <p class="ml-1 text-sm text-gray-500">invoices</p>
-            </div>
+                <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total</p>
+                    <div class="flex items-baseline mt-1">
+                        <p class="text-xl font-bold text-gray-900">{{ $invoices->total() }}</p>
+                        <p class="ml-1 text-sm text-gray-500">invoices</p>
+                    </div>
+                </div>
+            <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
+            <p class="text-xl font-bold text-gray-900 mt-1">${{ number_format($invoices->sum('total'), 2) }}</p>
         </div>
-       <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-    <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</p>
-    <p class="text-xl font-bold text-gray-900 mt-1">${{ number_format($invoices->sum('total'), 2) }}</p>
-</div>
         <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
             <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Pending</p>
             <p class="text-xl font-bold text-amber-600 mt-1">{{ $invoices->where('status', 'sent')->count() }}</p>
@@ -247,14 +247,14 @@
                             </td>
 
 
-                            
-
+                                                    
                             {{-- Amount --}}
                             <td class="px-4 py-3">
                                 <span class="text-sm font-bold text-gray-900">
-                                    ${{ number_format($invoice->total, 2) }}
-                                </span>
+                            ${{ number_format($invoice->invoice_subtotal ?? 0, 2) }}   </span>
                             </td>
+
+                            
 
 
                             @php

@@ -20,72 +20,74 @@ class InvoiceController extends Controller
      * LISTADO DE FACTURAS
      * ============================
      */
-    public function index(Request $request)
-    {
-        $query = Invoice::with(['companyLocation', 'companyLocation.user', 'payoutItems']);
+   public function index(Request $request)
+{
+    $query = Invoice::query()
+        ->with(['companyLocation', 'companyLocation.user'])
+        ->withSum('items as invoice_subtotal', 'total'); // SUM(invoice_items.total)
 
-        // 🔍 Invoice #
-        if ($request->filled('invoice_number')) {
-            $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
+    // 🔍 Invoice #
+    if ($request->filled('invoice_number')) {
+        $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
+    }
+
+    // 🏢 Company
+    if ($request->filled('company_id')) {
+        $query->whereHas('companyLocation.user', function ($q) use ($request) {
+            $q->where('id', $request->company_id);
+        });
+    }
+
+    // 📍 State
+    if ($request->filled('state')) {
+        $query->whereHas('companyLocation', function ($q) use ($request) {
+            $q->where('state', $request->state);
+        });
+    }
+
+    // 🏷️ Status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // 📆 Period
+    if ($request->filled('period')) {
+        $now = now();
+
+        switch ($request->period) {
+            case 'this_month':
+                $query->whereBetween('invoice_date', [
+                    $now->copy()->startOfMonth()->toDateString(),
+                    $now->copy()->endOfMonth()->toDateString()
+                ]);
+                break;
+
+            case 'last_3_months':
+                $query->whereBetween('invoice_date', [
+                    $now->copy()->subMonths(3)->startOfDay()->toDateString(),
+                    $now->toDateString()
+                ]);
+                break;
+
+            case 'last_6_months':
+                $query->whereBetween('invoice_date', [
+                    $now->copy()->subMonths(6)->startOfDay()->toDateString(),
+                    $now->toDateString()
+                ]);
+                break;
+
+            case 'last_12_months':
+                $query->whereBetween('invoice_date', [
+                    $now->copy()->subMonths(12)->startOfDay()->toDateString(),
+                    $now->toDateString()
+                ]);
+                break;
+
+            case 'this_year':
+                $query->whereYear('invoice_date', $now->year);
+                break;
         }
-
-        // 🏢 Company - Corregido: usar relación correcta
-        if ($request->filled('company_id')) {
-            $query->whereHas('companyLocation.user', function ($q) use ($request) {
-                $q->where('id', $request->company_id);
-            });
-        }
-
-        // 📍 State
-        if ($request->filled('state')) {
-            $query->whereHas('companyLocation', function ($q) use ($request) {
-                $q->where('state', $request->state);
-            });
-        }
-
-        // 🏷️ Status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // 📆 Period - Corregido: usar Carbon correctamente
-        if ($request->filled('period')) {
-            $now = now();
-
-            switch ($request->period) {
-                case 'this_month':
-                    $query->whereBetween('invoice_date', [
-                        $now->copy()->startOfMonth()->toDateString(),
-                        $now->copy()->endOfMonth()->toDateString()
-                    ]);
-                    break;
-
-                case 'last_3_months':
-                    $query->whereBetween('invoice_date', [
-                        $now->copy()->subMonths(3)->startOfDay()->toDateString(),
-                        $now->toDateString()
-                    ]);
-                    break;
-
-                case 'last_6_months':
-                    $query->whereBetween('invoice_date', [
-                        $now->copy()->subMonths(6)->startOfDay()->toDateString(),
-                        $now->toDateString()
-                    ]);
-                    break;
-
-                case 'last_12_months':
-                    $query->whereBetween('invoice_date', [
-                        $now->copy()->subMonths(12)->startOfDay()->toDateString(),
-                        $now->toDateString()
-                    ]);
-                    break;
-
-                case 'this_year':
-                    $query->whereYear('invoice_date', $now->year);
-                    break;
-            }
-        }
+    }
 
         // 🔧 Order y paginación
         $invoices = $query->orderBy('invoice_date', 'desc')
