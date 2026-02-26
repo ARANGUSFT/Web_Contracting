@@ -70,6 +70,9 @@ Route::post('/superadmin/login', [AdminLoginController::class, 'login']);
 Route::post('/superadmin/logout', [AdminLoginController::class, 'logout'])->name('superadmin.logout');
 
 
+Route::get('/pending-approval', function () {
+    return view('auth.pending-approval');
+})->name('pending.approval');
 
 
 Route::middleware(['auth', 'is-admin'])
@@ -80,8 +83,15 @@ Route::middleware(['auth', 'is-admin'])
     /* ==========================================================
      | DASHBOARD
      ========================================================== */
-    Route::get('/', fn () => redirect()->route('superadmin.users.index'))
-        ->name('dashboard');
+    Route::get('/', fn () => redirect()->route('superadmin.users.index'))->name('dashboard');
+
+
+    /* ==========================================================
+     | USERS APPROVAL (PENDING)
+     ========================================================== */
+    Route::get('users/pending', [AdminUserController::class, 'pendingUsers'])->name('users.pending');
+    Route::post('users/{user}/approve', [AdminUserController::class, 'approveUser'])->name('users.approve');
+    Route::post('users/{user}/reject', [AdminUserController::class, 'rejectUser'])->name('users.reject');
 
 
     /* ==========================================================
@@ -127,62 +137,31 @@ Route::middleware(['auth', 'is-admin'])
 
 
         
-    Route::resource(
-        'item-categories',
-        ItemCategoryController::class
-    )->except(['show'])
-    ->names('item-categories');
+    Route::resource('item-categories',ItemCategoryController::class)->except(['show'])->names('item-categories');
 
 
     /* ==========================================================
      | COMPANY LOCATIONS (EMPRESA + ESTADO)
      ========================================================== */
     // ================= LOCATIONS (GLOBAL) =================
-        Route::get('locations', [CompanyLocationController::class, 'index'])
-            ->name('locations.index');
+    Route::get('locations', [CompanyLocationController::class, 'index'])->name('locations.index');
+    Route::get('locations/create', [CompanyLocationController::class, 'create'])->name('locations.create');
+    Route::post('locations', [CompanyLocationController::class, 'store'])->name('locations.store');
+    Route::get('locations/{location}/edit', [CompanyLocationController::class, 'edit'])->name('locations.edit');
+    Route::put('locations/{location}', [CompanyLocationController::class, 'update'])->name('locations.update');
+    Route::delete('locations/{location}', [CompanyLocationController::class, 'destroy'])->name('locations.destroy');
 
-        Route::get('locations/create', [CompanyLocationController::class, 'create'])
-            ->name('locations.create');
+    // ================= LOCATIONS PER COMPANY (🔥 PRINCIPAL) =================
+    Route::get('companies/{company}/locations',[CompanyLocationController::class, 'manage'])->name('companies.locations.manage');
+    Route::post('companies/{company}/locations',[CompanyLocationController::class, 'storeForCompany'])->name('companies.locations.store');
 
-        Route::post('locations', [CompanyLocationController::class, 'store'])
-            ->name('locations.store');
+    // ================= PRICES PER LOCATION =================
+    Route::get('locations/{location}/prices',[LocationItemPriceController::class, 'index'])->name('locations.prices.index');
 
-        Route::get('locations/{location}/edit', [CompanyLocationController::class, 'edit'])
-            ->name('locations.edit');
+    Route::post('locations/{location}/prices',[LocationItemPriceController::class, 'store'])->name('locations.prices.store');
 
-        Route::put('locations/{location}', [CompanyLocationController::class, 'update'])
-            ->name('locations.update');
-
-        Route::delete('locations/{location}', [CompanyLocationController::class, 'destroy'])
-            ->name('locations.destroy');
-
-        // ================= LOCATIONS PER COMPANY (🔥 PRINCIPAL) =================
-        Route::get(
-            'companies/{company}/locations',
-            [CompanyLocationController::class, 'manage']
-        )->name('companies.locations.manage');
-
-        Route::post(
-            'companies/{company}/locations',
-            [CompanyLocationController::class, 'storeForCompany']
-        )->name('companies.locations.store');
-
-        // ================= PRICES PER LOCATION =================
-        Route::get(
-            'locations/{location}/prices',
-            [LocationItemPriceController::class, 'index']
-        )->name('locations.prices.index');
-
-        Route::post(
-            'locations/{location}/prices',
-            [LocationItemPriceController::class, 'store']
-        )->name('locations.prices.store');
-
-        // ================= AJAX =================
-        Route::get(
-            'companies/{company}/locations/ajax',
-            [CompanyLocationController::class, 'byCompany']
-        )->name('companies.locations.ajax');
+    // ================= AJAX =================
+    Route::get('companies/{company}/locations/ajax',[CompanyLocationController::class, 'byCompany'])->name('companies.locations.ajax');
 
 
 
@@ -269,15 +248,11 @@ Route::middleware(['auth', 'is-admin'])
 
 
 
-    Route::get('invoices/{invoice}/prepare', [InvoiceController::class, 'prepareInvoice'])
-     ->name('invoices.prepare');
+    Route::get('invoices/{invoice}/prepare', [InvoiceController::class, 'prepareInvoice'])->name('invoices.prepare');
 
-    Route::post('invoices/{invoice}/generate-custom-pdf', [InvoiceController::class, 'generateCustomPdf'])
-        ->name('invoices.generateCustomPdf');
+    Route::post('invoices/{invoice}/generate-custom-pdf', [InvoiceController::class, 'generateCustomPdf'])->name('invoices.generateCustomPdf');
 
-
-    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])
-    ->name('invoices.pdf');
+    Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'downloadPdf'])->name('invoices.pdf');
 
 });
 
@@ -303,7 +278,8 @@ Route::get('/g/{token}', [FotoController::class, 'publicGallery'])->name('photos
 
 
 // 🔹 Rutas para Administradores (Usuarios en la tabla "users")
-Route::middleware(['auth:web'])->group(function () {
+Route::middleware(['auth:web', 'approved'])->group(function () {
+
     // Perfil de usuario (admin)
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');

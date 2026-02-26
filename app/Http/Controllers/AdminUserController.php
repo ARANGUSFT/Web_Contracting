@@ -8,6 +8,10 @@ use App\Models\Emergencies;
 use App\Models\Subcontractors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use App\Mail\UserRejectedMail;
+use App\Mail\UserApprovedMail;
+use Illuminate\Support\Facades\Mail;
 
 class AdminUserController extends Controller
 {
@@ -17,39 +21,75 @@ class AdminUserController extends Controller
 // 🔹 Módulo: Admin Profile
 // ==============================
 
- public function index()
+public function index()
 {
-    // Stats actuales que ya tienes
-    $contractors    = User::where('is_admin', false)->count();
+    // ==============================
+    // 🔹 CONTRACTORS (SOLO APROBADOS)
+    // ==============================
+    $contractors = User::where('is_admin', false)
+                        ->whereNotNull('approved_at')
+                        ->where('is_active', true)
+                        ->count();
+
+    // ==============================
+    // 🔹 PENDIENTES
+    // ==============================
+    $pendingUsers = User::where('is_admin', false)
+                        ->whereNull('approved_at')
+                        ->count();
+
+    // ==============================
+    // 🔹 SUBCONTRACTORS
+    // ==============================
     $subcontractors = Subcontractors::count();
 
-    // Ofertas SIN crew asignada (total)
-    $jobsUnassigned   = JobRequest::where(function ($q) {
+    // ==============================
+    // 🔹 OFERTAS SIN CREW
+    // ==============================
+    $jobsUnassigned = JobRequest::where(function ($q) {
                             $q->whereNull('crew_id')->orWhere('crew_id', 0);
                         })->count();
-    $emergUnassigned  = Emergencies::where(function ($q) {
+
+    $emergUnassigned = Emergencies::where(function ($q) {
                             $q->whereNull('crew_id')->orWhere('crew_id', 0);
                         })->count();
+
     $offersUnassigned = $jobsUnassigned + $emergUnassigned;
 
-    // Ofertas CON crew asignada (total)
-    $jobsAssigned   = JobRequest::whereNotNull('crew_id')->where('crew_id', '!=', 0)->count();
-    $emergAssigned  = Emergencies::whereNotNull('crew_id')->where('crew_id', '!=', 0)->count();
+    // ==============================
+    // 🔹 OFERTAS CON CREW
+    // ==============================
+    $jobsAssigned = JobRequest::whereNotNull('crew_id')
+                                ->where('crew_id', '!=', 0)
+                                ->count();
+
+    $emergAssigned = Emergencies::whereNotNull('crew_id')
+                                ->where('crew_id', '!=', 0)
+                                ->count();
+
     $offersAssigned = $jobsAssigned + $emergAssigned;
 
-    // NUEVAS ESTADÍSTICAS - Registros del último mes
+    // ==============================
+    // 🔹 CRECIMIENTO ÚLTIMOS 30 DÍAS
+    // ==============================
+
     $contractorsLastMonth = User::where('is_admin', false)
+                                ->whereNotNull('approved_at')
+                                ->where('is_active', true)
                                 ->where('created_at', '>=', now()->subDays(30))
                                 ->count();
-    
+
     $subcontractorsLastMonth = Subcontractors::where('created_at', '>=', now()->subDays(30))
                                             ->count();
-    
+
     $jobsLastMonth = JobRequest::where('created_at', '>=', now()->subDays(30))->count();
     $emergLastMonth = Emergencies::where('created_at', '>=', now()->subDays(30))->count();
+
     $offersLastMonth = $jobsLastMonth + $emergLastMonth;
 
-    // Cálculo de crecimiento (simplificado - puedes ajustar la lógica)
+    // ==============================
+    // 🔹 CÁLCULO CRECIMIENTO
+    // ==============================
     $growthContractors = $this->calculateGrowthRate($contractors, $contractorsLastMonth);
     $growthSubcontractors = $this->calculateGrowthRate($subcontractors, $subcontractorsLastMonth);
     $growthOffers = $this->calculateGrowthRate(($offersAssigned + $offersUnassigned), $offersLastMonth);
@@ -64,7 +104,8 @@ class AdminUserController extends Controller
         'offersLastMonth',
         'growthContractors',
         'growthSubcontractors',
-        'growthOffers'
+        'growthOffers',
+        'pendingUsers'
     ));
 }
 
@@ -93,13 +134,13 @@ private function calculateGrowthRate($total, $lastMonth)
 
         $user->update($validated);
 
-        return redirect()->route('admin.users.index')->with('success', 'Usuario actualizado');
+        return redirect()->route('superadmin.users.index')->with('success', 'Usuario actualizado');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
-        return redirect()->route('admin.users.index')->with('success', 'Usuario eliminado');
+        return redirect()->route('superadmin.users.index')->with('success', 'Usuario eliminado');
     }
 
 
@@ -108,55 +149,42 @@ private function calculateGrowthRate($total, $lastMonth)
 // ==============================
 // 🔹 Módulo: Contractors
 // ==============================
-    public function contractors(Request $request)
-    {
-        $query = User::where('is_admin', false);
-        
-        // Aplicar filtros
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function($q) use ($search) {
-                $q->where('company_name', 'like', "%{$search}%")
-                ->orWhere('name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-        
-        if ($request->filled('status')) {
-            $status = $request->input('status') === 'active';
-            $query->where('is_active', $status);
-        }
-        
-        // Filtro por estados (usando states_you_can_work que es un array)
-        if ($request->filled('state')) {
-            $query->whereJsonContains('states_you_can_work', $request->input('state'));
-        }
-        
-        // Filtro por años de experiencia
-        if ($request->filled('experience')) {
-            $query->where('years_experience', '>=', $request->input('experience'));
-        }
-        
-        // Filtro por tipo de techo (residencial/comercial)
-        if ($request->filled('roof_type')) {
-            $roofType = $request->input('roof_type');
-            if ($roofType === 'residential') {
-                $query->whereNotNull('residential_roof_types');
-            } elseif ($roofType === 'commercial') {
-                $query->whereNotNull('commercial_roof_types');
-            }
-        }
-        
-        $users = $query->latest()->paginate(10);
-        
-   
-            
-        $contractors = $users->total();
+public function contractors(Request $request)
+{
+    $query = User::where('is_admin', false)
+                ->whereNotNull('approved_at');
 
-        return view('admin.contractors.list', compact('users', 'contractors'));
+    // 🔍 Filtro búsqueda
+    if ($request->filled('search')) {
+        $search = $request->input('search');
+        $query->where(function($q) use ($search) {
+            $q->where('company_name', 'like', "%{$search}%")
+              ->orWhere('name', 'like', "%{$search}%")
+              ->orWhere('last_name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%")
+              ->orWhere('phone', 'like', "%{$search}%");
+        });
     }
+
+    // 🔍 Filtro estado
+    if ($request->filled('status')) {
+
+        if ($request->status === 'active') {
+            $query->where('is_active', true);
+        }
+
+        if ($request->status === 'inactive') {
+            $query->where('is_active', false);
+        }
+
+    }
+
+    $users = $query->latest()->paginate(10);
+
+    $contractors = $users->total();
+
+    return view('admin.contractors.list', compact('users', 'contractors'));
+}
 
     public function editContractors(User $user)
     {
@@ -273,11 +301,77 @@ private function calculateGrowthRate($total, $lastMonth)
 
         $user->delete();
 
-        return redirect()->route('superadmin.users.contractors')->with('success', 'Contractor successfully removed.');
+        return redirect()->route('superadmin.users.list')->with('success', 'Contractor successfully removed.');
     }
 
 
-    
+
+
+    public function pendingUsers(Request $request)
+    {
+        $query = User::pendingApproval();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('last_name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
+                ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->latest()->paginate(10);
+
+        return view('admin.users.pending', compact('users'));
+    }
+
+    public function approveUser(User $user)
+    {
+        if ($user->is_admin) {
+            return back()->with('error', 'You cannot approve an administrator.');
+        }
+
+        $user->approved_at = now();
+        $user->approved_by = Auth::id();
+        $user->rejection_reason = null;
+        $user->is_active = true;
+        $user->save();
+
+        // 🔥 Enviar correo
+        Mail::to($user->email)->send(new UserApprovedMail($user));
+
+        return back()->with('success', 'User approved and successfully notified.');
+    }
+        
+
+    public function rejectUser(Request $request, User $user)
+    {
+        if ($user->is_admin) {
+            return back()->with('error', 'You cannot reject an administrator.');
+        }
+
+        $data = $request->validate([
+            'rejection_reason' => 'nullable|string|max:1000',
+        ]);
+
+        // Guardamos motivo (opcional si decides no borrar)
+        $user->rejection_reason = $data['rejection_reason'] ?? null;
+
+        // 🔥 Enviar correo con el motivo
+        Mail::to($user->email)->send(
+            new UserRejectedMail($user, $user->rejection_reason)
+        );
+
+        // Si quieres eliminarlo después de enviar el correo:
+        $user->delete(); // o forceDelete()
+
+        return redirect()
+            ->route('superadmin.users.pending')
+            ->with('success', 'User rejected and successfully notified.');
+    }
+        
 
 
 }

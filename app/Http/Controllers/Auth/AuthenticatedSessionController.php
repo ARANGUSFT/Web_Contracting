@@ -23,15 +23,38 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+   public function store(LoginRequest $request): RedirectResponse
+{
+    $user = \App\Models\User::where('email', $request->email)->first();
 
-        $request->session()->regenerate();
-
-        return redirect()->intended(RouteServiceProvider::HOME);
+    // 🔒 Usuario no existe
+    if (!$user) {
+        return back()->withErrors([
+            'email' => 'Invalid credentials.',
+        ]);
     }
 
+    // 🔥 BLOQUEO POR APROBACIÓN
+    if (is_null($user->approved_at)) {
+        return back()->withErrors([
+            'email' => 'Your account is pending admin approval.',
+        ]);
+    }
+
+    // 🔥 BLOQUEO POR DESACTIVACIÓN
+    if (!$user->is_active) {
+        return back()->withErrors([
+            'email' => 'Your account has been deactivated.',
+        ]);
+    }
+
+    // ✅ Si pasa validaciones normales de Breeze
+    $request->authenticate();
+
+    $request->session()->regenerate();
+
+    return redirect()->intended(RouteServiceProvider::HOME);
+}
     /**
      * Destroy an authenticated session.
      */

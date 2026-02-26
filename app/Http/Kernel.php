@@ -69,6 +69,8 @@ class Kernel extends HttpKernel
 
         'team.active' => \App\Http\Middleware\CheckTeamIsActive::class,
         'is-admin' => \App\Http\Middleware\IsAdmin::class,
+
+        'approved' => \App\Http\Middleware\EnsureUserIsApproved::class,
         
 
 

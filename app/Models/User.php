@@ -66,6 +66,16 @@ class User extends Authenticatable
     ];
 
 
+    public function scopePendingApproval($query)
+    {
+        return $query->where('is_admin', false)->whereNull('approved_at');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->whereNotNull('approved_at');
+    }
+
     public function leads()
     {
         return $this->hasMany(Lead::class);

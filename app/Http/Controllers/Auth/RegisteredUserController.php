@@ -30,7 +30,6 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
@@ -40,11 +39,11 @@ class RegisteredUserController extends Controller
             'profile_photo' => 'nullable|image|max:2048',
             'company_name' => 'nullable|string|max:255',
             'years_experience' => 'nullable|string|max:50',
-        
             'company_documents.*' => 'file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $documents = [];
 
         $user = new User();
         $user->name = $validated['name'];
@@ -54,36 +53,34 @@ class RegisteredUserController extends Controller
         $user->language = $validated['language'];
         $user->company_name = $validated['company_name'] ?? null;
         $user->years_experience = $validated['years_experience'] ?? null;
-      
 
-        // Profile photo
+        // 🔥 MUY IMPORTANTE
+        $user->approved_at = null;
+        $user->is_admin = false;
+        $user->is_active = true;
+
         if ($request->hasFile('profile_photo')) {
             $user->profile_photo = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-     
-
-            if ($request->hasFile('company_documents')) {
-                foreach ($request->file('company_documents') as $file) {
-                    $path = $file->store('company_documents', 'public');
-                    $documents[] = [
-                        'file_name' => $path,
-                        'original_name' => $file->getClientOriginalName(),
-                    ];
-                }
+        if ($request->hasFile('company_documents')) {
+            foreach ($request->file('company_documents') as $file) {
+                $path = $file->store('company_documents', 'public');
+                $documents[] = [
+                    'file_name' => $path,
+                    'original_name' => $file->getClientOriginalName(),
+                ];
             }
-            
-            $user->company_documents = $documents;
-            
+        }
 
-        // Password
+        $user->company_documents = $documents;
         $user->password = Hash::make($validated['password']);
-
         $user->save();
 
-        auth()->login($user);
+        // ❌ QUITAMOS ESTO:
+        // auth()->login($user);
 
-        return redirect()->route('dashboard'); // o donde quieras redirigir
+        return redirect()->route('pending.approval');
     }
     
 }

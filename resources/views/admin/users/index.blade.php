@@ -215,6 +215,54 @@
             </div>
         </div>
     </div>
+
+    {{-- Pending Approval Card --}}
+    <div class="mt-8">
+        <div class="bg-gradient-to-br from-white to-amber-50 rounded-2xl shadow-lg border border-amber-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+            <div class="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-5">
+                <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                    <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <i class="fas fa-user-clock text-white text-lg"></i>
+                    </div>
+                    <span>Users Pending Approval</span>
+                </h3>
+            </div>
+
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Awaiting review</p>
+                        <p class="text-5xl font-bold text-gray-900">
+                            {{ $pendingUsers }}
+                        </p>
+                    </div>
+
+                    @if($pendingUsers > 0)
+                        <span class="px-4 py-2 rounded-full text-sm font-semibold bg-red-100 text-red-700 border border-red-200 animate-pulse">
+                            Action Required
+                        </span>
+                    @else
+                        <span class="px-4 py-2 rounded-full text-sm font-semibold bg-green-100 text-green-700 border border-green-200">
+                            All Approved
+                        </span>
+                    @endif
+                </div>
+
+                <div class="border-t border-gray-100 pt-4 flex items-center justify-between">
+                    <a href="{{ route('superadmin.users.pending') }}" 
+                    class="inline-flex items-center gap-2 text-amber-600 hover:text-amber-800 font-semibold transition-colors">
+                        <i class="fas fa-eye"></i>
+                        Review Users
+                    </a>
+
+                    <div class="p-3 bg-amber-100 rounded-full">
+                        <i class="fas fa-shield-alt text-amber-600 text-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
