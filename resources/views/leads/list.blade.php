@@ -8,6 +8,15 @@
         <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
             @php
                 $activeJobs = collect($statusCounts)->except('cancelled')->sum();
+                $pipelineStages = [
+                    'leads'     => ['letter' => 'L', 'color' => 'bg-warning',   'label' => 'Lead',      'tooltip' => 'New potential clients'],
+                    'prospect'  => ['letter' => 'P', 'color' => 'bg-orange',   'label' => 'Prospect',   'tooltip' => 'Qualified opportunities'],
+                    'approved'  => ['letter' => 'A', 'color' => 'bg-success',  'label' => 'Approved',   'tooltip' => 'Approved projects'],
+                    'completed' => ['letter' => 'C', 'color' => 'bg-primary',  'label' => 'Completed',  'tooltip' => 'Work completed'],
+                    'invoiced'  => ['letter' => 'I', 'color' => 'bg-danger',   'label' => 'Invoiced',   'tooltip' => 'Invoiced to client'],
+                    'finish'    => ['letter' => 'F', 'color' => 'bg-info',     'label' => 'Finished',   'tooltip' => 'Project finalized'],
+                    'cancelled' => ['letter' => 'X', 'color' => 'bg-secondary','label' => 'Cancelled',  'tooltip' => 'Cancelled projects'],
+                ];
             @endphp
 
             <h5 class="fw-bold text-dark mb-0">
@@ -18,11 +27,11 @@
                     Active Jobs: {{ $activeJobs }}
                 </span>
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Quick filters">
                         <i class="bi bi-filter"></i> Quick Filters
                     </button>
                     <ul class="dropdown-menu shadow">
-                        <li><a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['status' => null, 'assignment' => null, 'page' => null]) }}">Reset All</a></li>
+                        <li><a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['status' => null, 'assignment' => null, 'page' => null]) }}" aria-label="Reset all filters">Reset All</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['assignment' => 'assigned', 'page' => null]) }}">Assigned Only</a></li>
                         <li><a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['assignment' => 'unassigned', 'page' => null]) }}">Unassigned Only</a></li>
@@ -33,42 +42,37 @@
 
         <div class="card-body">
             <!-- PIPELINE CON SCROLL HORIZONTAL MEJORADO -->
-            <div class="pipeline-container">
+            <div class="pipeline-container" role="navigation" aria-label="Pipeline stages">
                 <div class="pipeline-scroll">
-                    @foreach ([
-                        'leads'     => ['L', 'bg-warning',   'Lead', 'New potential clients'],
-                        'prospect'  => ['P', 'bg-orange',   'Prospect', 'Qualified opportunities'],
-                        'approved'  => ['A', 'bg-success',  'Approved', 'Approved projects'],
-                        'completed' => ['C', 'bg-primary',  'Completed', 'Work completed'],
-                        'invoiced'  => ['I', 'bg-danger',   'Invoiced', 'Invoiced to client'],
-                        'finish'    => ['F', 'bg-info',     'Finish', 'Project finalized'],
-                        'cancelled' => ['X', 'bg-secondary','Cancelled', 'Cancelled projects'],
-                    ] as $key => [$letter, $color, $label, $tooltip])
+                    @foreach($pipelineStages as $key => $stage)
                         @php
                             $isActive = request('status') == $key;
-                            $pipelineUrl = $isActive ? 
-                                request()->fullUrlWithQuery(['status' => null, 'page' => null]) : 
-                                request()->fullUrlWithQuery(['status' => $key, 'page' => null]);
+                            $pipelineUrl = $isActive
+                                ? request()->fullUrlWithQuery(['status' => null, 'page' => null])
+                                : request()->fullUrlWithQuery(['status' => $key, 'page' => null]);
                         @endphp
-                        <a href="{{ $pipelineUrl }}" class="text-decoration-none pipeline-link">
-                            <div class="pipeline-item text-center position-relative" data-bs-toggle="tooltip" title="{{ $tooltip }}">
-                                <div class="status-circle {{ $color }} {{ $isActive ? 'selected-status' : '' }}">
-                                    {{ $letter }}
-                                    <div class="status-pulse"></div>
+                        <a href="{{ $pipelineUrl }}"
+                           class="text-decoration-none pipeline-link"
+                           @if($stage['tooltip']) data-bs-toggle="tooltip" title="{{ $stage['tooltip'] }}" @endif
+                           @if($isActive) aria-current="page" @endif>
+                            <div class="pipeline-item text-center position-relative">
+                                <div class="status-circle {{ $stage['color'] }} {{ $isActive ? 'selected-status' : '' }}" aria-label="{{ $stage['label'] }} status">
+                                    {{ $stage['letter'] }}
+                                    @if($isActive)<div class="status-pulse" aria-hidden="true"></div>@endif
                                 </div>
 
                                 <div class="status-count fw-bold mt-2">
                                     {{ $statusCounts[$key] ?? 0 }}
                                 </div>
 
-                                @if($key !== 'leads' && $key !== 'cancelled')
+                                @if(!in_array($key, ['leads', 'cancelled']))
                                     <div class="text-muted small status-amount">
                                         ${{ number_format($statusSums[$key] ?? 0, 2) }}
                                     </div>
                                 @endif
 
                                 <small class="d-block mt-1 fw-semibold text-secondary">
-                                    {{ $label }}
+                                    {{ $stage['label'] }}
                                 </small>
                             </div>
                         </a>
@@ -80,7 +84,7 @@
             <div class="mt-4">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                     <div class="d-flex gap-2 flex-wrap">
-                        <a href="{{ request()->url() }}" class="btn btn-outline-secondary btn-sm">
+                        <a href="{{ request()->url() }}" class="btn btn-outline-secondary btn-sm" aria-label="Reset all filters">
                             <i class="bi bi-arrow-clockwise"></i> Reset All
                         </a>
                         <div class="vr"></div>
@@ -89,23 +93,12 @@
                                 @php
                                     $activeFilters = [];
                                     if (request('search')) $activeFilters[] = 'Search';
-                                    
-                                    // Status filter - CORREGIDO PARA MANEJAR ARRAYS
                                     $statuses = request('status', []);
-                                    if (!is_array($statuses)) {
-                                        $statuses = $statuses ? [$statuses] : [];
-                                    }
-                                    $validStatuses = array_filter($statuses, function($status) {
-                                        return $status !== 'all' && !empty($status);
-                                    });
+                                    if (!is_array($statuses)) $statuses = $statuses ? [$statuses] : [];
+                                    $validStatuses = array_filter($statuses, fn($s) => $s !== 'all' && !empty($s));
                                     if (count($validStatuses) > 0) {
-                                        if (count($validStatuses) === 1) {
-                                            $activeFilters[] = 'Status: ' . ucfirst($validStatuses[0]);
-                                        } else {
-                                            $activeFilters[] = count($validStatuses) . ' statuses';
-                                        }
+                                        $activeFilters[] = count($validStatuses) === 1 ? 'Status: ' . ucfirst($validStatuses[0]) : count($validStatuses) . ' statuses';
                                     }
-                                    
                                     if (request('assignment') && request('assignment') != 'all') $activeFilters[] = 'Assignment: ' . ucfirst(request('assignment'));
                                     if (request('seller') && request('seller') != 'all') $activeFilters[] = 'Seller';
                                     if (request('lastContact') && request('lastContact') != 'all') $activeFilters[] = 'Last Contact';
@@ -115,7 +108,7 @@
                             </small>
                         </div>
                     </div>
-                    
+
                     <div class="text-muted small badge bg-light text-dark">
                         {{ $leads->total() }} total leads
                     </div>
@@ -133,27 +126,26 @@
                     <div class="col-md-4">
                         <div class="input-group search-container">
                             <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
-                            <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search by name, email, phone, location...">
+                            <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0" placeholder="Search by name, email, phone, location..." aria-label="Search leads">
                             @if(request('search'))
-                                <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" class="btn btn-outline-secondary">
+                                <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" class="btn btn-outline-secondary" aria-label="Clear search">
                                     <i class="bi bi-x"></i>
                                 </a>
                             @endif
                         </div>
                     </div>
 
-                  <!-- IMPROVED STATUS FILTER WITH MULTISELECT -->
+                    <!-- IMPROVED STATUS FILTER WITH MULTISELECT -->
                     <div class="col-md-3">
                         <div class="dropdown">
-                            <button class="btn btn-light border-0 shadow-sm w-100 text-start dropdown-toggle position-relative" 
-                                    type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-funnel me-1"></i> 
+                            <button class="btn btn-light border-0 shadow-sm w-100 text-start dropdown-toggle position-relative"
+                                    type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false"
+                                    aria-label="Filter by status, currently {{ $selectedCount = count(array_filter((array)request('status'))) }} selected">
+                                <i class="bi bi-funnel me-1"></i>
                                 <span class="status-filter-text">
                                     @php
                                         $selectedStatuses = request('status', []);
-                                        if (!is_array($selectedStatuses)) {
-                                            $selectedStatuses = $selectedStatuses ? [$selectedStatuses] : [];
-                                        }
+                                        if (!is_array($selectedStatuses)) $selectedStatuses = $selectedStatuses ? [$selectedStatuses] : [];
                                         $selectedCount = count($selectedStatuses);
                                     @endphp
                                     @if($selectedCount > 0)
@@ -170,18 +162,14 @@
                             </button>
                             <div class="dropdown-menu shadow-lg p-3" style="width: 280px;">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 text-dark fw-semibold">Filter by Status</h6>
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllStatus">
-                                            All
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAllStatus">
-                                            None
-                                        </button>
+                                    <h6 class="mb-0 text-dark fw-semibold" id="statusDropdownLabel">Filter by Status</h6>
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Select or clear all statuses">
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllStatus">All</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAllStatus">None</button>
                                     </div>
                                 </div>
-                                
-                                <div class="status-checkboxes" style="max-height: 200px; overflow-y: auto;">
+
+                                <div class="status-checkboxes" style="max-height: 200px; overflow-y: auto;" role="group" aria-labelledby="statusDropdownLabel">
                                     @php
                                         $statusOptions = [
                                             'leads' => ['label' => 'Lead', 'color' => 'bg-warning'],
@@ -193,15 +181,15 @@
                                             'cancelled' => ['label' => 'Cancelled', 'color' => 'bg-secondary'],
                                         ];
                                     @endphp
-                                    
+
                                     @foreach($statusOptions as $value => $option)
                                     <div class="form-check status-option py-1">
-                                        <input class="form-check-input status-checkbox" type="checkbox" 
-                                            name="status[]" value="{{ $value }}" 
+                                        <input class="form-check-input status-checkbox" type="checkbox"
+                                            name="status[]" value="{{ $value }}"
                                             id="status_{{ $value }}"
                                             {{ in_array($value, $selectedStatuses) ? 'checked' : '' }}>
                                         <label class="form-check-label w-100 d-flex align-items-center py-1" for="status_{{ $value }}">
-                                            <span class="badge {{ $option['color'] }} me-2" style="width: 12px; height: 12px; border-radius: 50%;"></span>
+                                            <span class="badge {{ $option['color'] }} me-2" style="width: 12px; height: 12px; border-radius: 50%;" aria-hidden="true"></span>
                                             <span class="flex-grow-1 small">{{ $option['label'] }}</span>
                                             <span class="badge bg-light text-dark border small">
                                                 {{ $statusCounts[$value] ?? 0 }}
@@ -210,7 +198,7 @@
                                     </div>
                                     @endforeach
                                 </div>
-                                
+
                                 <div class="border-top pt-2 mt-2">
                                     <div class="d-grid gap-2">
                                         <button type="button" class="btn btn-primary btn-sm" id="applyStatusFilter">
@@ -225,10 +213,9 @@
                         </div>
                     </div>
 
-
                     <!-- ASSIGNMENT FILTER -->
                     <div class="col-md-3">
-                        <select name="assignment" class="form-select border-0 shadow-sm">
+                        <select name="assignment" class="form-select border-0 shadow-sm" aria-label="Filter by assignment">
                             <option value="all">All Assignments</option>
                             <option value="assigned" {{ request('assignment') == 'assigned' ? 'selected' : '' }}>Assigned Only</option>
                             <option value="unassigned" {{ request('assignment') == 'unassigned' ? 'selected' : '' }}>Unassigned Only</option>
@@ -237,8 +224,8 @@
 
                     <!-- SELLER FILTER -->
                     <div class="col-md-2">
-                        <select name="seller" class="form-select border-0 shadow-sm">
-                            <option value="all">All Sellers</option>
+                        <select name="seller" class="form-select border-0 shadow-sm" aria-label="Filter by seller">
+                            <option value="all">Sales Rep</option>
                             @foreach($teams as $team)
                                 <option value="{{ $team->id }}" {{ request('seller') == $team->id ? 'selected' : '' }}>
                                     {{ $team->name }}
@@ -248,41 +235,8 @@
                     </div>
                 </div>
 
-                <!-- FILTROS AVANZADOS -->
-                <div class="row mt-3 advanced-filters" style="display: {{ request('lastContact') || request('amount') ? 'block' : 'none' }};">
-                    <div class="col-12">
-                        <div class="border-top pt-3">
-                            <h6 class="text-muted mb-2">Advanced Filters</h6>
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label class="form-label small">Last Contact</label>
-                                    <select class="form-select form-select-sm" name="lastContact">
-                                        <option value="all">Any Time</option>
-                                        <option value="today" {{ request('lastContact') == 'today' ? 'selected' : '' }}>Today</option>
-                                        <option value="week" {{ request('lastContact') == 'week' ? 'selected' : '' }}>This Week</option>
-                                        <option value="month" {{ request('lastContact') == 'month' ? 'selected' : '' }}>This Month</option>
-                                        <option value="older" {{ request('lastContact') == 'older' ? 'selected' : '' }}>Older than Month</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label small">Amount Range</label>
-                                    <select class="form-select form-select-sm" name="amount">
-                                        <option value="all">Any Amount</option>
-                                        <option value="0-1000" {{ request('amount') == '0-1000' ? 'selected' : '' }}>$0 - $1,000</option>
-                                        <option value="1000-5000" {{ request('amount') == '1000-5000' ? 'selected' : '' }}>$1,000 - $5,000</option>
-                                        <option value="5000+" {{ request('amount') == '5000+' ? 'selected' : '' }}>$5,000+</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="row mt-2">
                     <div class="col-12 d-flex justify-content-between align-items-center">
-                        <button type="button" class="btn btn-sm btn-link text-decoration-none p-0 toggle-advanced-filters">
-                            <i class="bi bi-chevron-down"></i> Advanced Filters
-                        </button>
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="bi bi-filter"></i> Apply Filters
                         </button>
@@ -292,8 +246,7 @@
         </div>
     </form>
 
-
-    <!-- 🗂 LEAD CARDS MEJORADOS -->
+    <!-- 🗂 LEAD CARDS MEJORADOS (REDISEÑO) -->
     <div class="position-relative">
         <div class="row" id="leadContainer">
             @if(count($leads) > 0)
@@ -310,59 +263,46 @@
                     ];
                     $statusLabel = $lead->statusText();
                     $badgeClass = $statusClasses[$statusLabel] ?? 'bg-secondary';
-                    
-                    // Calcular días desde último contacto
+
                     $lastContactDays = $lead->last_touched_at ? $lead->last_touched_at->diffInDays(now()) : 999;
                     $contactBadgeClass = $lastContactDays > 30 ? 'bg-warning' : ($lastContactDays > 7 ? 'bg-info' : 'bg-success');
-                    
-                    // Formatear información de contacto
+
                     $location = "{$lead->street} {$lead->suite}, {$lead->city}, {$lead->state} {$lead->zip}";
                 @endphp
 
                 <div class="col-md-6 col-xl-4 mb-4">
-
-                    <div class="card shadow-sm border-0 rounded-4 lead-card h-100 overflow-hidden">
-
-                        <!-- HEADER MEJORADO -->
-                        <div class="card-header bg-white border-0 rounded-top-4 py-3 position-relative">
-                            <!-- BADGE DE PRIORIDAD -->
-                            @if($lastContactDays > 30)
-                                <span class="position-absolute top-0 start-0 translate-middle badge bg-danger rounded-pill">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                </span>
-                            @endif
-
+                    <div class="card lead-card border-0 shadow-sm h-100">
+                        <!-- HEADER: nombre, badges y menú -->
+                        <div class="lead-card__header">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
-                                    <h5 class="fw-semibold mb-1 text-dark">
+                                    <h5 class="lead-card__name fw-semibold mb-2">
                                         {{ $lead->first_name }} {{ $lead->last_name }}
                                     </h5>
-                                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                                        <span class="badge {{ $badgeClass }} text-white">{{ $statusLabel }}</span>
-                                        <span class="badge {{ $contactBadgeClass }} text-white">
-                                            <i class="bi bi-clock"></i> {{ $lastContactDays }}d
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge lead-badge {{ $badgeClass }}">{{ $statusLabel }}</span>
+                                        <span class="badge lead-badge {{ $contactBadgeClass }}">
+                                            <i class="bi bi-clock me-1"></i>{{ $lastContactDays }}d
                                         </span>
                                         @if($lead->team)
-                                            <span class="badge bg-light text-dark border">
-                                                <i class="bi bi-person"></i> {{ $lead->team->name }}
+                                            <span class="badge lead-badge bg-light text-dark border">
+                                                <i class="bi bi-person-circle me-1"></i>{{ $lead->team->name }}
                                             </span>
                                         @endif
                                     </div>
                                 </div>
-
-                                <!-- MENU MEJORADO -->
                                 <div class="dropdown">
-                                    <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                    <button class="btn btn-link text-dark p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Lead options">
                                         <i class="bi bi-three-dots-vertical fs-5"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                         <li>
                                             <a class="dropdown-item" href="{{ route('leads.edit', $lead->id) }}">
-                                                <i class="bi bi-pencil-square me-2 text-primary"></i> Edit Lead
+                                                <i class="bi bi-pencil me-2 text-primary"></i> Edit Lead
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item text-warning" href="{{ route('leads.show', $lead->id) }}">
+                                            <a class="dropdown-item" href="{{ route('leads.show', $lead->id) }}">
                                                 <i class="bi bi-eye me-2"></i> View Details
                                             </a>
                                         </li>
@@ -371,75 +311,78 @@
                             </div>
                         </div>
 
-                        <!-- BODY MEJORADO -->
-                        <div class="card-body">
-                            <div class="lead-info">
-                                <!-- INFORMACIÓN DE CONTACTO -->
-                                <div class="contact-info mb-3">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="bi bi-telephone text-success me-2"></i>
-                                        <span class="small text-truncate">{{ $lead->phone }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="bi bi-envelope text-danger me-2"></i>
-                                        <span class="small text-truncate">{{ $lead->email }}</span>
-                                    </div>
-                                    <div class="d-flex align-items-start mb-3">
-                                        <i class="bi bi-geo-alt text-warning me-2 mt-1"></i>
-                                        <span class="small text-truncate">{{ $location }}</span>
-                                    </div>
-                                </div>
+                        <!-- BODY: contacto y métricas -->
+                        <div class="lead-card__body">
+                            <!-- Contacto con iconos -->
+                            <div class="contact-item mb-2">
+                                <i class="bi bi-telephone text-success"></i>
+                                <span class="small text-truncate">{{ $lead->phone }}</span>
+                            </div>
+                            <div class="contact-item mb-2">
+                                <i class="bi bi-envelope text-danger"></i>
+                                <span class="small text-truncate">{{ $lead->email }}</span>
+                            </div>
+                            <div class="contact-item mb-3">
+                                <i class="bi bi-geo-alt text-warning"></i>
+                                <span class="small text-truncate">{{ $location }}</span>
+                            </div>
 
-                                <!-- INFORMACIÓN ADICIONAL -->
-                                <div class="additional-info border-top pt-3">
-                                    <div class="row small text-muted">
-                                        <div class="col-6">
-                                            <strong>Created:</strong><br>
-                                            {{ $lead->created_at->format('M j, Y') }}
-                                        </div>
-                                        <div class="col-6">
-                                            <strong>Last Touch:</strong><br>
-                                            {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
-                                        </div>
-                                    </div>
+                            <!-- Métricas rápidas: monto (si existe) y última actividad -->
+                            <div class="metrics-row d-flex justify-content-between align-items-center border-top pt-3">
+                                @if(!in_array($lead->status, ['leads', 'cancelled']) && property_exists($lead, 'amount') && $lead->amount)
+                                <div class="metric">
+                                    <span class="metric-label">Amount</span>
+                                    <span class="metric-value text-success">${{ number_format($lead->amount, 2) }}</span>
+                                </div>
+                                @endif
+                                <div class="metric text-end">
+                                    <span class="metric-label">Last Touch</span>
+                                    <span class="metric-value">
+                                        <i class="bi bi-clock-history me-1"></i>
+                                        {{ $lead->last_touched_at ? $lead->last_touched_at->diffForHumans() : 'Never' }}
+                                    </span>
                                 </div>
                             </div>
 
-                            <!-- FORMULARIO ASIGNACIÓN MEJORADO -->
-                            <form action="{{ route('leads.assignSales', $lead->id) }}" method="POST" class="mt-3 assign-form">
+                            <!-- Fechas adicionales (opcional, se puede mostrar si no hay monto) -->
+                            @if(in_array($lead->status, ['leads', 'cancelled']) || !property_exists($lead, 'amount') || !$lead->amount)
+                            <div class="dates-row d-flex justify-content-between small text-muted mt-2">
+                                <span><i class="bi bi-calendar me-1"></i>Created: {{ $lead->created_at->format('M j, Y') }}</span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <!-- FOOTER: asignación rápida -->
+                        <div class="lead-card__footer">
+                            <form action="{{ route('leads.assignSales', $lead->id) }}" method="POST" class="d-flex align-items-center gap-2">
                                 @csrf
                                 @method('PUT')
-                                <label class="form-label small fw-bold text-secondary mb-2">
-                                    <i class="bi bi-person-plus"></i> Assign Seller
-                                </label>
-                                <div class="input-group input-group-sm">
-                                    <select name="team_id" class="form-select border-0 shadow-sm select-seller">
-                                        <option value="">Select Seller</option>
-                                        <option value="" class="text-danger">-- Remove --</option>
-                                        @foreach ($teams as $team)
-                                            <option value="{{ $team->id }}" {{ $lead->team_id == $team->id ? 'selected' : '' }}>
-                                                {{ $team->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="submit" class="btn btn-primary shadow-sm">
-                                        <i class="bi bi-check"></i>
-                                    </button>
-                                </div>
+                                <i class="bi bi-person-plus text-primary" style="font-size: 1.1rem;"></i>
+                                <select name="team_id" class="form-select form-select-sm border-0 shadow-none bg-light" aria-label="Assign seller">
+                                    <option value="">Unassigned</option>
+                                    @foreach ($teams as $team)
+                                        <option value="{{ $team->id }}" {{ $lead->team_id == $team->id ? 'selected' : '' }}>
+                                            {{ $team->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary" title="Assign">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
                 @endforeach
             @else
-                <!-- EMPTY STATE MEJORADO -->
+                <!-- EMPTY STATE -->
                 <div class="col-12">
                     <div class="empty-state text-center py-5">
-                        <i class="bi bi-inbox display-4 text-muted mb-3"></i>
+                        <i class="bi bi-inbox display-4 text-muted mb-3" aria-hidden="true"></i>
                         <h4 class="text-muted">No leads found</h4>
                         <p class="text-muted mb-4">There are currently no leads matching your criteria.</p>
                         <a href="{{ request()->url() }}" class="btn btn-primary">
-                            <i class="bi bi-arrow-clockwise"></i> Reset Filters
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i> Reset Filters
                         </a>
                     </div>
                 </div>
@@ -447,17 +390,17 @@
         </div>
     </div>
 
-    <!-- PAGINATION MEJORADO CON FILTROS -->
-    @if($leads->hasPages())
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <div class="text-muted small">
-                Showing {{ $leads->firstItem() }} to {{ $leads->lastItem() }} of {{ $leads->total() }} results
-            </div>
-            <div>
-                {{ $leads->appends(request()->except('page'))->links() }}
-            </div>
+<!-- PAGINATION MEJORADO CON FILTROS -->
+@if($leads->hasPages())
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+        <div class="text-muted small order-2 order-md-1">
+            Showing {{ $leads->firstItem() }} to {{ $leads->lastItem() }} of {{ $leads->total() }} results
         </div>
-    @endif
+        <div class="order-1 order-md-2">
+            {{ $leads->appends(request()->except('page'))->links('pagination::bootstrap-5') }}
+        </div>
+    </div>
+@endif
 </div>
 @endsection
 
@@ -472,15 +415,15 @@
         --info-color: #06b6d4;
         --light-bg: #f9fafb;
         --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        --hover-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        --hover-shadow: 0 20px 30px -10px rgba(59, 130, 246, 0.3);
         --transition-speed: 0.3s;
     }
-    
+
     body {
         background-color: #f8fafc;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-    
+
     /* PIPELINE MEJORADO */
     .pipeline-container {
         position: relative;
@@ -505,7 +448,7 @@
         background: var(--primary-color);
         border-radius: 10px;
     }
-    
+
     .pipeline-scroll {
         display: flex;
         justify-content: space-between;
@@ -513,7 +456,7 @@
         padding: 0 20px;
         gap: 10px;
     }
-    
+
     .status-circle {
         width: 70px;
         height: 70px;
@@ -529,6 +472,7 @@
         position: relative;
         border: 3px solid transparent;
         font-size: 1.2rem;
+        background: var(--bg-color);
     }
 
     .status-circle:hover {
@@ -585,6 +529,12 @@
         box-shadow: 0 6px 20px rgba(0,0,0,0.2);
     }
 
+    .pipeline-link:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 4px;
+        border-radius: 4px;
+    }
+
     .status-count {
         margin-top: 0.5rem;
         font-size: 1.1rem;
@@ -597,40 +547,130 @@
         font-weight: 600;
     }
 
-    /* CARDS MEJORADAS */
+    /* Tarjetas rediseñadas */
     .lead-card {
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        background: linear-gradient(135deg, #ffffff 0%, #fdfefe 100%);
-        border-radius: 16px;
-        box-shadow: var(--card-shadow);
+        border-radius: 24px;
         overflow: hidden;
-        margin-bottom: 1.5rem;
-        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.03);
     }
 
     .lead-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: var(--hover-shadow);
-        border-color: #e2e8f0;
+        transform: translateY(-4px);
+        box-shadow: 0 20px 30px -10px rgba(59, 130, 246, 0.15) !important;
+        border-color: transparent;
     }
 
-    .card-header {
-        padding: 1.25rem 1.5rem;
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom: 1px solid #e2e8f0;
-        position: relative;
-        z-index: 1;
+    .lead-card__header {
+        padding: 1.25rem 1.25rem 0.5rem 1.25rem;
     }
 
-    .card-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, transparent 100%);
-        z-index: -1;
+    .lead-card__name {
+        font-size: 1.1rem;
+        line-height: 1.4;
+        color: #1e293b;
+        letter-spacing: -0.01em;
+    }
+
+    .lead-card__body {
+        padding: 0.5rem 1.25rem 1rem 1.25rem;
+    }
+
+    .lead-card__footer {
+        background: #f8fafc;
+        border-top: 1px solid #edf2f7;
+        padding: 0.75rem 1.25rem;
+    }
+
+    /* Badges más elegantes */
+    .lead-badge {
+        font-weight: 500;
+        padding: 0.35em 1em;
+        border-radius: 30px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .lead-badge i {
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+    }
+
+    /* Items de contacto */
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #334155;
+    }
+
+    .contact-item i {
+        width: 1.2rem;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+    /* Métricas */
+    .metrics-row {
+        gap: 1rem;
+    }
+
+    .metric {
+        flex: 1;
+    }
+
+    .metric-label {
+        display: block;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        margin-bottom: 0.1rem;
+    }
+
+    .metric-value {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #0f172a;
+    }
+
+    /* Fechas adicionales */
+    .dates-row {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    /* Footer form */
+    .lead-card__footer .form-select-sm {
+        font-size: 0.8rem;
+        padding-top: 0.3rem;
+        padding-bottom: 0.3rem;
+        background-color: #f1f5f9;
+        border-radius: 30px;
+    }
+
+    .lead-card__footer .btn-sm {
+        padding: 0.3rem 0.8rem;
+        border-radius: 30px;
+    }
+
+    /* Ajuste para móviles */
+    @media (max-width: 576px) {
+        .lead-card__name {
+            font-size: 1rem;
+        }
+        .metrics-row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .metric {
+            width: 100%;
+        }
     }
 
     /* FILTROS MEJORADOS */
@@ -646,14 +686,15 @@
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
     }
 
-    .form-select {
+    .form-select, .form-control {
         border-radius: 10px;
         transition: all var(--transition-speed) ease;
     }
 
-    .form-select:focus {
+    .form-select:focus, .form-control:focus {
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         border-color: var(--primary-color);
+        outline: none;
     }
 
     /* BADGES MEJORADOS */
@@ -671,20 +712,25 @@
         border: 2px dashed #e2e8f0;
     }
 
-    /* COLORES MEJORADOS */
-    .bg-warning  { background: linear-gradient(135deg, var(--warning-color), #f59e0b) !important; }
-    .bg-orange   { background: linear-gradient(135deg, var(--orange-color), #ea580c) !important; }
-    .bg-success  { background: linear-gradient(135deg, var(--success-color), #16a34a) !important; }
-    .bg-primary  { background: linear-gradient(135deg, var(--primary-color), #1d4ed8) !important; }
-    .bg-danger   { background: linear-gradient(135deg, var(--danger-color), #dc2626) !important; }
-    .bg-info     { background: linear-gradient(135deg, var(--info-color), #0891b2) !important; }
-    .bg-secondary { background: linear-gradient(135deg, var(--secondary-color), #4b5563) !important; }
+    /* COLORES MEJORADOS (sólidos) */
+    .bg-warning  { background: var(--warning-color) !important; }
+    .bg-orange   { background: var(--orange-color) !important; }
+    .bg-success  { background: var(--success-color) !important; }
+    .bg-primary  { background: var(--primary-color) !important; }
+    .bg-danger   { background: var(--danger-color) !important; }
+    .bg-info     { background: var(--info-color) !important; }
+    .bg-secondary { background: var(--secondary-color) !important; }
 
     /* BOTONES MEJORADOS */
     .btn {
         border-radius: 10px;
         font-weight: 500;
         transition: all var(--transition-speed) ease;
+    }
+
+    .btn:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
     }
 
     .btn:disabled {
@@ -696,9 +742,40 @@
         border-radius: 8px;
     }
 
-    /* EFECTOS DE CARGA */
-    .loading-pulse {
-        animation: pulse 1.5s ease-in-out infinite;
+    /* Paginación moderna */
+    .pagination-modern .pagination {
+        gap: 0.25rem;
+        margin-bottom: 0;
+    }
+
+    .pagination-modern .page-item .page-link {
+        border-radius: 8px !important;
+        border: none;
+        padding: 0.5rem 0.9rem;
+        color: #4b5563;
+        background-color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .pagination-modern .page-item .page-link:hover {
+        background-color: #f1f5f9;
+        color: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .pagination-modern .page-item.active .page-link {
+        background: var(--primary-color) !important;
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(59,130,246,0.3);
+    }
+
+    .pagination-modern .page-item.disabled .page-link {
+        background-color: #f9fafb;
+        color: #cbd5e1;
+        pointer-events: none;
     }
 
     /* RESPONSIVE MEJORADO */
@@ -708,24 +785,16 @@
             padding: 0 10px;
             gap: 5px;
         }
-        
+
         .status-circle {
             width: 60px;
             height: 60px;
             font-size: 1rem;
         }
-        
+
         .pipeline-item {
             margin: 0.5rem;
             min-width: 70px;
-        }
-        
-        .card-header {
-            padding: 1rem;
-        }
-        
-        .card-body {
-            padding: 1rem;
         }
     }
 
@@ -733,7 +802,7 @@
         .pipeline-scroll {
             min-width: 550px;
         }
-        
+
         .status-circle {
             width: 50px;
             height: 50px;
@@ -774,315 +843,97 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+
+    /* Paginación moderna */
+.pagination {
+    gap: 0.25rem;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.page-item .page-link {
+    border-radius: 8px !important;
+    border: none;
+    padding: 0.5rem 0.9rem;
+    color: #4b5563;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s;
+    font-weight: 500;
+    margin: 0 2px;
+}
+
+.page-item .page-link:hover {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.page-item.active .page-link {
+    background: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(59,130,246,0.3);
+}
+
+.page-item.disabled .page-link {
+    background-color: #f9fafb;
+    color: #cbd5e1;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Responsive: en móvil, centrar paginación y apilar */
+@media (max-width: 576px) {
+    .pagination {
+        gap: 0.15rem;
+    }
+    .page-link {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.9rem;
+    }
+}
 </style>
 
 
-
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    // INICIALIZAR TOOLTIPS
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-
-    // TOGGLE ADVANCED FILTERS
-    const toggleAdvanced = document.querySelector('.toggle-advanced-filters');
-    const advancedFilters = document.querySelector('.advanced-filters');
-    
-    if (toggleAdvanced && advancedFilters) {
-        toggleAdvanced.addEventListener('click', function() {
-            const isVisible = advancedFilters.style.display !== 'none';
-            advancedFilters.style.display = isVisible ? 'none' : 'block';
-            
-            const icon = this.querySelector('i');
-            const text = this.querySelector('span') || this;
-            
-            if (isVisible) {
-                icon.className = 'bi bi-chevron-down';
-                if (text.textContent.includes('Hide')) {
-                    text.innerHTML = '<i class="bi bi-chevron-down"></i> Advanced Filters';
-                }
-            } else {
-                icon.className = 'bi bi-chevron-up';
-                if (text.textContent.includes('Advanced')) {
-                    text.innerHTML = '<i class="bi bi-chevron-up"></i> Hide Filters';
-                }
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar tooltips de Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-    }
 
-    // MULTISELECT DE ESTADOS MEJORADO
-    const statusDropdown = document.getElementById('statusDropdown');
-    const statusCheckboxes = document.querySelectorAll('.status-checkbox');
-    const selectAllStatus = document.getElementById('selectAllStatus');
-    const clearAllStatus = document.getElementById('clearAllStatus');
-    const applyStatusFilter = document.getElementById('applyStatusFilter');
-    const statusFilterText = document.querySelector('.status-filter-text');
+        // Manejo del multiselect de estado
+        const selectAllBtn = document.getElementById('selectAllStatus');
+        const clearAllBtn = document.getElementById('clearAllStatus');
+        const checkboxes = document.querySelectorAll('.status-checkbox');
+        const applyBtn = document.getElementById('applyStatusFilter');
 
-    // Función para actualizar el texto del botón
-    function updateStatusFilterText() {
-        const checkedBoxes = document.querySelectorAll('.status-checkbox:checked');
-        const count = checkedBoxes.length;
-        
-        if (count === 0) {
-            statusFilterText.textContent = 'Todos los estados';
-        } else if (count === 1) {
-            const label = checkedBoxes[0].closest('.status-option').querySelector('.form-check-label .flex-grow-1').textContent.trim();
-            statusFilterText.textContent = label;
-        } else {
-            statusFilterText.textContent = count + ' estado(s)';
-        }
-        
-        // Actualizar badge de conteo
-        const badge = statusDropdown.querySelector('.badge');
-        if (count > 0) {
-            if (!badge) {
-                const newBadge = document.createElement('span');
-                newBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary';
-                newBadge.textContent = count;
-                statusDropdown.appendChild(newBadge);
-            } else {
-                badge.textContent = count;
-            }
-        } else if (badge) {
-            badge.remove();
-        }
-    }
-
-    // Seleccionar Todos
-    if (selectAllStatus) {
-        selectAllStatus.addEventListener('click', function() {
-            statusCheckboxes.forEach(checkbox => {
-                checkbox.checked = true;
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => cb.checked = true);
             });
-            updateStatusFilterText();
-        });
-    }
+        }
 
-    // Limpiar Todos
-    if (clearAllStatus) {
-        clearAllStatus.addEventListener('click', function() {
-            statusCheckboxes.forEach(checkbox => {
-                checkbox.checked = false;
+        if (clearAllBtn) {
+            clearAllBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => cb.checked = false);
             });
-            updateStatusFilterText();
-        });
-    }
+        }
 
-    // Aplicar filtro de estados
-    if (applyStatusFilter) {
-        applyStatusFilter.addEventListener('click', function() {
-            // Efecto visual
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Aplicando...';
-            this.disabled = true;
-            
-            // Cerrar dropdown
-            const dropdownInstance = bootstrap.Dropdown.getInstance(statusDropdown);
-            if (dropdownInstance) {
-                dropdownInstance.hide();
-            }
-            
-            // Enviar formulario
-            setTimeout(() => {
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function() {
                 document.getElementById('filterForm').submit();
-            }, 400);
-        });
-    }
-
-    // Actualizar texto cuando cambian los checkboxes
-    statusCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateStatusFilterText);
-    });
-
-    // Inicializar texto al cargar
-    updateStatusFilterText();
-
-    // Función global para limpiar filtro de estados
-    window.clearStatusFilter = function() {
-        statusCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateStatusFilterText();
-        
-        // Cerrar dropdown y enviar formulario
-        const dropdownInstance = bootstrap.Dropdown.getInstance(statusDropdown);
-        if (dropdownInstance) {
-            dropdownInstance.hide();
+            });
         }
-        
-        setTimeout(() => {
+
+        // Función global para limpiar filtros de estado
+        window.clearStatusFilter = function() {
+            checkboxes.forEach(cb => cb.checked = false);
             document.getElementById('filterForm').submit();
-        }, 300);
-    };
-
-    // AUTO-SUBMIT ON FILTER CHANGE - OTROS SELECTS
-    const autoSubmitSelects = document.querySelectorAll(
-        'select[name="assignment"], select[name="seller"], select[name="lastContact"], select[name="amount"]'
-    );
-    
-    autoSubmitSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            this.style.opacity = '0.7';
-            setTimeout(() => {
-                document.getElementById('filterForm').submit();
-            }, 300);
-        });
+        };
     });
-
-    // SEARCH DEBOUNCE MEJORADO
-    let searchTimeout;
-    const searchInput = document.querySelector('input[name="search"]');
-    const searchContainer = document.querySelector('.search-container');
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            
-            if (this.value.length > 0) {
-                searchContainer.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.2)';
-            } else {
-                searchContainer.style.boxShadow = '';
-            }
-            
-            searchTimeout = setTimeout(() => {
-                const submitBtn = document.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    const originalHtml = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Searching...';
-                    submitBtn.disabled = true;
-                    
-                    setTimeout(() => {
-                        submitBtn.innerHTML = originalHtml;
-                        submitBtn.disabled = false;
-                    }, 2000);
-                }
-                
-                document.getElementById('filterForm').submit();
-            }, 800);
-        });
-        
-        const clearSearchBtn = searchContainer.querySelector('.btn-outline-secondary');
-        if (clearSearchBtn) {
-            clearSearchBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                searchInput.value = '';
-                searchContainer.style.boxShadow = '';
-                document.getElementById('filterForm').submit();
-            });
-        }
-    }
-
-    // MEJORAR INTERACCIONES DE CARDS
-    const leadCards = document.querySelectorAll('.lead-card');
-    leadCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px) scale(1.02)';
-            this.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-
-    // ANIMACIÓN DE CARGA PARA FILTROS APLICADOS
-    const filterForm = document.getElementById('filterForm');
-    if (filterForm) {
-        filterForm.addEventListener('submit', function(e) {
-            const submitBtn = this.querySelector('button[type="submit"]');
-            if (submitBtn && !submitBtn.innerHTML.includes('Searching')) {
-                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Applying...';
-                submitBtn.disabled = true;
-                
-                e.preventDefault();
-                setTimeout(() => {
-                    this.submit();
-                }, 100);
-            }
-        });
-    }
-
-    // SCROLL SUAVE PARA PIPELINE
-    const pipelineContainer = document.querySelector('.pipeline-container');
-    if (pipelineContainer) {
-        let isScrolling = false;
-        
-        pipelineContainer.addEventListener('wheel', (e) => {
-            if (!isScrolling) {
-                isScrolling = true;
-                e.preventDefault();
-                pipelineContainer.scrollLeft += e.deltaY * 2;
-                
-                setTimeout(() => {
-                    isScrolling = false;
-                }, 50);
-            }
-        });
-    }
-
-    // FEEDBACK VISUAL PARA FILTROS ACTIVOS - ACTUALIZADO PARA MÚLTIPLES ESTADOS
-    function updateActiveFiltersVisual() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const pipelineItems = document.querySelectorAll('.pipeline-item');
-        const selectedStatuses = urlParams.getAll('status[]');
-        
-        pipelineItems.forEach(item => {
-            const statusCircle = item.querySelector('.status-circle');
-            const statusLink = item.querySelector('.pipeline-link');
-            
-            if (statusLink) {
-                const href = statusLink.href;
-                const statusMatch = href.match(/status=([^&]*)/);
-                const status = statusMatch ? decodeURIComponent(statusMatch[1]) : null;
-                
-                if (status && selectedStatuses.includes(status)) {
-                    statusCircle.classList.add('selected-status');
-                    statusCircle.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.5)';
-                } else {
-                    statusCircle.classList.remove('selected-status');
-                    statusCircle.style.boxShadow = '';
-                }
-            }
-        });
-    }
-    
-    updateActiveFiltersVisual();
-
-    // MEJORAR RESPONSIVE BEHAVIOR
-    function handleResponsive() {
-        const pipelineScroll = document.querySelector('.pipeline-scroll');
-        if (window.innerWidth < 768) {
-            pipelineScroll.style.minWidth = '650px';
-        } else {
-            pipelineScroll.style.minWidth = 'min(750px, 100%)';
-        }
-    }
-    
-    window.addEventListener('resize', handleResponsive);
-    handleResponsive();
-});
-
-// ANIMACIÓN DE ENTRADA PARA ELEMENTOS
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-document.querySelectorAll('.lead-item').forEach(item => {
-    item.style.opacity = '0';
-    item.style.transform = 'translateY(20px)';
-    item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(item);
-});
 </script>

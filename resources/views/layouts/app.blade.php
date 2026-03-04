@@ -54,7 +54,7 @@
         }
 
         .content {
-            max-width: 1050px;
+            max-width: 1200px;
             width: 100%;
             padding: 20px;
             background: rgb(238, 237, 237);

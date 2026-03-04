@@ -2,50 +2,55 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <!-- Header Minimalista -->
-    <div class="d-flex justify-content-between align-items-center mb-5">
+    <!-- Modern Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 gap-3">
         <div>
-            <h1 class="h3 fw-600 text-dark mb-2">Dashboard</h1>
-            <p class="text-gray-500">Lead overview & performance metrics</p>
+            <h1 class="display-6 fw-semibold text-dark mb-1">Dashboard</h1>
+            <p class="text-secondary-emphasis mb-0">
+                Overview of your pipeline and financial performance
+            </p>
         </div>
-        <div>
-            <a href="{{ route('leads.create') }}" class="btn btn-primary px-4 py-2">
-                <i class="bi bi-plus me-2"></i> New Lead
+
+        <div class="d-flex align-items-center gap-4">
+       
+
+            <a href="{{ route('leads.create') }}" class="btn btn-primary rounded-3 px-4 py-2 shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> New Lead
             </a>
         </div>
     </div>
 
-    <!-- Metrics Minimalistas -->
     @php
         $totalLeads = array_sum($statusCounts);
         $totalValue = array_sum($statusSums);
         
-        // Colores según tu especificación
+        // Pastel colors for each status (based on originals)
         $statusColors = [
-            'leads' => '#FFC107',     // Amarillo
-            'prospect' => '#FD7E14',  // Naranja
-            'completed' => '#28A745', // Verde
-            'invoiced' => '#DC3545',  // Rojo
-            'finish' => '#007BFF',    // Azul
-            'cancel' => '#6C757D',    // Gris
+            'leads'     => '#FFB347', // Yellowish orange
+            'prospect'  => '#FF8C42', // Orange
+            'completed' => '#6FCF97', // Soft green
+            'invoiced'  => '#EB5757', // Red
+            'finish'    => '#5D9BEC', // Blue
+            'cancel'    => '#A0A0A0', // Gray
         ];
         
-        // Calculamos la tasa de conversión
         $conversionRate = $totalLeads > 0 ? (($statusCounts['completed'] ?? 0) / $totalLeads * 100) : 0;
     @endphp
 
-    <div class="row g-3 mb-5">
+    <!-- Metric Cards -->
+    <div class="row g-4 mb-5">
+        <!-- Total Leads -->
         <div class="col-lg-3 col-md-6">
             <a href="{{ route('leads.index') }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm bg-white clickable-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
+                <div class="card metric-card h-100 border-0 shadow-hover">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <p class="text-gray-500 small mb-2">Total Leads</p>
-                                <h2 class="fw-700 mb-0">{{ number_format($totalLeads) }}</h2>
+                                <span class="text-secondary text-uppercase small fw-semibold">Total Leads</span>
+                                <h2 class="fw-bold text-dark mt-2 mb-0">{{ number_format($totalLeads) }}</h2>
                             </div>
-                            <div class="text-warning">
-                                <i class="bi bi-people fs-4"></i>
+                            <div class="icon-shape bg-primary-soft text-primary rounded-3">
+                                <i class="bi bi-people fs-3"></i>
                             </div>
                         </div>
                     </div>
@@ -53,52 +58,51 @@
             </a>
         </div>
         
+        <!-- Total Value -->
         <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm bg-white">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
+            <div class="card metric-card h-100 border-0 shadow-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-gray-500 small mb-2">Total Value</p>
-                            <h2 class="fw-700 mb-0">{{ number_format($totalValue, 0) }}</h2>
+                            <span class="text-secondary text-uppercase small fw-semibold">Total Value</span>
+                            <h2 class="fw-bold text-dark mt-2 mb-0">{{ number_format($totalValue, 0) }}</h2>
                         </div>
-                        <div class="text-info">
-                            <i class="bi bi-currency-dollar fs-4"></i>
+                        <div class="icon-shape bg-success-soft text-success rounded-3">
+                            <i class="bi bi-currency-dollar fs-3"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
         
+        <!-- Conversion Rate -->
         <div class="col-lg-3 col-md-6">
-            <a href="{{ route('leads.index', ['status' => 'leads']) }}" class="text-decoration-none">
-                <div class="card border-0 shadow-sm bg-white clickable-card">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-gray-500 small mb-2">Active Leads</p>
-                                <h2 class="fw-700 mb-0">{{ $statusCounts['leads'] ?? 0 }}</h2>
-                            </div>
-                            <div style="color: {{ $statusColors['leads'] }}">
-                                <i class="bi bi-circle-fill fs-4"></i>
-                            </div>
+            <div class="card metric-card h-100 border-0 shadow-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-secondary text-uppercase small fw-semibold">Conversion Rate</span>
+                            <h2 class="fw-bold text-dark mt-2 mb-0">{{ number_format($conversionRate, 1) }}%</h2>
+                        </div>
+                        <div class="icon-shape bg-warning-soft text-warning rounded-3">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
                         </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
-        
+
+        <!-- Outstanding Balance -->
         <div class="col-lg-3 col-md-6">
-            <div class="card border-0 shadow-sm bg-white">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
+            <div class="card metric-card h-100 border-0 shadow-hover">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <p class="text-gray-500 small mb-2">Conversion Rate</p>
-                            <h2 class="fw-700 mb-0">
-                                {{ number_format($conversionRate, 1) }}%
-                            </h2>
+                            <span class="text-secondary text-uppercase small fw-semibold">Outstanding Balance</span>
+                            <h2 class="fw-bold text-dark mt-2 mb-0">${{ number_format($totalOwed ?? 0, 2) }}</h2>
                         </div>
-                        <div class="text-success">
-                            <i class="bi bi-graph-up fs-4"></i>
+                        <div class="icon-shape bg-danger-soft text-danger rounded-3">
+                            <i class="bi bi-credit-card fs-3"></i>
                         </div>
                     </div>
                 </div>
@@ -106,64 +110,60 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
+    <!-- Main Content: Chart and Side Panel -->
     <div class="row g-4">
-        <!-- Left Column: Chart -->
+        <!-- Left Column: Distribution Chart -->
         <div class="col-lg-8">
-            <div class="card border-0 shadow-sm bg-white h-100">
+            <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h5 class="fw-600 mb-1">Lead Distribution</h5>
-                            <p class="text-gray-500 small">Status breakdown visualization</p>
+                            <h5 class="fw-semibold mb-1">Lead Distribution</h5>
+                            <p class="text-secondary small">Breakdown by status</p>
                         </div>
                     </div>
                     
-                    <div class="row align-items-center">
+                    <div class="row g-4 align-items-center">
                         <div class="col-md-7">
-                            <div class="chart-minimal-container">
+                            <div class="chart-container">
                                 <canvas id="leadChart"></canvas>
                             </div>
                         </div>
                         
                         <div class="col-md-5">
-                            <div class="ps-md-4">
-                                <h6 class="fw-600 mb-4">Status Summary</h6>
-                                
+                            <div class="status-legend">
+                                <h6 class="fw-semibold mb-3">Status Summary</h6>
                                 @foreach($chartStatusData as $item)
-                                @php
-                                    $statusName = strtolower($item['name']);
-                                    $statusColor = $statusColors[$statusName] ?? '#6C757D';
-                                    $percentage = $totalLeads > 0 ? ($item['y'] / $totalLeads * 100) : 0;
-                                @endphp
-                                <a href="{{ route('leads.index', ['status' => $statusName]) }}" class="text-decoration-none">
-                                    <div class="status-item mb-3 clickable-item">
-                                        <div class="d-flex align-items-center mb-1">
-                                            <div class="status-color me-3" style="background-color: {{ $statusColor }}"></div>
-                                            <span class="flex-grow-1 fw-500 text-dark">{{ ucfirst($statusName) }}</span>
-                                            <span class="fw-600 text-dark">{{ $item['y'] }}</span>
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1 me-3" style="height: 4px;">
-                                                <div class="progress-bar rounded" style="width: {{ $percentage }}%; background-color: {{ $statusColor }}"></div>
+                                    @php
+                                        $statusName = strtolower($item['name']);
+                                        $color = $statusColors[$statusName] ?? '#A0A0A0';
+                                        $percentage = $totalLeads > 0 ? ($item['y'] / $totalLeads * 100) : 0;
+                                    @endphp
+                                    <a href="{{ route('leads.index', ['status' => $statusName]) }}" class="text-decoration-none">
+                                        <div class="status-item mb-3">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <span class="status-dot me-2" style="background-color: {{ $color }}"></span>
+                                                <span class="flex-grow-1 text-dark">{{ ucfirst($statusName) }}</span>
+                                                <span class="fw-semibold">{{ $item['y'] }}</span>
                                             </div>
-                                            <span class="text-gray-500 small">{{ number_format($percentage, 1) }}%</span>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar rounded-pill" style="width: {{ $percentage }}%; background-color: {{ $color }}"></div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </a>
+                                    </a>
                                 @endforeach
                                 
-                                <div class="mt-5 pt-3 border-top">
+                                <div class="mt-4 pt-3 border-top">
                                     <div class="row text-center">
                                         <div class="col-6">
                                             <a href="{{ route('leads.index') }}" class="text-decoration-none">
-                                                <h4 class="fw-700 mb-1 text-dark">{{ $totalLeads }}</h4>
-                                                <p class="text-gray-500 small mb-0">Total Leads</p>
+                                                <h4 class="fw-bold text-dark mb-1">{{ $totalLeads }}</h4>
+                                                <p class="text-secondary small mb-0">Total Leads</p>
                                             </a>
                                         </div>
                                         <div class="col-6">
-                                            <h4 class="fw-700 mb-1 text-dark">{{ number_format($totalValue, 0) }}</h4>
-                                            <p class="text-gray-500 small mb-0">Total Value</p>
+                                            <h4 class="fw-bold text-dark mb-1">{{ number_format($totalValue, 0) }}</h4>
+                                            <p class="text-secondary small mb-0">Total Value</p>
                                         </div>
                                     </div>
                                 </div>
@@ -174,65 +174,60 @@
             </div>
         </div>
 
-        <!-- Right Column: Sidebar -->
+        <!-- Right Column: Quick Metrics and Recent Leads -->
         <div class="col-lg-4">
             <div class="d-flex flex-column gap-4">
-                <!-- Quick Stats -->
-                <div class="card border-0 shadow-sm bg-white">
+                <!-- Performance Card -->
+                <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
-                        <h5 class="fw-600 mb-4">Performance Metrics</h5>
+                        <h5 class="fw-semibold mb-4">Performance Metrics</h5>
                         
                         <div class="row g-3 mb-4">
                             @foreach(['leads', 'prospect', 'completed', 'invoiced'] as $status)
-                            @if(isset($statusCounts[$status]))
-                            <div class="col-6">
-                                <a href="{{ route('leads.index', ['status' => $status]) }}" class="text-decoration-none">
-                                    <div class="metric-box p-3 border rounded clickable-item">
-                                        <div class="d-flex align-items-center">
-                                            <div class="metric-icon me-3" style="color: {{ $statusColors[$status] }}">
-                                                <i class="bi bi-circle-fill fs-5"></i>
-                                            </div>
-                                            <div>
-                                                <h4 class="fw-700 mb-0 text-dark">{{ $statusCounts[$status] }}</h4>
-                                                <p class="text-gray-500 small mb-0">{{ ucfirst($status) }}</p>
+                                @if(isset($statusCounts[$status]))
+                                <div class="col-6">
+                                    <a href="{{ route('leads.index', ['status' => $status]) }}" class="text-decoration-none">
+                                        <div class="metric-mini p-3 rounded-3 border">
+                                            <div class="d-flex align-items-center">
+                                                <div class="mini-icon me-3" style="color: {{ $statusColors[$status] }}">
+                                                    <i class="bi bi-circle-fill"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="fw-bold text-dark mb-0">{{ $statusCounts[$status] }}</h5>
+                                                    <span class="text-secondary small">{{ ucfirst($status) }}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </a>
-                            </div>
-                            @endif
+                                    </a>
+                                </div>
+                                @endif
                             @endforeach
                         </div>
                         
-                        <!-- Conversion Progress -->
                         <div class="mb-4">
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-gray-500">Conversion Rate</span>
-                                <span class="fw-600">{{ number_format($conversionRate, 1) }}%</span>
+                                <span class="text-secondary">Conversion</span>
+                                <span class="fw-semibold">{{ number_format($conversionRate, 1) }}%</span>
                             </div>
-                            <div class="progress" style="height: 6px;">
-                                <div class="progress-bar bg-success rounded" style="width: {{ $conversionRate }}%"></div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success rounded-pill" style="width: {{ $conversionRate }}%"></div>
                             </div>
                         </div>
                         
-                        <!-- Value Metrics -->
                         <div class="border-top pt-4">
                             <div class="row g-3">
                                 <div class="col-4 text-center">
-                                    <h6 class="fw-600 mb-1 text-dark">{{ number_format($totalValue, 0) }}</h6>
-                                    <p class="text-gray-500 small mb-0">Total</p>
+                                    <h6 class="fw-bold text-dark mb-1">{{ number_format($totalValue, 0) }}</h6>
+                                    <p class="text-secondary small mb-0">Total</p>
                                 </div>
                                 <div class="col-4 text-center">
-                                    @php
-                                        $avgValue = $totalLeads > 0 ? $totalValue / $totalLeads : 0;
-                                    @endphp
-                                    <h6 class="fw-600 mb-1 text-dark">{{ number_format($avgValue, 0) }}</h6>
-                                    <p class="text-gray-500 small mb-0">Avg</p>
+                                    <h6 class="fw-bold text-dark mb-1">{{ number_format($totalLeads > 0 ? $totalValue / $totalLeads : 0, 0) }}</h6>
+                                    <p class="text-secondary small mb-0">Average</p>
                                 </div>
                                 <div class="col-4 text-center">
                                     <a href="{{ route('leads.index') }}" class="text-decoration-none">
-                                        <h6 class="fw-600 mb-1 text-dark">{{ $totalLeads }}</h6>
-                                        <p class="text-gray-500 small mb-0">Leads</p>
+                                        <h6 class="fw-bold text-dark mb-1">{{ $totalLeads }}</h6>
+                                        <p class="text-secondary small mb-0">Leads</p>
                                     </a>
                                 </div>
                             </div>
@@ -241,61 +236,56 @@
                 </div>
 
                 <!-- Recent Leads -->
-                <div class="card border-0 shadow-sm bg-white">
+                <div class="card border-0 shadow-sm">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-600 mb-0">Recent Leads</h5>
-                            <a href="{{ route('leads.index') }}" class="text-primary small text-decoration-none">
-                                View all
-                            </a>
+                            <h5 class="fw-semibold mb-0">Recent Leads</h5>
+                            <a href="{{ route('leads.index') }}" class="btn btn-link text-primary p-0">View all</a>
                         </div>
                         
-                        <div class="leads-list">
+                        <div class="recent-leads-list">
                             @forelse($leads as $lead)
-                            @php
-                                $leadStatus = strtolower($lead->status ?? 'leads');
-                                $leadColor = $statusColors[$leadStatus] ?? '#6C757D';
-                            @endphp
-                            <a href="{{ route('leads.show', $lead->id) }}" class="text-decoration-none">
-                                <div class="lead-item mb-3 pb-3 border-bottom clickable-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="lead-avatar me-3">
-                                            <div class="avatar-circle" style="background-color: {{ $leadColor }}20; color: {{ $leadColor }}">
-                                                {{ strtoupper(substr($lead->first_name, 0, 1)) }}
+                                @php
+                                    $leadStatus = strtolower($lead->status ?? 'leads');
+                                    $leadColor = $statusColors[$leadStatus] ?? '#A0A0A0';
+                                    $initials = strtoupper(substr($lead->first_name, 0, 1) . substr($lead->last_name, 0, 1));
+                                @endphp
+                                <a href="{{ route('leads.show', $lead->id) }}" class="text-decoration-none">
+                                    <div class="recent-lead-item mb-3 pb-3 border-bottom">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-3" style="background-color: {{ $leadColor }}20; color: {{ $leadColor }}">
+                                                {{ $initials }}
                                             </div>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <h6 class="fw-600 mb-0 text-dark">{{ $lead->first_name }} {{ $lead->last_name }}</h6>
-                                                <span class="badge rounded-pill" style="background-color: {{ $leadColor }}20; color: {{ $leadColor }}">
-                                                    {{ ucfirst($leadStatus) }}
-                                                </span>
-                                            </div>
-                                            <p class="text-gray-500 small mb-1">
-                                                <i class="bi bi-envelope me-1"></i>{{ $lead->email ?? 'No email' }}
-                                            </p>
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="text-gray-500 small">
-                                                    {{ optional($lead->created_at)->format('M d') }}
+                                            <div class="flex-grow-1 min-w-0">
+                                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                                    <h6 class="fw-semibold text-dark text-truncate mb-0">{{ $lead->first_name }} {{ $lead->last_name }}</h6>
+                                                    <span class="badge rounded-pill" style="background-color: {{ $leadColor }}20; color: {{ $leadColor }}">
+                                                        {{ ucfirst($leadStatus) }}
+                                                    </span>
+                                                </div>
+                                                <p class="text-secondary small text-truncate mb-1">
+                                                    <i class="bi bi-envelope me-1"></i>{{ $lead->email ?? 'No email' }}
+                                                </p>
+                                                <span class="text-secondary small">
+                                                    <i class="bi bi-calendar3 me-1"></i>{{ optional($lead->created_at)->format('d M, Y') }}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
                             @empty
-                            <div class="text-center py-4">
-                                <div class="text-gray-400 mb-3">
-                                    <i class="bi bi-people fs-1"></i>
+                                <div class="text-center py-5">
+                                    <div class="text-secondary mb-3">
+                                        <i class="bi bi-people fs-1"></i>
+                                    </div>
+                                    <p class="text-secondary">No leads available</p>
                                 </div>
-                                <p class="text-gray-500 mb-0">No leads available</p>
-                            </div>
                             @endforelse
                         </div>
                         
                         <div class="mt-4">
-                            <a href="{{ route('leads.create') }}" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-plus me-2"></i> Add New Lead
+                            <a href="{{ route('leads.create') }}" class="btn btn-outline-primary w-100 rounded-3">
+                                <i class="bi bi-plus-lg me-2"></i> Add New Lead
                             </a>
                         </div>
                     </div>
@@ -305,60 +295,59 @@
     </div>
 </div>
 
-<!-- Chart.js Script -->
+<!-- Chart Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    initMinimalChart(@json($chartStatusData));
-});
+    if (typeof Chart === 'undefined') return;
 
-function initMinimalChart(chartData) {
-    if (typeof Chart === 'undefined' || !chartData || chartData.length === 0) return;
-    
+    const chartData = @json($chartStatusData);
+    if (!chartData || chartData.length === 0) return;
+
     const canvas = document.getElementById('leadChart');
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
-    
-    // Colores según especificación
+
     const colorMap = {
-        'leads': '#FFC107',
-        'prospect': '#FD7E14',
-        'completed': '#28A745',
-        'invoiced': '#DC3545',
-        'finish': '#007BFF',
-        'cancel': '#6C757D'
+        'leads': '#FFB347',
+        'prospect': '#FF8C42',
+        'completed': '#6FCF97',
+        'invoiced': '#EB5757',
+        'finish': '#5D9BEC',
+        'cancel': '#A0A0A0'
     };
-    
+
     const labels = chartData.map(item => item.name);
     const data = chartData.map(item => item.y);
-    const colors = chartData.map(item => colorMap[item.name.toLowerCase()] || '#6C757D');
-    
+    const backgroundColors = chartData.map(item => colorMap[item.name.toLowerCase()] || '#A0A0A0');
+
     new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
                 data: data,
-                backgroundColor: colors,
+                backgroundColor: backgroundColors,
                 borderWidth: 0,
-                hoverOffset: 8
+                hoverOffset: 6
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '70%',
             plugins: {
                 legend: {
                     display: false
                 },
                 tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: { size: 12 },
-                    bodyFont: { size: 12 },
+                    backgroundColor: 'rgba(33, 37, 41, 0.9)',
+                    titleColor: '#F8F9FA',
+                    bodyColor: '#F8F9FA',
                     padding: 12,
-                    cornerRadius: 4,
+                    cornerRadius: 8,
                     callbacks: {
-                        label: function(context) {
+                        label: (context) => {
                             const label = context.label || '';
                             const value = context.parsed;
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
@@ -368,284 +357,212 @@ function initMinimalChart(chartData) {
                     }
                 }
             },
-            cutout: '75%',
             animation: {
-                animateScale: false,
                 animateRotate: true,
-                duration: 1000
+                animateScale: true,
+                duration: 1200
             }
         }
     });
-}
+});
 </script>
 
-<!-- Minimalist Styles -->
+<!-- Custom Styles -->
 <style>
-    /* Variables de color */
     :root {
-        --yellow: #FFC107;
-        --orange: #FD7E14;
-        --green: #28A745;
-        --red: #DC3545;
-        --blue: #007BFF;
-        --gray: #6C757D;
-        --light-gray: #F8F9FA;
-        --border-color: #E9ECEF;
-        --text-dark: #212529;
-        --text-gray: #6C757D;
+        --primary: #0d6efd;
+        --primary-soft: #e7f1ff;
+        --success: #198754;
+        --success-soft: #e1f7e7;
+        --warning: #ffc107;
+        --warning-soft: #fff3cd;
+        --danger: #dc3545;
+        --danger-soft: #f8dddf;
+        --secondary: #6c757d;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --border-color: #dee2e6;
     }
-    
-    /* Tipografía minimalista */
-    .fw-600 { font-weight: 600; }
-    .fw-700 { font-weight: 700; }
-    
-    .text-gray-500 { color: var(--text-gray) !important; }
-    .text-gray-400 { color: #ADB5BD !important; }
-    
-    /* Layout */
-    .container-fluid {
-        max-width: 1400px;
+
+    body {
+        background-color: #f5f7fb;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     }
-    
-    /* Cards minimalistas */
-    .card {
-        border-radius: 12px;
-        border: none;
-        background: white;
-    }
-    
-    .shadow-sm {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-    }
-    
-    .border-0 { border: none; }
-    
+
     /* Metric Cards */
-    .metric-box {
-        background: var(--light-gray);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+    .metric-card {
+        border-radius: 20px;
+        background: white;
         transition: all 0.2s ease;
     }
-    
-    .metric-box:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important;
     }
-    
+
+    .icon-shape {
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--light);
+    }
+    .bg-primary-soft { background-color: var(--primary-soft); }
+    .bg-success-soft { background-color: var(--success-soft); }
+    .bg-warning-soft { background-color: var(--warning-soft); }
+
     /* Chart */
-    .chart-minimal-container {
+    .chart-container {
         position: relative;
-        height: 280px;
+        height: 260px;
         width: 100%;
     }
-    
-    /* Status items */
-    .status-color {
-        width: 16px;
-        height: 16px;
+
+    /* Status Legend */
+    .status-dot {
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        flex-shrink: 0;
+        display: inline-block;
     }
-    
     .status-item {
-        padding: 8px 0;
+        cursor: pointer;
+        padding: 6px 0;
+        transition: background 0.1s;
     }
-    
-    /* Progress bars */
-    .progress {
-        background-color: var(--border-color);
-        border-radius: 2px;
-        overflow: hidden;
+    .status-item:hover {
+        background: rgba(0,0,0,0.02);
     }
-    
-    .progress-bar {
-        border-radius: 2px;
+
+    /* Mini Metrics */
+    .metric-mini {
+        background: white;
+        border-color: var(--border-color) !important;
+        transition: all 0.2s;
     }
-    
-    /* Recent Leads */
-    .leads-list {
+    .metric-mini:hover {
+        background: var(--light);
+        border-color: var(--primary) !important;
+    }
+    .mini-icon {
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+
+    /* Recent Leads List */
+    .recent-leads-list {
         max-height: 380px;
         overflow-y: auto;
-        padding-right: 8px;
+        padding-right: 4px;
     }
-    
-    .leads-list::-webkit-scrollbar {
+    .recent-leads-list::-webkit-scrollbar {
         width: 4px;
     }
-    
-    .leads-list::-webkit-scrollbar-track {
-        background: var(--light-gray);
-        border-radius: 2px;
+    .recent-leads-list::-webkit-scrollbar-track {
+        background: var(--light);
+        border-radius: 10px;
     }
-    
-    .leads-list::-webkit-scrollbar-thumb {
+    .recent-leads-list::-webkit-scrollbar-thumb {
         background: var(--border-color);
-        border-radius: 2px;
+        border-radius: 10px;
     }
-    
-    .lead-item {
-        border-bottom: 1px solid var(--border-color);
-        transition: background-color 0.2s ease;
-    }
-    
-    .lead-item:last-child {
-        border-bottom: none;
-        margin-bottom: 0;
-        padding-bottom: 0;
-    }
-    
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+
+    .avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 1rem;
+        flex-shrink: 0;
     }
-    
-    /* Badges */
+
+    .recent-lead-item {
+        transition: all 0.2s;
+    }
+    .recent-lead-item:hover {
+        transform: translateX(4px);
+        border-bottom-color: var(--primary) !important;
+    }
+
     .badge {
         font-weight: 500;
-        padding: 4px 10px;
-        font-size: 11px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.75rem;
+        border-radius: 30px;
     }
-    
+
     /* Buttons */
     .btn {
-        border-radius: 8px;
+        border-radius: 12px;
         font-weight: 500;
-        padding: 8px 20px;
-        border: 1px solid transparent;
-        transition: all 0.2s ease;
+        padding: 0.6rem 1.2rem;
     }
-    
     .btn-primary {
-        background-color: var(--blue);
-        border-color: var(--blue);
+        background: var(--primary);
+        border-color: var(--primary);
     }
-    
     .btn-outline-primary {
-        color: var(--blue);
-        border-color: var(--blue);
-        background: transparent;
+        border-color: var(--primary);
+        color: var(--primary);
     }
-    
     .btn-outline-primary:hover {
-        background-color: var(--blue);
+        background: var(--primary);
         color: white;
     }
-    
-    /* Form controls */
-    .form-control {
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        padding: 10px 14px;
+
+    /* Soft shadows */
+    .shadow-hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s, transform 0.2s;
     }
-    
-    /* Responsive */
-    @media (max-width: 992px) {
-        .chart-minimal-container {
-            height: 240px;
-        }
-        
-        .leads-list {
-            max-height: 320px;
-        }
+    .shadow-hover:hover {
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
     }
-    
-    @media (max-width: 768px) {
-        .card-body {
-            padding: 1.5rem !important;
-        }
-        
-        .chart-minimal-container {
-            height: 220px;
-        }
-        
-        .metric-box {
-            padding: 1rem !important;
-        }
+
+    /* Text */
+    .text-secondary {
+        color: var(--secondary) !important;
     }
-    
-    @media (max-width: 576px) {
-        .container-fluid {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-        
-        h2.fw-700 {
-            font-size: 1.75rem;
-        }
-        
-        .btn {
-            padding: 6px 16px;
-            font-size: 0.875rem;
-        }
+    .fw-semibold {
+        font-weight: 600;
     }
-    
-    /* Animaciones suaves */
-    .card {
-        transition: box-shadow 0.3s ease;
-    }
-    
-    .card:hover {
-        box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
-    }
-    
-    /* Espaciado consistente */
-    .mb-4 { margin-bottom: 1.5rem !important; }
-    .mb-5 { margin-bottom: 2rem !important; }
-    .p-4 { padding: 1.5rem !important; }
-    
-    /* Bordes sutiles */
+
+    /* Borders */
     .border-bottom {
         border-bottom: 1px solid var(--border-color) !important;
     }
-    
     .border-top {
         border-top: 1px solid var(--border-color) !important;
     }
-    
-    /* Elementos clickeables */
-    .clickable-card {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .clickable-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
-        border-color: var(--blue) !important;
-    }
-    
-    .clickable-item {
-        transition: all 0.2s ease;
-        cursor: pointer;
-    }
-    
-    .clickable-item:hover {
-        background-color: rgba(0, 123, 255, 0.05);
-        transform: translateX(2px);
-    }
-    
-    /* Enlaces sin subrayado */
-    .text-decoration-none {
-        text-decoration: none !important;
-    }
-    
-    /* Color de texto para enlaces */
-    a.text-decoration-none:hover .text-dark {
-        color: var(--blue) !important;
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .display-6 {
+            font-size: 1.8rem;
+        }
+        .icon-shape {
+            width: 48px;
+            height: 48px;
+        }
+        .icon-shape i {
+            font-size: 1.4rem;
+        }
+        .chart-container {
+            height: 200px;
+        }
     }
 </style>
 
 <!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
+<!-- Inter font (optional) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 @endsection

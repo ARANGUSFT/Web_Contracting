@@ -598,22 +598,176 @@
         </div>
     </div>
 
-    <!-- Privacy Policy Modal -->
-    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Aquí va el contenido de la política de privacidad -->
-                    <p><strong>PRIVACY POLICY AND TERMS OF USE</strong><br>By using or accessing this website...</p>
-                    <!-- ... resto del contenido ... -->
-                </div>
+   <!-- Privacy Policy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy and Terms of Use</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- CONTENIDO COMPLETO DE POLÍTICA DE PRIVACIDAD Y TÉRMINOS -->
+               <h6 class="fw-bold">PRIVACY POLICY</h6>
+                <p><strong>Last updated:</strong> {{ date('F Y') }}</p>
+
+                <p>
+                Contracting Alliance Inc. ("Company", "we", "our", or "us") operates a digital platform designed to facilitate coordination, management, validation, and operational support for contractors and subcontractors within the roofing and construction industry.
+                </p>
+
+                <p>
+                By registering, accessing, or using our platform, you consent to the data practices described in this Privacy Policy.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">1. INFORMATION WE COLLECT</h6>
+
+                <p>We may collect the following categories of information:</p>
+
+                <ul>
+                <li><strong>Personal Information:</strong> First name, last name, email address, phone number, language preference, profile photo.</li>
+                <li><strong>Company Information:</strong> Company name, years of experience, uploaded documents, insurance certificates, licenses.</li>
+                <li><strong>Tax & Compliance Information:</strong> W9 forms, EIN, and related tax documentation where applicable.</li>
+                <li><strong>Account Credentials:</strong> Encrypted password and authentication data.</li>
+                <li><strong>Platform Activity:</strong> Login history, approval status, internal communications, uploaded files.</li>
+                <li><strong>Technical Information:</strong> IP address, browser type, device information, access logs.</li>
+                </ul>
+
+                <h6 class="mt-4 fw-semibold">2. HOW WE USE YOUR INFORMATION</h6>
+
+                <ul>
+                <li>To verify identity and company credentials.</li>
+                <li>To manually approve or reject account registrations.</li>
+                <li>To manage contractor and subcontractor relationships.</li>
+                <li>To maintain system security and prevent fraud.</li>
+                <li>To comply with legal, regulatory, and tax obligations.</li>
+                <li>To improve platform performance and services.</li>
+                </ul>
+
+                <p>We do not sell personal information.</p>
+
+                <h6 class="mt-4 fw-semibold">3. DATA STORAGE AND SECURITY</h6>
+
+                <p>
+                Data is hosted through HostGator servers. We implement reasonable administrative, technical, and security safeguards including authentication controls, encrypted password storage, role-based access restrictions, and activity monitoring.
+                </p>
+
+                <p>
+                However, no electronic transmission or storage system is completely secure, and we cannot guarantee absolute security.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">4. CALIFORNIA RESIDENTS (CCPA NOTICE)</h6>
+
+                <p>If you are a California resident, you have the right to:</p>
+
+                <ul>
+                <li>Request access to the personal information we collect.</li>
+                <li>Request deletion of personal data (subject to legal exceptions).</li>
+                <li>Know what categories of information are collected.</li>
+                <li>Confirm that your data is not sold.</li>
+                <li>Request non-discriminatory treatment for exercising your rights.</li>
+                </ul>
+
+                <p>
+                To exercise your rights, contact us at:
+                <strong>infocontractingalliance@gmail.com</strong>
+                </p>
+
+                <h6 class="mt-4 fw-semibold">5. DATA RETENTION</h6>
+
+                <p>
+                We retain information while accounts remain active and as necessary for legal compliance, dispute resolution, tax reporting, and legitimate business interests.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">6. ACCOUNT APPROVAL</h6>
+
+                <p>
+                Contractor accounts require manual approval. Subcontractor accounts may be created by administrators or submitted for review. We reserve sole discretion to approve, deny, suspend, or terminate accounts.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">7. CHILDREN'S PRIVACY</h6>
+
+                <p>
+                Our platform is not intended for individuals under the age of 18.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">8. POLICY CHANGES</h6>
+
+                <p>
+                We may update this Privacy Policy at any time. Continued use of the platform constitutes acceptance of any changes.
+                </p>
+
+                <hr class="my-4">
+
+                <h6 class="fw-bold">TERMS OF USE</h6>
+
+                <p>
+                By accessing or using this platform, you agree to be legally bound by the following Terms of Use.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">1. PLATFORM PURPOSE</h6>
+
+                <p>
+                Contracting Alliance Inc. provides a digital coordination and management platform for contractors and subcontractors within the construction industry.
+                </p>
+
+                <p>
+                The Company is not an employer, staffing agency, or labor broker unless explicitly stated in a separate written agreement.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">2. INDEPENDENT CONTRACTOR STATUS</h6>
+
+                <p>
+                Users of the platform acknowledge and agree that all contractors and subcontractors operate as independent contractors. Nothing in this platform creates an employment relationship, joint venture, partnership, or agency relationship.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">3. ACCOUNT RESPONSIBILITY</h6>
+
+                <p>
+                You are responsible for maintaining confidentiality of your login credentials and for all activities under your account.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">4. ACCEPTABLE USE</h6>
+
+                <p>You agree not to:</p>
+
+                <ul>
+                <li>Provide false or misleading information.</li>
+                <li>Upload fraudulent documentation.</li>
+                <li>Attempt unauthorized access to the system.</li>
+                <li>Use the platform for unlawful purposes.</li>
+                </ul>
+
+                <h6 class="mt-4 fw-semibold">5. LIMITATION OF LIABILITY</h6>
+
+                <p>
+                To the fullest extent permitted by law, Contracting Alliance Inc. shall not be liable for indirect, incidental, consequential, punitive, or special damages, including lost profits, lost business opportunities, or disputes between contractors and subcontractors.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">6. TERMINATION</h6>
+
+                <p>
+                We reserve the right to suspend or terminate accounts at our sole discretion for violations of these Terms.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">7. GOVERNING LAW</h6>
+
+                <p>
+                These Terms shall be governed by and construed in accordance with the laws of the State of Florida, without regard to conflict of law principles.
+                </p>
+
+                <h6 class="mt-4 fw-semibold">8. CONTACT INFORMATION</h6>
+
+                <p>
+                Contracting Alliance Inc.<br>
+                Email: <strong>infocontractingalliance@gmail.com</strong>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

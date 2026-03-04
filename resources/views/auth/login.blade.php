@@ -186,13 +186,189 @@
     </div>
   </div>
 
-  <!-- Modal de Política de Privacidad (sin cambios) -->
-  <div id="privacyModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <!-- ... contenido del modal ... -->
+    <!-- Privacy Policy Modal -->
+  <div id="privacyModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    
+    <!-- Background Overlay -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+    <!-- Modal Container -->
+    <div class="flex min-h-full items-center justify-center p-4">
+      
+      <div class="relative bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+          <h2 class="text-2xl font-bold">Privacy Policy</h2>
+          <button onclick="closePrivacyModal()" class="text-gray-500 hover:text-gray-700 text-2xl">
+            &times;
+          </button>
+        </div>
+
+        <!-- Content (Scrollable) -->
+        <div class="px-8 py-6 overflow-y-auto max-h-[70vh] text-sm text-gray-700 space-y-6">
+
+          <p><strong>Contracting Alliance Inc.</strong><br>
+          Last Updated: {{ date('F d, Y') }}</p>
+
+          <p>
+          This Privacy Policy describes how Contracting Alliance Inc. ("Company", "we", "our", or "us") collects, uses, stores, and protects personal and business information obtained through our digital platform.
+          </p>
+
+          <h3 class="font-semibold text-lg">1. Information We Collect</h3>
+
+          <p>We may collect the following categories of information:</p>
+
+          <ul class="list-disc pl-6 space-y-1">
+            <li>First and last name</li>
+            <li>Email address</li>
+            <li>Phone number</li>
+            <li>Company name</li>
+            <li>Years of experience</li>
+            <li>Profile photo</li>
+            <li>Business documents and certifications</li>
+            <li>Tax documentation (W9, EIN)</li>
+            <li>Uploaded project files and photos</li>
+            <li>Account activity logs</li>
+            <li>IP address and device information</li>
+          </ul>
+
+          <h3 class="font-semibold text-lg">2. How We Use Information</h3>
+
+          <ul class="list-disc pl-6 space-y-1">
+            <li>To verify contractor and subcontractor credentials</li>
+            <li>To approve or reject account registrations</li>
+            <li>To manage platform operations</li>
+            <li>To maintain security and prevent fraud</li>
+            <li>To comply with legal and tax obligations</li>
+            <li>To improve system performance</li>
+          </ul>
+
+          <p>We do not sell personal information.</p>
+
+          <h3 class="font-semibold text-lg">3. Account Approval</h3>
+
+          <p>
+          Contractor accounts must be manually approved. Subcontractors may be created by administrators or apply for review. We reserve the right to approve, deny, suspend, or terminate accounts at our discretion.
+          </p>
+
+          <h3 class="font-semibold text-lg">4. Data Storage and Security</h3>
+
+          <p>
+          Data is hosted through HostGator servers. We implement reasonable technical and administrative safeguards including authentication controls, restricted access, encrypted password storage, and activity monitoring.
+          </p>
+
+          <p>
+          No online system is completely secure, and we cannot guarantee absolute security.
+          </p>
+
+          <h3 class="font-semibold text-lg">5. California Residents (CCPA)</h3>
+
+          <p>
+          If you are a California resident, you may request:
+          </p>
+
+          <ul class="list-disc pl-6 space-y-1">
+            <li>Access to personal information collected</li>
+            <li>Deletion of personal data (subject to legal exceptions)</li>
+            <li>Information regarding data categories collected</li>
+            <li>Confirmation that data is not sold</li>
+          </ul>
+
+          <p>
+          To exercise these rights, contact us at:<br>
+          <strong>infocontractingalliance@gmail.com</strong>
+          </p>
+
+          <h3 class="font-semibold text-lg">6. Data Retention</h3>
+
+          <p>
+          We retain information while accounts remain active and as required for legal, tax, and compliance purposes.
+          </p>
+
+          <h3 class="font-semibold text-lg">7. Account Deletion</h3>
+
+          <p>
+          Users may request account deletion by contacting us. Certain records may be retained as required by law.
+          </p>
+
+          <h3 class="font-semibold text-lg">8. Changes to This Policy</h3>
+
+          <p>
+          We may update this Privacy Policy at any time. Continued use of the platform constitutes acceptance of the updated terms.
+          </p>
+
+          <h3 class="font-semibold text-lg">9. Contact Information</h3>
+
+          <p>
+          Contracting Alliance Inc.<br>
+          Email: infocontractingalliance@gmail.com
+          </p>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 border-t flex justify-end">
+          <button onclick="closePrivacyModal()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700">
+            Close
+          </button>
+        </div>
+
+      </div>
+    </div>
   </div>
 
-  <script>
-    // Funciones togglePwd, openModal, closeModal, etc. (se mantienen igual)
-  </script>
+<script>
+  // Función para mostrar/ocultar contraseña
+  function togglePwd() {
+    const pwdInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye');
+    if (pwdInput.type === 'password') {
+      pwdInput.type = 'text';
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />';
+    } else {
+      pwdInput.type = 'password';
+      eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+    }
+  }
+
+  // Modal functions
+  const modal = document.getElementById('privacyModal');
+  const body = document.body;
+
+  function openModal() {
+    modal.classList.remove('hidden');
+    body.classList.add('modal-open'); // Previene scroll del fondo
+  }
+
+  function closePrivacyModal() {
+    modal.classList.add('hidden');
+    body.classList.remove('modal-open');
+  }
+
+  // Cerrar modal al hacer clic en el overlay (fondo oscuro)
+  document.addEventListener('DOMContentLoaded', function() {
+    // Seleccionamos el overlay por su clase (es único)
+    const overlay = document.querySelector('#privacyModal > .fixed.inset-0.bg-black');
+    if (overlay) {
+      overlay.addEventListener('click', closePrivacyModal);
+    }
+
+    // También prevenimos que el clic dentro del contenido del modal cierre el modal
+    const modalContent = document.querySelector('#privacyModal .relative.bg-white');
+    if (modalContent) {
+      modalContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+  });
+
+  // Opcional: cerrar con tecla Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closePrivacyModal();
+    }
+  });
+</script>
 </body>
 </html>
