@@ -14,8 +14,9 @@ class LeadExpenses extends Model
         'expense_date',
         'type',
         'amount',
+        'notes',
     ];
-
+    
     public function lead()
     {
         return $this->belongsTo(Lead::class);

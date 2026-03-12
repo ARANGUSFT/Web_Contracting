@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Cache; // ← AGREGAR ESTA LÍNEA
+use ZipArchive;
 
 class LeadImageController extends Controller
 {
@@ -52,30 +53,22 @@ class LeadImageController extends Controller
     public function store(Request $request)
     {
         try {
-            // DEBUG: Ver qué está llegando
             Log::info('=== UPLOAD START ===', [
                 'lead_id' => $request->lead_id,
                 'files_count' => $request->hasFile('images') ? count($request->file('images')) : 0
             ]);
 
-            // Validación básica sin Validator
             if (!$request->has('lead_id')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Lead ID is required'
-                ], 422);
+                return response()->json(['success' => false, 'message' => 'Lead ID is required'], 422);
             }
 
             if (!$request->hasFile('images')) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No images provided'
-                ], 422);
+                return response()->json(['success' => false, 'message' => 'No images provided'], 422);
             }
 
             $files = $request->file('images');
             $uploaded = [];
-            $processedFiles = []; // Para evitar duplicados
+            $processedHashes = []; // Para evitar duplicados en la misma subida
 
             DB::beginTransaction();
 
@@ -85,32 +78,26 @@ class LeadImageController extends Controller
                     continue;
                 }
 
-                // Crear firma única del archivo
-                $fileSignature = $file->getClientOriginalName() . '_' . $file->getSize();
-                
+                // Calcular hash del contenido
+                $fileHash = md5_file($file->getRealPath());
+
                 // Verificar duplicados en la misma subida
-                if (in_array($fileSignature, $processedFiles)) {
-                    Log::info('Duplicate file skipped in same request: ' . $file->getClientOriginalName());
+                if (in_array($fileHash, $processedHashes)) {
+                    Log::info('Duplicate file skipped (same request): ' . $file->getClientOriginalName());
                     continue;
                 }
 
-                $processedFiles[] = $fileSignature;
-
-                // Verificar duplicados en base de datos
+                // Verificar duplicados en base de datos por hash
                 $existingImage = LeadImage::where('lead_id', $request->lead_id)
-                    ->when(Schema::hasColumn('lead_images', 'file_name'), function($query) use ($file) {
-                        return $query->where('file_name', $file->getClientOriginalName())
-                                    ->where('file_size', $file->getSize());
-                    }, function($query) use ($file) {
-                        // Fallback si no existen las columnas
-                        return $query->where('image_path', 'like', '%' . $file->getClientOriginalName() . '%');
-                    })
+                    ->where('file_hash', $fileHash)
                     ->first();
 
                 if ($existingImage) {
                     Log::info('Duplicate file skipped (exists in DB): ' . $file->getClientOriginalName());
                     continue;
                 }
+
+                $processedHashes[] = $fileHash;
 
                 // Generar nombre único
                 $fileName = 'lead_' . $request->lead_id . '_' . time() . '_' . $index . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
@@ -121,20 +108,13 @@ class LeadImageController extends Controller
                     'lead_id' => $request->lead_id,
                     'image_path' => $path,
                     'user_id' => auth()->id(),
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'file_hash' => $fileHash,
                 ];
 
-                // Agregar campos adicionales si existen
-                if (Schema::hasColumn('lead_images', 'file_name')) {
-                    $imageData['file_name'] = $file->getClientOriginalName();
-                    $imageData['file_size'] = $file->getSize();
-                    $imageData['mime_type'] = $file->getMimeType();
-                }
-
-                if (Schema::hasColumn('lead_images', 'file_hash')) {
-                    $imageData['file_hash'] = $fileSignature;
-                }
-
-                // Crear registro UNA SOLA VEZ
+                // Crear registro
                 $image = LeadImage::create($imageData);
                 $uploaded[] = $image;
 
@@ -159,16 +139,8 @@ class LeadImageController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
-            Log::error('=== UPLOAD FAILED ===', [
-                'lead_id' => $request->lead_id,
-                'error' => $e->getMessage()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error uploading images: ' . $e->getMessage()
-            ], 500);
+            Log::error('=== UPLOAD FAILED ===', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Error uploading images: ' . $e->getMessage()], 500);
         }
     }
 
@@ -314,4 +286,91 @@ class LeadImageController extends Controller
             ], 500);
         }
     }
+
+
+    public function getAllIds($lead_id)
+    {
+        try {
+            $ids = LeadImage::where('lead_id', $lead_id)->pluck('id');
+            return response()->json([
+                'success' => true,
+                'ids' => $ids
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error'], 500);
+        }
+    }
+
+    /**
+     * Download selected images as a ZIP file
+     */
+    public function downloadZip(Request $request)
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array|min:1',
+                'ids.*' => 'exists:lead_images,id'
+            ]);
+
+            $images = LeadImage::whereIn('id', $request->ids)->get();
+
+            if ($images->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No images found'
+                ], 404);
+            }
+
+            // Crear archivo ZIP temporal
+            $zipFileName = 'lead_' . $images->first()->lead_id . '_images_' . time() . '.zip';
+            $zipPath = storage_path('app/temp/' . $zipFileName);
+
+            // Crear directorio temporal si no existe
+            if (!file_exists(storage_path('app/temp'))) {
+                mkdir(storage_path('app/temp'), 0755, true);
+            }
+
+            $zip = new ZipArchive;
+            if ($zip->open($zipPath, ZipArchive::CREATE) !== true) {
+                throw new \Exception('Cannot create zip file');
+            }
+
+            $addedCount = 0;
+            foreach ($images as $image) {
+                // Usar el disco 'public' para obtener la ruta física
+                $filePath = Storage::disk('public')->path($image->image_path);
+                
+                if (file_exists($filePath)) {
+                    // Usar el nombre original si existe, si no, el nombre del archivo en el path
+                    $fileNameInZip = $image->file_name ?? basename($image->image_path);
+                    $zip->addFile($filePath, $fileNameInZip);
+                    $addedCount++;
+                } else {
+                    Log::warning('Image file not found for ZIP: ' . $image->image_path);
+                }
+            }
+
+            $zip->close();
+
+            if ($addedCount === 0) {
+                unlink($zipPath);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid image files found to zip'
+                ], 404);
+            }
+
+            // Descargar y eliminar el archivo temporal después de enviarlo
+            return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+
+        } catch (\Exception $e) {
+            Log::error('Error creating ZIP: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating ZIP: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

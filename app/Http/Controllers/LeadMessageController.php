@@ -30,10 +30,10 @@ class LeadMessageController extends Controller
             'team_id' => $teamId,
             'message' => $request->message,
         ]);
-        
-    
-        // 👇 Redirigir claramente a la página anterior con mensaje de éxito
-        return back();
+
+        return response()->json([
+            'success' => true
+        ]);
     }
     
 
@@ -53,6 +53,19 @@ class LeadMessageController extends Controller
         return response()->json($query->orderBy('created_at', 'asc')->get());
     }
 
+
+    public function destroy($id)
+{
+    $message = LeadMessage::findOrFail($id);
+
+    if ($message->user_id !== auth()->id()) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    $message->delete();
+
+    return response()->json(['success' => true]);
+}
 
 
 

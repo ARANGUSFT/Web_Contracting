@@ -14,29 +14,37 @@ class LeadExpensesController extends Controller
             'expenses' => 'required|array',
             'expenses.*.expense_date' => 'required|date',
             'expenses.*.type' => 'required|in:material,labor,commission,permit,supplement,other',
-            'expenses.*.amount' => 'required|numeric|min:0',
+            'expenses.*.amount' => 'required',
+            'expenses.*.notes' => 'nullable|string',
         ]);
 
         foreach ($request->expenses as $expense) {
+            $amount = str_replace(',', '', $expense['amount']);
+
             LeadExpenses::create([
                 'lead_id' => $request->lead_id,
                 'expense_date' => $expense['expense_date'],
                 'type' => $expense['type'],
-                'amount' => $expense['amount'],
+                'amount' => is_numeric($amount) ? $amount : 0,
+                'notes' => $expense['notes'] ?? null,
             ]);
         }
 
         return redirect()->back()->with('success', 'Expenses saved successfully.');
     }
 
-    
-
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $expense = LeadExpenses::findOrFail($id);
         $expense->delete();
 
-        return redirect()->back()->with('success', 'Gasto eliminado correctamente.');
-    }
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Expense deleted successfully.',
+            ]);
+        }
 
+        return redirect()->back()->with('success', 'Expense deleted successfully.');
+    }
 }

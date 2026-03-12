@@ -339,17 +339,21 @@ Route::middleware(['auth:web,team'])->group(function () {
     // Lead Messages (Chat)
         Route::get('/leads/{lead_id}/messages', [LeadMessageController::class, 'index'])->name('lead.messages.index');
         Route::post('/leads/messages', [LeadMessageController::class, 'store'])->name('lead.messages.store');
+        Route::delete('/lead-messages/{id}', [LeadMessageController::class, 'destroy'])->name('lead.messages.destroy');
     // Lead Images
         Route::get('/leads/{lead}/images', [LeadImageController::class, 'index'])->name('lead.images.index');
         Route::post('/leads/images', [LeadImageController::class, 'store'])->name('lead.images.store');
         Route::delete('/leads/images/{id}', [LeadImageController::class, 'destroy'])->name('lead.images.destroy');
         Route::post('/leads/images/bulk-delete', [LeadImageController::class, 'bulkDelete'])->name('lead.images.bulkDelete');
         Route::delete('/leads/{lead}/images/delete-all', [LeadImageController::class, 'deleteAll'])->name('lead.images.deleteAll');
+        Route::post('/leads/images/download-zip', [LeadImageController::class, 'downloadZip'])->name('lead.images.downloadZip');
+        Route::get('/leads/{lead}/images/all-ids', [LeadImageController::class, 'getAllIds'])->name('lead.images.allIds');
     // Actualizar y Elimianr Documentos
         Route::post('/leads/{lead}/files', [LeadFilesController::class, 'store'])->name('leads.files.store');
         Route::delete('/leads/files/{leadFile}', [LeadFilesController::class, 'destroy'])->name('leads.files.destroy');
         Route::post('/leads/{lead}/folders', [LeadFilesController::class, 'storeFolder'])->name('leads.folders.store');
         Route::delete('/leads/folders/{folder}', [LeadFilesController::class, 'destroyFolder'])->name('leads.folders.destroy');
+        Route::put('/leads/folders/{folder}', [LeadFilesController::class, 'update'])->name('leads.folders.update');
     // Contribution Panel 
         Route::put('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'update'])->name('leads.finanzas.update');
         Route::post('/leads/{lead}/finanzas', [LeadFinanzaController::class, 'store'])->name('lead.finanzas.store');

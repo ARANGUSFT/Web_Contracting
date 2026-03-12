@@ -91,6 +91,20 @@ class LeadFilesController extends Controller
         return redirect()->back()->with('success', "{$fileCount} document(s) uploaded successfully");
     }
 
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'folder_name' => 'required|string|max:255',
+        ]);
+
+        $folder = LeadFolder::findOrFail($id);
+        $folder->name = $request->folder_name;
+        $folder->save();
+
+        return back()->with('success', 'Folder renamed successfully.');
+    }
+
     public function destroy($id)
     {
         $current = $this->getCurrentUser();
