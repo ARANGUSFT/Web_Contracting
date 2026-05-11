@@ -1,367 +1,606 @@
 @extends('admin.layouts.superadmin')
 
-@section('title', 'Contractors Management')
-
-@section('actions')
-    <div class="flex items-center space-x-3">
-    
-        <div class="text-sm text-gray-500">
-            <i class="fas fa-filter mr-1"></i>
-            {{ $contractors }} total contractors
-        </div>
-    </div>
-@endsection
+@section('title', 'Contractors')
 
 @section('content')
 
-    <!-- Header Card -->
-    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl mb-6 p-6">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <div class="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <i class="fas fa-hard-hat text-white text-2xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-white">Contractors</h1>
-                    <p class="text-blue-100 mt-1">Manage all contractors and their information</p>
-                </div>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+
+.cp { font-family: 'Montserrat', sans-serif; padding: 28px 32px; max-width: 1540px; }
+
+/* ─── VARIABLES ─── */
+:root {
+    --ink:   #0f1117;
+    --ink2:  #3c4353;
+    --ink3:  #8c95a6;
+    --bg:    #f4f5f8;
+    --surf:  #ffffff;
+    --bd:    #e4e7ed;
+    --bd2:   #eef0f4;
+    --blue:  #1855e0;
+    --blt:   #eef2ff;
+    --bbd:   #c7d4fb;
+    --grn:   #0d9e6a;
+    --glt:   #edfaf4;
+    --gbd:   #9fe6c8;
+    --red:   #d92626;
+    --rlt:   #fff0f0;
+    --rbd:   #fbcfcf;
+    --r:     8px;
+    --rlg:   13px;
+    --rxl:   18px;
+}
+
+/* ─── HERO ─── */
+.cp-hero {
+    position: relative;
+    border-radius: var(--rxl);
+    padding: 34px 40px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: var(--ink);
+    overflow: hidden;
+}
+.cp-hero-noise {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: .6;
+}
+.cp-hero-glow {
+    position: absolute; pointer-events: none;
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(24,85,224,.4) 0%, transparent 70%);
+    right: -60px; top: -60px;
+}
+.cp-hero-accent {
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #4f80ff 0%, #1855e0 50%, transparent 100%);
+    border-radius: 0 2px 2px 0;
+}
+.cp-hero-left { position: relative; display: flex; align-items: center; gap: 18px; }
+.cp-hero-badge {
+    width: 54px; height: 54px; border-radius: 14px; flex-shrink: 0;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #8aadff;
+}
+.cp-hero-title {
+    font-size: 22px; font-weight: 800; color: #fff;
+    letter-spacing: -.5px; line-height: 1;
+}
+.cp-hero-sub { font-size: 12.5px; color: rgba(255,255,255,.38); margin-top: 5px; font-weight: 500; }
+.cp-hero-right { position: relative; display: flex; align-items: center; gap: 10px; }
+.cp-stat-chip {
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px; padding: 12px 18px; text-align: center;
+}
+.cp-stat-chip-n { font-size: 22px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -.5px; }
+.cp-stat-chip-l { font-size: 10px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .8px; margin-top: 3px; font-weight: 600; }
+.cp-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 15px; border-radius: var(--r);
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.11);
+    color: rgba(255,255,255,.6);
+    font-size: 12.5px; font-weight: 600;
+    text-decoration: none; transition: all .15s;
+    font-family: 'Montserrat', sans-serif;
+}
+.cp-back:hover { background: rgba(255,255,255,.13); color: #fff; }
+
+/* ─── FLASH ─── */
+.cp-flash {
+    display: flex; align-items: center; gap: 11px;
+    padding: 12px 16px; border-radius: var(--rlg);
+    margin-bottom: 18px; font-size: 13px; font-weight: 600;
+    animation: fd .25s ease;
+}
+.cp-flash.ok  { background: var(--glt); border: 1px solid var(--gbd); color: #065f46; }
+.cp-flash.err { background: var(--rlt); border: 1px solid var(--rbd); color: #991b1b; }
+.cp-flash-x { margin-left: auto; background: none; border: none; cursor: pointer; opacity: .5; font-size: 13px; color: inherit; }
+.cp-flash-x:hover { opacity: 1; }
+@keyframes fd { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; } }
+
+/* ─── FILTER CARD ─── */
+.cp-filter {
+    background: var(--surf);
+    border: 1px solid var(--bd);
+    border-radius: var(--rlg);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.cp-filter-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; cursor: pointer; user-select: none;
+}
+.cp-filter-head-l { display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: .5px; }
+.cp-filter-head-l i { color: var(--ink3); }
+.cp-filter-arr { color: var(--ink3); font-size: 10px; transition: transform .2s; }
+.cp-filter-arr.open { transform: rotate(180deg); }
+.cp-active-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue); margin-left: 2px; display: inline-block;
+}
+.cp-filter-body { padding: 18px 20px; border-top: 1px solid var(--bd2); }
+.cp-fg { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; }
+.cp-label { font-size: 11px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; display: block; }
+.cp-input, .cp-sel {
+    width: 100%; padding: 9px 12px;
+    border: 1px solid var(--bd); border-radius: var(--r);
+    font-size: 13px; font-weight: 500; font-family: 'Montserrat', sans-serif;
+    color: var(--ink); background: var(--surf); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+    appearance: none;
+}
+.cp-input:focus, .cp-sel:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,85,224,.09); }
+.cp-iw { position: relative; }
+.cp-ii { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-size: 12px; pointer-events: none; }
+.cp-input.pi { padding-left: 32px; }
+.cp-sw { position: relative; }
+.cp-sa { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink3); font-size: 10px; }
+.cp-fa { display: flex; gap: 8px; }
+
+/* ─── BUTTONS ─── */
+.cp-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px; border-radius: var(--r);
+    font-size: 12.5px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+    letter-spacing: .1px; border: 1px solid transparent;
+    cursor: pointer; transition: all .15s; text-decoration: none; white-space: nowrap;
+}
+.cp-btn i { font-size: 11px; }
+.cp-btn-blue { background: var(--blue); color: #fff; }
+.cp-btn-blue:hover { background: #1344c2; color: #fff; }
+.cp-btn-ghost { background: var(--surf); border-color: var(--bd); color: var(--ink2); }
+.cp-btn-ghost:hover { background: var(--bg); color: var(--ink); }
+.cp-btn-new {
+    background: var(--ink); color: #fff;
+    font-size: 12px; font-weight: 700; padding: 8px 16px;
+}
+.cp-btn-new:hover { background: #1c2130; color: #fff; }
+
+/* ─── TABLE CARD ─── */
+.cp-card {
+    background: var(--surf);
+    border: 1px solid var(--bd);
+    border-radius: var(--rxl);
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.04);
+}
+.cp-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; border-bottom: 1px solid var(--bd2);
+    background: linear-gradient(to right, var(--surf), #fafbfd);
+}
+.cp-card-head-l { display: flex; align-items: center; gap: 10px; }
+.cp-card-title { font-size: 14px; font-weight: 800; color: var(--ink); letter-spacing: -.3px; }
+.cp-badge-count {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 9999px; background: var(--blt);
+    color: var(--blue); border: 1px solid var(--bbd);
+}
+.cp-page-info { font-size: 11.5px; font-weight: 500; color: var(--ink3); }
+
+/* ─── TABLE ─── */
+.cp-tbl { width: 100%; border-collapse: collapse; }
+.cp-tbl thead tr { background: #fafbfd; border-bottom: 2px solid var(--bd); }
+.cp-tbl th {
+    padding: 11px 20px; text-align: left;
+    font-size: 10px; font-weight: 800; color: var(--ink3);
+    text-transform: uppercase; letter-spacing: .9px; white-space: nowrap;
+}
+.cp-tbl th.r { text-align: right; }
+.cp-tbl td { padding: 13px 20px; border-bottom: 1px solid var(--bd2); vertical-align: middle; }
+.cp-tbl tbody tr:last-child td { border-bottom: none; }
+.cp-tbl tbody tr { transition: background .1s; }
+.cp-tbl tbody tr:hover td { background: #f7f8ff; }
+
+/* ─── AVATAR ─── */
+.cp-av {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -.3px;
+    overflow: hidden; position: relative;
+}
+.cp-av img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+}
+.av0 { background: linear-gradient(135deg,#1855e0,#5b8af7); }
+.av1 { background: linear-gradient(135deg,#0d9e6a,#34d399); }
+.av2 { background: linear-gradient(135deg,#c97b04,#fbbf24); }
+.av3 { background: linear-gradient(135deg,#7c22e8,#c084fc); }
+.av4 { background: linear-gradient(135deg,#d92626,#f87171); }
+.av5 { background: linear-gradient(135deg,#0284c7,#38bdf8); }
+
+/* ─── CELL CONTENT ─── */
+.cp-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.cp-pos  { font-size: 11.5px; font-weight: 500; color: var(--ink3); margin-top: 2px; }
+.cp-cl   { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500; color: var(--ink2); margin-bottom: 3px; }
+.cp-cl:last-child { margin-bottom: 0; }
+.cp-cl i { color: var(--ink3); font-size: 10.5px; width: 12px; text-align: center; }
+.cp-cl a { color: inherit; text-decoration: none; }
+.cp-cl a:hover { color: var(--blue); }
+.cp-co   { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500; color: var(--ink2); }
+.cp-co i { color: var(--ink3); font-size: 11px; }
+.cp-na   { font-size: 12px; color: var(--ink3); font-style: italic; }
+
+/* ─── STATUS ─── */
+.cp-st {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; font-weight: 800; padding: 4px 10px;
+    border-radius: 6px; text-transform: uppercase; letter-spacing: .5px;
+}
+.cp-st.on  { background: var(--glt); color: var(--grn); border: 1px solid var(--gbd); }
+.cp-st.off { background: var(--rlt); color: var(--red); border: 1px solid var(--rbd); }
+.cp-st-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* ─── ACTION BTNS ─── */
+.cp-acts { display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.cp-ab {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12.5px; border: 1px solid transparent;
+    background: none; color: var(--ink3); cursor: pointer;
+    transition: all .13s; text-decoration: none;
+}
+.cp-ab:hover       { background: var(--bg); border-color: var(--bd); }
+.cp-ab.e:hover     { background: var(--blt); border-color: var(--bbd); color: var(--blue); }
+.cp-ab.d:hover     { background: var(--rlt); border-color: var(--rbd); color: var(--red); }
+.cp-ab.t           { }
+.cp-ab.t.active    { color: var(--grn); }
+.cp-ab.t.inactive  { color: var(--ink3); }
+
+/* ─── EMPTY ─── */
+.cp-empty { text-align: center; padding: 60px 24px; }
+.cp-empty-icon {
+    width: 60px; height: 60px; border-radius: 14px;
+    background: var(--bg); border: 1px solid var(--bd);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: var(--ink3); margin: 0 auto 16px;
+}
+.cp-empty-t { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 6px; letter-spacing: -.2px; }
+.cp-empty-s { font-size: 12.5px; font-weight: 500; color: var(--ink3); max-width: 300px; margin: 0 auto; }
+
+/* ─── PAGINATION ─── */
+.cp-pag { padding: 14px 22px; border-top: 1px solid var(--bd2); background: #fafbfd; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #adb2be; }
+
+@media (max-width: 768px) {
+    .cp { padding: 16px; }
+    .cp-hero { padding: 22px 20px; flex-direction: column; align-items: flex-start; }
+    .cp-fg { grid-template-columns: 1fr; }
+    .cp-tbl th:nth-child(3), .cp-tbl td:nth-child(3) { display: none; }
+}
+</style>
+
+<div class="cp">
+
+    {{-- ── HERO ── --}}
+    <div class="cp-hero">
+        <div class="cp-hero-noise"></div>
+        <div class="cp-hero-glow"></div>
+        <div class="cp-hero-accent"></div>
+
+        <div class="cp-hero-left">
+            <div class="cp-hero-badge">
+                <i class="fas fa-hard-hat"></i>
             </div>
-            <div class="hidden md:block">
-                <div class="bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
-                    <div class="text-sm text-blue-100">Active Contractors</div>
-                    <div class="text-xl font-bold text-white">{{ $contractors }}</div>
-                </div>
+            <div>
+                <div class="cp-hero-title">Contractors</div>
+                <div class="cp-hero-sub">Manage all contractors and their profiles</div>
             </div>
-                <a href="{{ route('superadmin.users.index') }}" 
-           class="inline-flex items-center px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-        </a>
+        </div>
+
+        <div class="cp-hero-right">
+            <div class="cp-stat-chip">
+                <div class="cp-stat-chip-n">{{ $contractors }}</div>
+                <div class="cp-stat-chip-l">Total</div>
+            </div>
+            <div class="cp-stat-chip">
+                <div class="cp-stat-chip-n">{{ $users->where('is_active', true)->count() }}</div>
+                <div class="cp-stat-chip-l">Active</div>
+            </div>
+            <a href="{{ route('superadmin.users.index') }}" class="cp-back">
+                <i class="fas fa-arrow-left" style="font-size:10px"></i> Dashboard
+            </a>
         </div>
     </div>
 
-    <!-- Success Message -->
-    @if (session('success'))
-        <div class="mb-6 bg-emerald-50 border-l-4 border-emerald-500 rounded-lg p-4 animate-slide-in">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-emerald-500 text-xl"></i>
-                </div>
-                <div class="ml-3 flex-1">
-                    <p class="text-sm text-emerald-800">{{ session('success') }}</p>
-                </div>
-                <button type="button" onclick="this.parentElement.parentElement.style.display='none'" 
-                        class="ml-auto -mx-1.5 -my-1.5 text-emerald-500 hover:text-emerald-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
+    {{-- ── FLASH MESSAGES ── --}}
+    @if(session('success'))
+    <div class="cp-flash ok" id="cp-flash">
+        <i class="fas fa-check-circle"></i>
+        {{ session('success') }}
+        <button class="cp-flash-x" onclick="document.getElementById('cp-flash').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
     @endif
 
-    <!-- Filters Card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
-                <i class="fas fa-filter text-gray-400 mr-2"></i> Filter Contractors
-            </h3>
-        </div>
-        
-        <form method="GET" action="{{ route('superadmin.users.contractors') }}" class="p-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Search Field -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-search mr-1 text-gray-400"></i> Search
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-search text-gray-400"></i>
-                        </div>
-                        <input type="text" 
-                               name="search" 
-                               value="{{ request('search') }}" 
-                               class="pl-10 w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                               placeholder="Name, email or phone">
-                    </div>
-                </div>
+    @if(session('error'))
+    <div class="cp-flash err" id="cp-flash-e">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ session('error') }}
+        <button class="cp-flash-x" onclick="document.getElementById('cp-flash-e').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    @endif
 
-                <!-- Status Filter -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-user-check mr-1 text-gray-400"></i> Status
-                    </label>
-                    <div class="relative">
-                        <select name="status" 
-                                class="w-full rounded-lg border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 appearance-none bg-white">
-                            <option value="">All Status</option>
-                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <i class="fas fa-chevron-down text-gray-400"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex items-end space-x-3">
-                    <button type="submit" 
-                            class="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200">
-                        <i class="fas fa-filter mr-2"></i> Apply Filters
-                    </button>
-                    <a href="{{ route('superadmin.users.contractors') }}" 
-                       class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200">
-                        <i class="fas fa-redo mr-2"></i> Reset
-                    </a>
-                </div>
+    {{-- ── FILTERS ── --}}
+    <div class="cp-filter">
+        <div class="cp-filter-head" onclick="toggleF()">
+            <div class="cp-filter-head-l">
+                <i class="fas fa-sliders-h"></i>
+                Filters
+                @if(request('search') || request('status'))
+                    <span class="cp-active-dot"></span>
+                @endif
             </div>
-        </form>
+            <i class="fas fa-chevron-down cp-filter-arr {{ request('search') || request('status') ? 'open' : '' }}" id="farr"></i>
+        </div>
+        <div id="fbody" style="{{ request('search') || request('status') ? '' : 'display:none' }}" class="cp-filter-body">
+            <form method="GET" action="{{ route('superadmin.users.contractors') }}">
+                <div class="cp-fg">
+
+                    <div>
+                        <label class="cp-label">Search</label>
+                        <div class="cp-iw">
+                            <i class="fas fa-search cp-ii"></i>
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                   class="cp-input pi" placeholder="Name, email, company…">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="cp-label">Status</label>
+                        <div class="cp-sw">
+                            <select name="status" class="cp-sel">
+                                <option value="">All status</option>
+                                <option value="active"   {{ request('status') == 'active'   ? 'selected' : '' }}>Active</option>
+                                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                            </select>
+                            <i class="fas fa-chevron-down cp-sa"></i>
+                        </div>
+                    </div>
+
+                    <div class="cp-fa">
+                        <button type="submit" class="cp-btn cp-btn-blue">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                        <a href="{{ route('superadmin.users.contractors') }}" class="cp-btn cp-btn-ghost">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Contractors Table Card -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <!-- Table Header -->
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <h3 class="text-lg font-semibold text-gray-800">Contractors List</h3>
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {{ $users->total() }} {{ Str::plural('contractor', $users->total()) }}
-                    </span>
-                </div>
-                <div class="text-sm text-gray-500">
-                    Page {{ $users->currentPage() }} of {{ $users->lastPage() }}
-                </div>
+    {{-- ── TABLE CARD ── --}}
+    <div class="cp-card">
+
+        <div class="cp-card-head">
+            <div class="cp-card-head-l">
+                <span class="cp-card-title">Contractors List</span>
+                <span class="cp-badge-count">{{ $users->total() }} {{ Str::plural('record', $users->total()) }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px">
+                <span class="cp-page-info">Page {{ $users->currentPage() }} / {{ $users->lastPage() }}</span>
+                @if(Route::has('superadmin.contractors.create'))
+                <a href="{{ route('superadmin.contractors.create') }}" class="cp-btn cp-btn-new">
+                    <i class="fas fa-plus"></i> New Contractor
+                </a>
+                @endif
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+        <div style="overflow-x:auto">
+            <table class="cp-tbl">
                 <thead>
-                    <tr class="bg-gray-50/30">
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Contractor
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Contact
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Company
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Status
-                        </th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                            Actions
-                        </th>
+                    <tr>
+                        <th>Contractor</th>
+                        <th>Contact</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                        <th class="r">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse ($users as $user)
-                        <tr class="hover:bg-blue-50/30 transition duration-150">
-                            <!-- Contractor Info -->
-                            <td class="px-6 py-4">
-                                <div class="flex items-center">
-                                    <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-sm">
-                                        {{ substr($user->name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
-                                    </div>
-                                    <div class="ml-4">
-                                        <div class="font-medium text-gray-900">
-                                            {{ $user->name }} {{ $user->last_name }}
-                                        </div>
-                                        @if($user->position)
-                                            <div class="text-sm text-gray-500 mt-0.5">
-                                                <i class="fas fa-briefcase mr-1"></i> {{ $user->position }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
+                <tbody>
+                @forelse($users as $i => $user)
+                <tr>
 
-                            <!-- Contact Info -->
-                            <td class="px-6 py-4">
-                                <div class="space-y-1.5">
-                                    <div class="flex items-center text-sm text-gray-600">
-                                        <i class="fas fa-envelope mr-2 text-gray-400"></i>
-                                        <a href="mailto:{{ $user->email }}" class="hover:text-blue-600 transition-colors">
-                                            {{ $user->email }}
-                                        </a>
-                                    </div>
-                                    @if($user->phone)
-                                        <div class="flex items-center text-sm text-gray-600">
-                                            <i class="fas fa-phone mr-2 text-gray-400"></i>
-                                            <a href="tel:{{ $user->phone }}" class="hover:text-gray-900 transition-colors">
-                                                {{ $user->phone }}
-                                            </a>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-
-                            <!-- Company -->
-                            <td class="px-6 py-4">
-                                @if($user->company_name)
-                                    <div class="flex items-center text-sm text-gray-700">
-                                        <i class="fas fa-building mr-2 text-gray-400"></i>
-                                        {{ $user->company_name }}
-                                    </div>
+                    {{-- CONTRACTOR --}}
+                    <td>
+                        <div style="display:flex;align-items:center;gap:11px">
+                            @php $ini = strtoupper(substr($user->name,0,1)).strtoupper(substr($user->last_name??'',0,1)); @endphp
+                            <div class="cp-av {{ $user->profile_photo ? '' : 'av'.($i % 6) }}">
+                                @if($user->profile_photo)
+                                    <img src="{{ asset('storage/'.$user->profile_photo) }}"
+                                         alt="{{ $user->name }}"
+                                         onerror="this.style.display='none';this.parentElement.classList.add('av{{ $i % 6 }}');this.parentElement.querySelector('span').style.display='inline'">
+                                    <span style="display:none;position:relative;z-index:1">{{ $ini }}</span>
                                 @else
-                                    <span class="text-sm text-gray-400 italic">Not specified</span>
+                                    <span>{{ $ini }}</span>
                                 @endif
-                            </td>
+                            </div>
+                            <div>
+                                <div class="cp-name">{{ $user->name }} {{ $user->last_name }}</div>
+                                @if($user->position)
+                                <div class="cp-pos"><i class="fas fa-briefcase" style="font-size:9px;margin-right:3px"></i>{{ $user->position }}</div>
+                                @endif
+                            </div>
+                        </div>
+                    </td>
 
-                            <!-- Status -->
-                            <td class="px-6 py-4">
-                                @if ($user->is_active)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-                                        <i class="fas fa-check-circle mr-1.5"></i> Active
-                                    </span>
+                    {{-- CONTACT --}}
+                    <td>
+                        <div class="cp-cl">
+                            <i class="fas fa-envelope"></i>
+                            <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
+                        </div>
+                        @if($user->phone)
+                        <div class="cp-cl">
+                            <i class="fas fa-phone"></i>
+                            <a href="tel:{{ $user->phone }}">{{ $user->phone }}</a>
+                        </div>
+                        @endif
+                    </td>
+
+                    {{-- COMPANY --}}
+                    <td>
+                        @if($user->company_name)
+                            <div class="cp-co"><i class="fas fa-building"></i> {{ $user->company_name }}</div>
+                        @else
+                            <span class="cp-na">Not specified</span>
+                        @endif
+                    </td>
+
+                    {{-- STATUS --}}
+                    <td>
+                        @if($user->is_active)
+                            <span class="cp-st on"><span class="cp-st-dot"></span> Active</span>
+                        @else
+                            <span class="cp-st off"><span class="cp-st-dot"></span> Inactive</span>
+                        @endif
+                    </td>
+
+                    {{-- ACTIONS --}}
+                    <td>
+                        <div class="cp-acts">
+
+                            {{-- Toggle --}}
+                            <form action="{{ route('superadmin.contractors.toggle-active', $user->id) }}"
+                                  method="POST" style="display:inline" id="tf{{ $user->id }}">
+                                @csrf @method('PATCH')
+                                <button type="button"
+                                        onclick="cpToggle('{{ addslashes($user->name.' '.($user->last_name??'')) }}', {{ $user->is_active ? 'true' : 'false' }}, document.getElementById('tf{{ $user->id }}'))"
+                                        class="cp-ab t {{ $user->is_active ? 'active' : 'inactive' }}"
+                                        title="{{ $user->is_active ? 'Deactivate' : 'Activate' }}">
+                                    <i class="fas fa-{{ $user->is_active ? 'toggle-on' : 'toggle-off' }}"
+                                       style="font-size:15px"></i>
+                                </button>
+                            </form>
+
+                            {{-- Edit --}}
+                            <a href="{{ route('superadmin.contractors.edit', $user->id) }}"
+                               class="cp-ab e" title="Edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+
+                            {{-- Delete --}}
+                            <form action="{{ route('superadmin.contractors.destroy', $user->id) }}"
+                                  method="POST" style="display:inline" id="df{{ $user->id }}">
+                                @csrf @method('DELETE')
+                                <button type="button"
+                                        onclick="cpDel('{{ addslashes($user->name.' '.($user->last_name??'')) }}', document.getElementById('df{{ $user->id }}'))"
+                                        class="cp-ab d" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="5">
+                        <div class="cp-empty">
+                            <div class="cp-empty-icon"><i class="fas fa-users"></i></div>
+                            <div class="cp-empty-t">No contractors found</div>
+                            <div class="cp-empty-s">
+                                @if(request('search')||request('status'))
+                                    Try adjusting your filters.
                                 @else
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-                                        <i class="fas fa-times-circle mr-1.5"></i> Inactive
-                                    </span>
+                                    No contractors have been added yet.
                                 @endif
-                            </td>
-
-                            <!-- Actions -->
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end space-x-2">
-                                    <!-- Edit Button -->
-                                    <a href="{{ route('superadmin.contractors.edit', $user->id) }}" 
-                                       class="inline-flex items-center p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition duration-200"
-                                       title="Edit contractor">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-
-                                    <!-- Delete Button -->
-                                    <form action="{{ route('superadmin.users.destroy', $user->id) }}" 
-                                          method="POST" 
-                                          class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button" 
-                                                onclick="confirmDelete('{{ $user->name }}', this.closest('form'))"
-                                                class="inline-flex items-center p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition duration-200"
-                                                title="Delete contractor">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
-                                <div class="text-gray-400 mb-3">
-                                    <i class="fas fa-users text-4xl mb-4"></i>
-                                </div>
-                                <h4 class="text-lg font-medium text-gray-600 mb-2">No contractors found</h4>
-                                <p class="text-gray-500 max-w-md mx-auto">
-                                    @if(request()->has('search') || request()->has('status'))
-                                        Try adjusting your filters to find what you're looking for.
-                                    @else
-                                        No contractors have been added yet. Add your first contractor to get started.
-                                    @endif
-                                </p>
-                            </td>
-                        </tr>
-                    @endforelse
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination -->
         @if($users->hasPages())
-            <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
-                {{ $users->links('vendor.pagination.tailwind') }}
-            </div>
+        <div class="cp-pag">
+            {{ $users->links('vendor.pagination.tailwind') }}
+        </div>
         @endif
     </div>
 
-    <script>
-        function confirmDelete(contractorName, form) {
-            Swal.fire({
-                title: 'Delete Contractor?',
-                html: `<div class="text-center">
-                         <div class="mx-auto mb-4 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
-                           <i class="fas fa-trash-alt text-red-600 text-xl"></i>
-                         </div>
-                         <p class="text-gray-700">Are you sure you want to delete <strong>${contractorName}</strong>?</p>
-                         <p class="text-sm text-gray-500 mt-2">This action cannot be undone.</p>
-                       </div>`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: 'Cancel',
-                reverseButtons: true,
-                customClass: {
-                    confirmButton: 'px-5 py-2.5',
-                    cancelButton: 'px-5 py-2.5'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        }
+</div>
 
-        // Add animation for success message
-        document.addEventListener('DOMContentLoaded', function() {
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from {
-                        transform: translateY(-20px);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateY(0);
-                        opacity: 1;
-                    }
-                }
-                .animate-slide-in {
-                    animation: slideIn 0.3s ease-out;
-                }
-            `;
-            document.head.appendChild(style);
-        });
-    </script>
+<script>
+function toggleF() {
+    const b = document.getElementById('fbody');
+    const a = document.getElementById('farr');
+    const open = b.style.display !== 'none';
+    b.style.display = open ? 'none' : 'block';
+    a.classList.toggle('open', !open);
+}
 
-    <style>
-        /* Custom scrollbar for table */
-        .overflow-x-auto::-webkit-scrollbar {
-            height: 6px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
+function cpToggle(name, isActive, form) {
+    const action  = isActive ? 'Deactivate' : 'Activate';
+    const iconCls = isActive ? 'fa-ban' : 'fa-check-circle';
+    const color   = isActive ? '#d97706' : '#0d9e6a';
+    const btnColor= isActive ? '#d97706' : '#0d9e6a';
+    const msg     = isActive
+        ? `<strong>${name}</strong> will be set as <strong>Inactive</strong> and won't be able to access the platform.`
+        : `<strong>${name}</strong> will be set as <strong>Active</strong> and will regain access.`;
 
-        /* Smooth transitions */
-        .transition-colors {
-            transition: color 0.2s ease, background-color 0.2s ease;
-        }
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: `${action} contractor?`,
+            html: `<p style="font-family:Montserrat,sans-serif;color:#374151;font-size:14px;line-height:1.6">${msg}</p>`,
+            icon: isActive ? 'warning' : 'question',
+            showCancelButton: true,
+            confirmButtonColor: btnColor,
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: `Yes, ${action.toLowerCase()}`,
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+        }).then(r => { if (r.isConfirmed) form.submit(); });
+    } else {
+        if (confirm(`${action} ${name}?`)) form.submit();
+    }
+}
 
-        /* Table row hover effect */
-        tr {
-            transition: background-color 0.15s ease;
-        }
+function cpDel(name, form) {
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Delete contractor?',
+            html: `<p style="font-family:Montserrat,sans-serif;color:#374151;font-size:14px">
+                     You are about to permanently delete<br><strong>${name}</strong>.
+                   </p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d92626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, delete',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+        }).then(r => { if (r.isConfirmed) form.submit(); });
+    } else {
+        if (confirm(`Delete ${name}?`)) form.submit();
+    }
+}
+</script>
 
-        /* Card shadow on hover */
-        .shadow-sm {
-            transition: box-shadow 0.3s ease;
-        }
-        .shadow-sm:hover {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-    </style>
 @endsection

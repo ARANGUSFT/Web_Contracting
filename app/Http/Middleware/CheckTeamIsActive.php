@@ -16,7 +16,7 @@ class CheckTeamIsActive
             Auth::guard('team')->logout();
 
             return redirect()->route('team.login')->withErrors([
-                'email' => 'Tu cuenta ha sido desactivada por un administrador.',
+                'email' => 'Your account has been deactivated by an administrator.',
             ]);
         }
 

@@ -1,470 +1,521 @@
 @extends('admin.layouts.superadmin')
-@section('title', 'Assign Subcontractors to Crew')
+@section('title', 'Assign Subcontractors · ' . $crew->name)
 
 @section('content')
-<div class="min-h-screen bg-gray-50/30 p-6">
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('superadmin.crew.index') }}" 
-               class="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors duration-200 shadow-sm">
-                <i class="fas fa-arrow-left"></i>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+.ca { font-family: 'Montserrat', sans-serif; padding: 28px 32px; max-width: 1300px; }
+
+:root {
+    --ink:  #0f1117; --ink2: #3c4353; --ink3: #8c95a6;
+    --bg:   #f4f5f8; --surf: #ffffff;
+    --bd:   #e4e7ed; --bd2:  #eef0f4;
+    --blue: #1855e0; --blt:  #eef2ff; --bbd:  #c7d4fb;
+    --grn:  #0d9e6a; --glt:  #edfaf4; --gbd:  #9fe6c8;
+    --red:  #d92626; --rlt:  #fff0f0; --rbd:  #fbcfcf;
+    --amb:  #d97706; --alt:  #fffbeb; --abd:  #fde68a;
+    --r:    8px; --rlg: 13px; --rxl: 18px;
+}
+
+/* ── HERO ── */
+.ca-hero {
+    position: relative; border-radius: var(--rxl);
+    padding: 30px 36px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; background: var(--ink); overflow: hidden;
+}
+.ca-hero-glow {
+    position: absolute; pointer-events: none;
+    width: 500px; height: 260px;
+    background: radial-gradient(ellipse, rgba(24,85,224,.35) 0%, transparent 70%);
+    right: -40px; top: -40px;
+}
+.ca-hero-accent {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg,#4f80ff 0%,#1855e0 50%,transparent 100%);
+    border-radius: 0 2px 2px 0;
+}
+.ca-hero-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+.ca-hero-left { position: relative; display: flex; align-items: center; gap: 16px; }
+.ca-hero-badge {
+    width: 50px; height: 50px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(24,85,224,.2); border: 1px solid rgba(24,85,224,.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #8aadff;
+}
+.ca-hero-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.4px; line-height: 1; }
+.ca-hero-crew  { font-size: 13px; font-weight: 700; color: #8aadff; margin-top: 4px; }
+.ca-hero-right { position: relative; display: flex; align-items: center; gap: 10px; }
+.ca-stat-chip {
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 12px; padding: 10px 16px; text-align: center;
+}
+.ca-stat-chip-n { font-size: 20px; font-weight: 800; color: #fff; line-height: 1; }
+.ca-stat-chip-l { font-size: 9.5px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .8px; margin-top: 3px; font-weight: 700; }
+.ca-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 15px; border-radius: var(--r);
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.11);
+    color: rgba(255,255,255,.6); font-size: 12px; font-weight: 600;
+    text-decoration: none; transition: all .15s; font-family: 'Montserrat', sans-serif;
+}
+.ca-back:hover { background: rgba(255,255,255,.13); color: #fff; }
+
+/* ── NOTICE ── */
+.ca-notice {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; border-radius: var(--rlg);
+    background: var(--alt); border: 1px solid var(--abd);
+    margin-bottom: 20px;
+    font-size: 12.5px; font-weight: 600; color: #78350f;
+}
+.ca-notice i { color: var(--amb); font-size: 14px; flex-shrink: 0; }
+
+/* ── LAYOUT ── */
+.ca-layout { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+
+/* ── MAIN CARD ── */
+.ca-card {
+    background: var(--surf); border: 1px solid var(--bd);
+    border-radius: var(--rxl); overflow: hidden;
+}
+.ca-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 22px; border-bottom: 1px solid var(--bd2);
+    background: linear-gradient(to right, var(--surf), #fafbfd);
+}
+.ca-card-head-l { display: flex; align-items: center; gap: 10px; }
+.ca-card-title  { font-size: 13.5px; font-weight: 800; color: var(--ink); letter-spacing: -.2px; }
+.ca-selected-badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 9999px; background: var(--blt);
+    color: var(--blue); border: 1px solid var(--bbd);
+}
+
+/* ── SEARCH + CONTROLS ── */
+.ca-toolbar { display: flex; align-items: center; gap: 8px; padding: 14px 22px; border-bottom: 1px solid var(--bd2); }
+.ca-search-wrap { position: relative; flex: 1; }
+.ca-search-ico  { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-size: 12px; pointer-events: none; }
+.ca-search-input {
+    width: 100%; padding: 9px 12px 9px 32px;
+    border: 1px solid var(--bd); border-radius: var(--r);
+    font-size: 13px; font-weight: 500; font-family: 'Montserrat', sans-serif;
+    color: var(--ink); background: var(--surf); outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.ca-search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,85,224,.09); }
+.ca-ctrl-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 9px 14px; border-radius: var(--r);
+    font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+    border: 1px solid var(--bd); cursor: pointer; transition: all .13s; white-space: nowrap;
+    background: var(--surf); color: var(--ink2);
+}
+.ca-ctrl-btn:hover { background: var(--bg); color: var(--ink); }
+.ca-ctrl-btn.blue { background: var(--blt); border-color: var(--bbd); color: var(--blue); }
+.ca-ctrl-btn.blue:hover { background: #dbeafe; }
+
+/* ── SUB GRID ── */
+.ca-sub-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+    gap: 10px; padding: 18px;
+    max-height: 540px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #cdd0d8 var(--bg);
+}
+.ca-sub-grid::-webkit-scrollbar { width: 4px; }
+.ca-sub-grid::-webkit-scrollbar-track { background: var(--bg); }
+.ca-sub-grid::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 9999px; }
+
+/* ── SUB CARD ── */
+.ca-sub {
+    border: 1px solid var(--bd); border-radius: var(--rlg);
+    padding: 12px 14px; background: var(--surf);
+    transition: border-color .13s, box-shadow .13s, transform .13s;
+    cursor: pointer; position: relative;
+}
+.ca-sub:hover:not(.ca-sub-locked) { border-color: var(--blue); transform: translateY(-1px); box-shadow: 0 3px 12px rgba(0,0,0,.07); }
+.ca-sub.checked { border-color: var(--blue); background: var(--blt); }
+.ca-sub.assigned-here { border-color: var(--grn); background: var(--glt); }
+.ca-sub-locked { opacity: .55; cursor: not-allowed; }
+
+.ca-sub-inner { display: flex; align-items: flex-start; gap: 10px; }
+.ca-sub-check { flex-shrink: 0; margin-top: 2px; }
+.ca-sub-cb { display: none; }
+.ca-sub-box {
+    width: 17px; height: 17px; border-radius: 5px; flex-shrink: 0;
+    border: 1.5px solid var(--bd); background: var(--surf);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #fff; transition: all .13s; cursor: pointer;
+}
+.ca-sub-cb:checked ~ * .ca-sub-box,
+.ca-sub.checked .ca-sub-box { background: var(--blue); border-color: var(--blue); }
+.ca-sub.assigned-here .ca-sub-box { background: var(--grn); border-color: var(--grn); }
+
+.ca-sub-av {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg,#1855e0,#5b8af7);
+}
+.ca-sub.assigned-here .ca-sub-av { background: linear-gradient(135deg,#0d9e6a,#34d399); }
+.ca-sub-locked .ca-sub-av { background: linear-gradient(135deg,#9ca3af,#d1d5db); }
+
+.ca-sub-info  { flex: 1; min-width: 0; }
+.ca-sub-name  { font-size: 12.5px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ca-sub-co    { font-size: 11px; font-weight: 500; color: var(--ink3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ca-sub-meta  { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.ca-sub-meta-row { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: var(--ink3); }
+.ca-sub-meta-row i { font-size: 9.5px; width: 11px; text-align: center; }
+
+.ca-sub-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 9.5px; font-weight: 800; padding: 2px 7px;
+    border-radius: 9999px; text-transform: uppercase; letter-spacing: .3px;
+    margin-top: 7px;
+}
+.ca-sub-pill.available     { background: var(--glt); color: var(--grn); border: 1px solid var(--gbd); }
+.ca-sub-pill.assigned-here { background: var(--glt); color: var(--grn); border: 1px solid var(--gbd); }
+.ca-sub-pill.locked        { background: var(--rlt); color: var(--red); border: 1px solid var(--rbd); }
+
+/* ── EMPTY ── */
+.ca-empty { text-align: center; padding: 48px 24px; display: none; }
+.ca-empty-icon { font-size: 28px; color: var(--ink3); margin-bottom: 12px; }
+.ca-empty-t { font-size: 13.5px; font-weight: 800; color: var(--ink); margin-bottom: 4px; }
+.ca-empty-s { font-size: 12px; font-weight: 500; color: var(--ink3); }
+
+/* ── FOOTER ── */
+.ca-card-foot {
+    padding: 14px 22px; border-top: 1px solid var(--bd2);
+    background: var(--bg); display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.ca-foot-summary { font-size: 12px; font-weight: 600; color: var(--ink3); display: flex; align-items: center; gap: 6px; }
+.ca-foot-actions { display: flex; gap: 8px; }
+.ca-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: var(--r);
+    font-size: 12.5px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+    border: 1px solid transparent; cursor: pointer; transition: all .15s;
+    text-decoration: none; white-space: nowrap;
+}
+.ca-btn i { font-size: 11px; }
+.ca-btn-blue  { background: var(--blue); color: #fff; }
+.ca-btn-blue:hover  { background: #1344c2; color: #fff; }
+.ca-btn-ghost { background: var(--surf); border-color: var(--bd); color: var(--ink2); }
+.ca-btn-ghost:hover { background: var(--bg); color: var(--ink); }
+
+/* ── SIDEBAR CARD ── */
+.ca-side-card {
+    background: var(--surf); border: 1px solid var(--bd);
+    border-radius: var(--rxl); overflow: hidden;
+    position: sticky; top: 90px;
+}
+.ca-side-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 14px 18px; border-bottom: 1px solid var(--bd2);
+    background: linear-gradient(to right, var(--glt), var(--surf));
+}
+.ca-side-title { font-size: 12.5px; font-weight: 800; color: var(--ink); text-transform: uppercase; letter-spacing: .4px; }
+.ca-side-body  { padding: 14px; max-height: 460px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #cdd0d8 var(--bg); }
+.ca-side-body::-webkit-scrollbar { width: 3px; }
+.ca-side-body::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 9999px; }
+
+.ca-assigned-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border: 1px solid var(--gbd);
+    border-radius: var(--r); background: var(--glt); margin-bottom: 7px;
+    transition: border-color .13s;
+}
+.ca-assigned-row:last-child { margin-bottom: 0; }
+.ca-assigned-av {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg,#0d9e6a,#34d399);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 800; color: #fff;
+}
+.ca-assigned-name { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ca-assigned-co   { font-size: 10.5px; font-weight: 500; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ca-side-empty { text-align: center; padding: 28px 16px; color: var(--ink3); font-size: 12px; font-weight: 500; }
+
+@media (max-width: 1024px) {
+    .ca-layout { grid-template-columns: 1fr; }
+    .ca-side-card { position: static; }
+}
+@media (max-width: 640px) {
+    .ca { padding: 16px; }
+    .ca-hero { padding: 22px 20px; flex-direction: column; align-items: flex-start; }
+    .ca-toolbar { flex-wrap: wrap; }
+    .ca-sub-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="ca">
+
+    {{-- ── HERO ── --}}
+    <div class="ca-hero">
+        <div class="ca-hero-glow"></div>
+        <div class="ca-hero-accent"></div>
+        <div class="ca-hero-grid"></div>
+
+        <div class="ca-hero-left">
+            <div class="ca-hero-badge"><i class="fas fa-user-plus"></i></div>
+            <div>
+                <div class="ca-hero-title">Assign Subcontractors</div>
+                <div class="ca-hero-crew"><i class="fas fa-users" style="font-size:10px;margin-right:5px"></i>{{ $crew->name }}</div>
+            </div>
+        </div>
+
+        <div class="ca-hero-right">
+            <div class="ca-stat-chip">
+                <div class="ca-stat-chip-n">{{ $crew->subcontractors->count() }}</div>
+                <div class="ca-stat-chip-l">Assigned</div>
+            </div>
+            <div class="ca-stat-chip">
+                <div class="ca-stat-chip-n">{{ $subcontractors->where('crew_id', null)->count() }}</div>
+                <div class="ca-stat-chip-l">Available</div>
+            </div>
+            <a href="{{ route('superadmin.crew.index') }}" class="ca-back">
+                <i class="fas fa-arrow-left" style="font-size:10px"></i> Back to Crews
             </a>
-            <div class="flex-1">
-                <h1 class="text-2xl font-bold text-gray-900">Assign Subcontractors</h1>
-                <div class="flex items-center gap-2 mt-1">
-                    <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <p class="text-gray-500">Assign subcontractors to crew: <span class="font-semibold text-gray-700">{{ $crew->name }}</span></p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-xl border border-blue-200">
-                <i class="fas fa-users text-blue-500"></i>
-                <span class="text-sm font-medium text-blue-700">{{ $crew->subcontractors->count() }} assigned</span>
-            </div>
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto">
-        <!-- Main Assignment Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Card Header -->
-            <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-user-plus text-white"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-lg font-semibold text-gray-900">Assign Subcontractors</h2>
-                            <p class="text-sm text-gray-600">Select subcontractors to assign to this crew</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <div class="text-sm font-medium text-gray-700" id="selected-count">0 selected</div>
-                            <div class="text-xs text-gray-500">of {{ $subcontractors->where('available', true)->count() }} available</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    {{-- ── NOTICE ── --}}
+    <div class="ca-notice">
+        <i class="fas fa-exclamation-triangle"></i>
+        Each subcontractor can only be assigned to one crew. Already assigned subcontractors are locked.
+    </div>
 
-            <!-- Important Notice -->
-            <div class="bg-amber-50 border-b border-amber-200 px-6 py-4">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-exclamation-triangle text-amber-500 text-lg"></i>
-                    <div>
-                        <p class="text-sm font-medium text-amber-800">Assignment Restriction</p>
-                        <p class="text-xs text-amber-700">Each subcontractor can only be assigned to one crew. Already assigned subcontractors are disabled.</p>
-                    </div>
-                </div>
-            </div>
+    <div class="ca-layout">
 
-            <!-- Search and Filters -->
-            <div class="p-6 border-b border-gray-100 bg-white">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                    <!-- Search -->
-                    <div class="lg:col-span-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Subcontractors</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
-                            <input type="text" 
-                                   id="search-input"
-                                   class="block w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200"
-                                   placeholder="Search by name, company...">
-                        </div>
-                    </div>
-
-                    <!-- Filter Toggles -->
-                    <div class="lg:col-span-6 flex items-end gap-2">
-                        <button type="button" 
-                                onclick="selectAllAvailable()"
-                                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                            <i class="fas fa-check-double"></i>
-                            <span>Select All Available</span>
-                        </button>
-                        <button type="button" 
-                                onclick="deselectAll()"
-                                class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2">
-                            <i class="fas fa-times"></i>
-                            <span>Clear All</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Content -->
-            <form method="POST" action="{{ route('superadmin.crew.assign.store', $crew->id) }}" id="assignment-form">
+        {{-- ── MAIN CARD ── --}}
+        <div>
+            <form method="POST" action="{{ route('superadmin.crew.assign.store', $crew->id) }}" id="assign-form">
                 @csrf
-                
-                <div class="p-6">
-                    <!-- Subcontractors Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto p-2" id="subcontractors-container">
-                        @foreach ($subcontractors as $sub)
+
+                <div class="ca-card">
+
+                    {{-- Head ── --}}
+                    <div class="ca-card-head">
+                        <div class="ca-card-head-l">
+                            <i class="fas fa-people-group" style="font-size:15px;color:var(--ink3)"></i>
+                            <span class="ca-card-title">Select Subcontractors</span>
+                        </div>
+                        <span class="ca-selected-badge" id="sel-badge">0 selected</span>
+                    </div>
+
+                    {{-- Toolbar ── --}}
+                    <div class="ca-toolbar">
+                        <div class="ca-search-wrap">
+                            <i class="fas fa-search ca-search-ico"></i>
+                            <input type="text" id="ca-search" class="ca-search-input"
+                                   placeholder="Search by name, company…"
+                                   oninput="caSearch(this.value)">
+                        </div>
+                        <button type="button" class="ca-ctrl-btn blue" onclick="caSelectAll()">
+                            <i class="fas fa-check-double" style="font-size:10px"></i> Select Available
+                        </button>
+                        <button type="button" class="ca-ctrl-btn" onclick="caDeselectAll()">
+                            <i class="fas fa-times" style="font-size:10px"></i> Clear
+                        </button>
+                    </div>
+
+                    {{-- Grid ── --}}
+                    <div class="ca-sub-grid" id="sub-grid">
+                        @foreach($subcontractors as $sub)
                         @php
-                            $isAssignedToThisCrew = $crew->subcontractors->contains($sub->id);
-                            $isAssignedToOtherCrew = $sub->crew_id && !$isAssignedToThisCrew;
-                            $isAvailable = !$isAssignedToOtherCrew;
+                            $isHere   = $crew->subcontractors->contains($sub->id);
+                            $isLocked = $sub->crew_id && !$isHere;
+                            $avail    = !$isLocked;
                         @endphp
 
-                        <div class="subcontractor-card group relative border-2 rounded-xl transition-all duration-200 p-4 
-                                    {{ $isAssignedToThisCrew ? 'border-green-500 bg-green-50' : ($isAvailable ? 'border-gray-200 bg-white hover:border-blue-300' : 'border-gray-100 bg-gray-50') }}"
-                             data-search="{{ strtolower($sub->name . ' ' . $sub->last_name . ' ' . $sub->company_name) }}"
-                             data-available="{{ $isAvailable ? 'true' : 'false' }}">
-                            
-                            <!-- Checkbox -->
-                            <div class="flex items-start gap-3">
-                                <div class="flex-shrink-0 mt-1">
-                                    @if($isAvailable)
-                                        <input type="checkbox" 
-                                               name="subcontractors[]" 
-                                               value="{{ $sub->id }}" 
-                                               id="sub-{{ $sub->id }}"
-                                               class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded transition-all duration-200"
-                                               {{ $isAssignedToThisCrew ? 'checked' : '' }}
-                                               onchange="updateSelectionCount()">
-                                    @else
-                                        <div class="h-5 w-5 bg-gray-200 border border-gray-300 rounded flex items-center justify-center">
-                                            <i class="fas fa-lock text-gray-400 text-xs"></i>
-                                        </div>
-                                    @endif
-                                </div>
-                                
-                                <!-- Subcontractor Info -->
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-medium text-sm">
-                                            {{ strtoupper(substr($sub->name, 0, 1)) }}
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <label for="sub-{{ $sub->id }}" class="block text-sm font-semibold text-gray-900 truncate cursor-pointer {{ !$isAvailable ? 'cursor-not-allowed' : '' }}">
-                                                {{ $sub->name }} {{ $sub->last_name }}
-                                            </label>
-                                            <p class="text-xs text-gray-500 truncate">{{ $sub->company_name }}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Contact Info -->
-                                    <div class="space-y-1 text-xs text-gray-600">
-                                        @if($sub->email)
-                                        <div class="flex items-center gap-1">
-                                            <i class="fas fa-envelope text-gray-400 w-3"></i>
-                                            <span class="truncate">{{ $sub->email }}</span>
-                                        </div>
-                                        @endif
-                                        
-                                        @if($sub->phone)
-                                        <div class="flex items-center gap-1">
-                                            <i class="fas fa-phone text-gray-400 w-3"></i>
-                                            <span>{{ $sub->phone }}</span>
-                                        </div>
-                                        @endif
-                                    </div>
-                                    
-                                    <!-- Status Badge -->
-                                    <div class="mt-2">
-                                        @if($isAssignedToThisCrew)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
-                                                <i class="fas fa-check-circle mr-1"></i>
-                                                Currently Assigned
-                                            </span>
-                                        @elseif($isAssignedToOtherCrew)
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-200">
-                                                <i class="fas fa-ban mr-1"></i>
-                                                Assigned to Another Crew
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
-                                                <i class="fas fa-check mr-1"></i>
-                                                Available
-                                            </span>
-                                        @endif
-                                    </div>
+                        <div class="ca-sub {{ $isHere ? 'assigned-here checked' : ($isLocked ? 'ca-sub-locked' : '') }}"
+                             id="card-{{ $sub->id }}"
+                             data-search="{{ strtolower($sub->name.' '.($sub->last_name ?? '').' '.($sub->company_name ?? '')) }}"
+                             data-available="{{ $avail ? '1' : '0' }}"
+                             onclick="{{ $avail ? 'caToggle('.$sub->id.')' : '' }}">
+                            <div class="ca-sub-inner">
 
-                                    <!-- Assigned Crew Info -->
-                                    @if($isAssignedToOtherCrew && $sub->crew)
-                                    <div class="mt-2 p-2 bg-red-50 rounded border border-red-200">
-                                        <p class="text-xs text-red-700">
-                                            <span class="font-medium">Currently assigned to:</span> 
-                                            {{ $sub->crew->name }}
-                                        </p>
+                                {{-- Checkbox ── --}}
+                                <div class="ca-sub-check">
+                                    @if($avail)
+                                    <input type="checkbox" name="subcontractors[]" value="{{ $sub->id }}"
+                                           id="cb{{ $sub->id }}" class="ca-sub-cb"
+                                           {{ $isHere ? 'checked' : '' }}
+                                           onchange="caCount()">
+                                    <div class="ca-sub-box" id="box{{ $sub->id }}">
+                                        <i class="fas fa-check" style="{{ $isHere ? '' : 'display:none' }}" id="chk{{ $sub->id }}"></i>
+                                    </div>
+                                    @else
+                                    <div class="ca-sub-box" style="background:var(--bd);border-color:var(--bd)">
+                                        <i class="fas fa-lock" style="color:var(--ink3)"></i>
                                     </div>
                                     @endif
                                 </div>
+
+                                {{-- Avatar ── --}}
+                                <div class="ca-sub-av">{{ strtoupper(substr($sub->name,0,1)) }}</div>
+
+                                {{-- Info ── --}}
+                                <div class="ca-sub-info">
+                                    <div class="ca-sub-name">{{ $sub->name }} {{ $sub->last_name }}</div>
+                                    <div class="ca-sub-co">{{ $sub->company_name ?? '—' }}</div>
+                                    <div class="ca-sub-meta">
+                                        @if($sub->email)
+                                        <div class="ca-sub-meta-row"><i class="fas fa-envelope"></i>{{ $sub->email }}</div>
+                                        @endif
+                                        @if($sub->phone)
+                                        <div class="ca-sub-meta-row"><i class="fas fa-phone"></i>{{ $sub->phone }}</div>
+                                        @endif
+                                    </div>
+                                    @if($isHere)
+                                        <span class="ca-sub-pill assigned-here"><i class="fas fa-check-circle" style="font-size:8px"></i> Assigned Here</span>
+                                    @elseif($isLocked)
+                                        <span class="ca-sub-pill locked"><i class="fas fa-ban" style="font-size:8px"></i>
+                                            {{ $sub->crew ? 'In: '.$sub->crew->name : 'Unavailable' }}
+                                        </span>
+                                    @else
+                                        <span class="ca-sub-pill available"><i class="fas fa-check" style="font-size:8px"></i> Available</span>
+                                    @endif
+                                </div>
                             </div>
-                            
-                            <!-- Hover Actions -->
-                            @if($isAvailable)
-                            <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                <button type="button" 
-                                        onclick="toggleSubcontractor({{ $sub->id }})"
-                                        class="w-8 h-8 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-500 hover:border-blue-300 transition-all duration-200 shadow-sm">
-                                    <i class="fas fa-exchange-alt text-xs"></i>
-                                </button>
-                            </div>
-                            @endif
                         </div>
                         @endforeach
                     </div>
 
-                    <!-- Empty State -->
-                    <div id="empty-state" class="hidden text-center py-12">
-                        <div class="max-w-sm mx-auto">
-                            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-search text-gray-400 text-2xl"></i>
-                            </div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No subcontractors found</h3>
-                            <p class="text-gray-500">Try adjusting your search criteria</p>
-                        </div>
+                    {{-- Empty ── --}}
+                    <div class="ca-empty" id="ca-empty">
+                        <div class="ca-empty-icon"><i class="fas fa-search"></i></div>
+                        <div class="ca-empty-t">No results found</div>
+                        <div class="ca-empty-s">Try adjusting your search</div>
                     </div>
-                </div>
 
-                <!-- Action Buttons -->
-                <div class="px-8 py-6 border-t border-gray-100 bg-gray-50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm text-gray-600">
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                            <span id="selection-summary">Select available subcontractors to assign</span>
+                    {{-- Footer ── --}}
+                    <div class="ca-card-foot">
+                        <div class="ca-foot-summary">
+                            <i class="fas fa-info-circle" style="color:var(--blue)"></i>
+                            <span id="foot-summary">Select subcontractors to assign</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <a href="{{ route('superadmin.crew.index') }}" 
-                               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-all duration-200 flex items-center gap-2">
-                                <i class="fas fa-times"></i>
-                                <span>Cancel</span>
+                        <div class="ca-foot-actions">
+                            <a href="{{ route('superadmin.crew.index') }}" class="ca-btn ca-btn-ghost">
+                                <i class="fas fa-times"></i> Cancel
                             </a>
-                            <button type="submit" 
-                                    class="group relative bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
-                                <i class="fas fa-save"></i>
-                                <span>Save Assignments</span>
-                                <div class="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <button type="submit" class="ca-btn ca-btn-blue" id="submit-btn">
+                                <i class="fas fa-floppy-disk"></i> Save Assignments
                             </button>
                         </div>
                     </div>
                 </div>
+
             </form>
         </div>
 
-  
-
-        <!-- Currently Assigned Section -->
-        @if($crew->subcontractors->count() > 0)
-        <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
-                <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-check-circle text-green-500"></i>
-                    Currently Assigned to This Crew ({{ $crew->subcontractors->count() }})
-                </h3>
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    @foreach($crew->subcontractors as $sub)
-                    <div class="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
-                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center text-white font-medium">
-                            {{ strtoupper(substr($sub->name, 0, 1)) }}
+        {{-- ── SIDEBAR: Currently Assigned ── --}}
+        <div>
+            <div class="ca-side-card">
+                <div class="ca-side-head">
+                    <i class="fas fa-check-circle" style="color:var(--grn);font-size:13px"></i>
+                    <span class="ca-side-title">Currently Assigned ({{ $crew->subcontractors->count() }})</span>
+                </div>
+                <div class="ca-side-body">
+                    @forelse($crew->subcontractors as $sub)
+                    <div class="ca-assigned-row">
+                        <div class="ca-assigned-av">{{ strtoupper(substr($sub->name,0,1)) }}</div>
+                        <div style="flex:1;min-width:0">
+                            <div class="ca-assigned-name">{{ $sub->name }} {{ $sub->last_name }}</div>
+                            <div class="ca-assigned-co">{{ $sub->company_name ?? '—' }}</div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">
-                                {{ $sub->name }} {{ $sub->last_name }}
-                            </p>
-                            <p class="text-xs text-gray-500 truncate">{{ $sub->company_name }}</p>
-                        </div>
-                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-green-500 text-xs"></i>
-                        </div>
+                        <i class="fas fa-check-circle" style="color:var(--grn);font-size:12px;flex-shrink:0"></i>
                     </div>
-                    @endforeach
+                    @empty
+                    <div class="ca-side-empty">
+                        <i class="fas fa-user-slash" style="font-size:20px;opacity:.3;display:block;margin-bottom:8px"></i>
+                        No subcontractors assigned yet
+                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
-        @endif
+
     </div>
 </div>
 
-<style>
-    /* Custom scrollbar */
-    #subcontractors-container {
-        scrollbar-width: thin;
-        scrollbar-color: #d1d5db #f9fafb;
-    }
-    
-    #subcontractors-container::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    #subcontractors-container::-webkit-scrollbar-track {
-        background: #f9fafb;
-        border-radius: 3px;
-    }
-    
-    #subcontractors-container::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 3px;
-    }
-    
-    #subcontractors-container::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af;
-    }
-    
-    /* Checkbox styling */
-    input[type="checkbox"]:checked {
-        background-color: #3b82f6;
-        border-color: #3b82f6;
-    }
-    
-    /* Smooth transitions */
-    .subcontractor-card {
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    .subcontractor-card:hover:not(.disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-    
-    /* Disabled state */
-    .subcontractor-card.disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        updateSelectionCount();
-        setupSearch();
-        setupFormSubmission();
+/* ── TOGGLE ── */
+function caToggle(id) {
+    const cb  = document.getElementById('cb' + id);
+    const box = document.getElementById('box' + id);
+    const chk = document.getElementById('chk' + id);
+    const card = document.getElementById('card-' + id);
+    if (!cb) return;
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+        box.style.background = 'var(--blue)'; box.style.borderColor = 'var(--blue)';
+        chk.style.display = ''; card.classList.add('checked');
+    } else {
+        box.style.background = ''; box.style.borderColor = '';
+        chk.style.display = 'none'; card.classList.remove('checked');
+    }
+    caCount();
+}
+
+/* ── COUNT ── */
+function caCount() {
+    const n = document.querySelectorAll('.ca-sub-cb:checked').length;
+    document.getElementById('sel-badge').textContent = n + ' selected';
+    document.getElementById('foot-summary').textContent =
+        n === 0 ? 'Select subcontractors to assign' :
+        n === 1 ? '1 subcontractor selected' :
+        n + ' subcontractors selected';
+}
+
+/* ── SELECT ALL / CLEAR ── */
+function caSelectAll() {
+    document.querySelectorAll('.ca-sub[data-available="1"]').forEach(card => {
+        const id = card.id.replace('card-','');
+        const cb = document.getElementById('cb'+id);
+        if (cb && !cb.checked) caToggle(id);
     });
-
-    // Search functionality
-    function setupSearch() {
-        const searchInput = document.getElementById('search-input');
-        const subcontractorCards = document.querySelectorAll('.subcontractor-card');
-        const emptyState = document.getElementById('empty-state');
-        const container = document.getElementById('subcontractors-container');
-
-        searchInput.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            let visibleCount = 0;
-
-            subcontractorCards.forEach(card => {
-                const searchData = card.getAttribute('data-search');
-                if (searchData.includes(searchTerm)) {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            // Show/hide empty state
-            if (visibleCount === 0) {
-                emptyState.classList.remove('hidden');
-                container.classList.add('hidden');
-            } else {
-                emptyState.classList.add('hidden');
-                container.classList.remove('hidden');
-            }
-        });
-    }
-
-    // Update selection count and summary
-    function updateSelectionCount() {
-        const checkboxes = document.querySelectorAll('input[name="subcontractors[]"]:checked');
-        const availableCount = document.querySelectorAll('.subcontractor-card[data-available="true"]').length;
-        const selectedCount = checkboxes.length;
-        
-        // Update count display
-        document.getElementById('selected-count').textContent = `${selectedCount} selected`;
-        
-        // Update summary text
-        const summary = document.getElementById('selection-summary');
-        if (selectedCount === 0) {
-            summary.textContent = 'Select available subcontractors to assign';
-        } else if (selectedCount === 1) {
-            summary.textContent = '1 subcontractor selected';
-        } else {
-            summary.textContent = `${selectedCount} subcontractors selected`;
-        }
-        
-        // Update card styles for selected items
-        document.querySelectorAll('.subcontractor-card').forEach(card => {
-            const checkbox = card.querySelector('input[type="checkbox"]');
-            if (checkbox && checkbox.checked) {
-                card.classList.add('border-blue-500', 'bg-blue-50');
-                card.classList.remove('border-gray-200', 'bg-white');
-            } else if (card.getAttribute('data-available') === 'true') {
-                card.classList.remove('border-blue-500', 'bg-blue-50');
-                card.classList.add('border-gray-200', 'bg-white');
-            }
-        });
-    }
-
-    // Select all available subcontractors
-    function selectAllAvailable() {
-        document.querySelectorAll('.subcontractor-card[data-available="true"] input[type="checkbox"]').forEach(checkbox => {
-            checkbox.checked = true;
-        });
-        updateSelectionCount();
-    }
-
-    // Deselect all subcontractors
-    function deselectAll() {
-        document.querySelectorAll('input[name="subcontractors[]"]').forEach(checkbox => {
-            checkbox.checked = false;
-        });
-        updateSelectionCount();
-    }
-
-    // Toggle individual subcontractor
-    function toggleSubcontractor(id) {
-        const checkbox = document.getElementById(`sub-${id}`);
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-            updateSelectionCount();
-        }
-    }
-
-    // Form submission handling
-    function setupFormSubmission() {
-        const form = document.getElementById('assignment-form');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        
-        form.addEventListener('submit', function(e) {
-            const selectedCount = document.querySelectorAll('input[name="subcontractors[]"]:checked').length;
-            
-            // Show loading state
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = `
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Saving Assignments...</span>
-            `;
-            submitBtn.disabled = true;
-            
-            // Revert after 5 seconds in case of error
-            setTimeout(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 5000);
-        });
-    }
-
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + A to select all available
-        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-            e.preventDefault();
-            selectAllAvailable();
-        }
-        
-        // Escape to clear search
-        if (e.key === 'Escape') {
-            const searchInput = document.getElementById('search-input');
-            searchInput.value = '';
-            searchInput.dispatchEvent(new Event('input'));
-        }
+}
+function caDeselectAll() {
+    document.querySelectorAll('.ca-sub-cb:checked').forEach(cb => {
+        caToggle(cb.value);
     });
+}
+
+/* ── SEARCH ── */
+function caSearch(q) {
+    const val   = q.trim().toLowerCase();
+    const cards = document.querySelectorAll('.ca-sub');
+    let shown   = 0;
+    cards.forEach(c => {
+        const match = !val || c.dataset.search.includes(val);
+        c.style.display = match ? '' : 'none';
+        if (match) shown++;
+    });
+    const empty = document.getElementById('ca-empty');
+    const grid  = document.getElementById('sub-grid');
+    empty.style.display = shown === 0 ? 'block' : 'none';
+    grid.style.paddingBottom = shown === 0 ? '0' : '';
+}
+
+/* ── SUBMIT ── */
+document.getElementById('assign-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:11px"></i> Saving…';
+    btn.disabled  = true;
+});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', caCount);
 </script>
 
 @endsection

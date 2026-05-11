@@ -31,6 +31,7 @@
         <p><strong>Crew Assigned:</strong> {{ optional($job->crew)->name ?? 'Not Assigned' }}</p>
     </div>
 
-    {{-- Add more sections as needed --}}
+<x-payment-form :item="$job" type="job" />
+
 </div>
 @endsection

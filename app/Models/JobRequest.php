@@ -38,6 +38,11 @@ class JobRequest extends Model
 
         // Files (JSON arrays)
         'aerial_measurement','material_order','file_upload',
+
+        'amount',
+        'payment_receipt_path', 
+        'payment_date',
+        'payment_status',
     ];
 
     protected $casts = [
@@ -53,6 +58,25 @@ class JobRequest extends Model
         'material_order_urls',
         'file_upload_urls',
     ];
+
+
+    
+    public function teams()
+    {
+        return $this->belongsToMany(
+            \App\Models\Team::class,   // modelo Team (tabla "team")
+            'job_request_team',        // tabla pivot
+            'job_request_id',          // FK hacia job_requests
+            'team_id'                  // FK hacia team
+        );
+    }
+    
+
+    public function repairTickets()
+    {
+        return $this->hasMany(RepairTicket::class, 'reference_id')
+                    ->where('reference_type', 'job');
+    }
 
     /* ===================== Relaciones ===================== */
     public function teamMembers()
@@ -130,7 +154,7 @@ class JobRequest extends Model
     /* ===================== Estados ===================== */
     public static function availableStatuses(): array
     {
-        return ['pendiente','en_proceso','completado'];
+          return ['pending', 'en_process', 'completed'];
     }
     public function advanceStatus(): void
     {
@@ -143,5 +167,10 @@ class JobRequest extends Model
         $flow = self::availableStatuses();
         $i = array_search($this->status, $flow);
         if ($i !== false && $i > 0) { $this->status = $flow[$i - 1]; $this->save(); }
+    }
+
+    public function invoices()
+    {
+        return $this->morphMany(Invoice::class, 'invoiceable');
     }
 }

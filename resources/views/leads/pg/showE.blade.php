@@ -1,456 +1,623 @@
 @extends('layouts.app')
-
 @section('content')
- <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #7f8c8d;
-            --success-color: #021949;
-            --info-color: #3498db;
-            --warning-color: #f39c12;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
-            --card-shadow: 0 0.125rem 0.625rem rgba(0, 0, 0, 0.08);
-            --border-color: #e0e0e0;
-        }
-        
-        body {
-            background-color: #f9fafb;
-            padding-top: 20px;
-            padding-bottom: 40px;
-            color: #333;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .card {
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-            transition: box-shadow 0.2s ease;
-            margin-bottom: 20px;
-            background-color: #fff;
-        }
-        
-        .card:hover {
-            box-shadow: var(--card-shadow);
-        }
-        
-        .card-header {
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            background-color: #f8f9fa;
-            color: var(--primary-color);
-            padding: 15px 20px;
-        }
-        
-        .btn {
-            border-radius: 4px;
-            padding: 8px 16px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .btn-primary:hover {
-            background-color: #1a2530;
-            border-color: #1a2530;
-            transform: none;
-        }
-        
-        .btn-danger {
-            background-color: var(--danger-color);
-            border-color: var(--danger-color);
-        }
-        
-        .btn-danger:hover {
-            background-color: #c0392b;
-            border-color: #c0392b;
-            transform: none;
-        }
-        
-        .btn-outline-secondary {
-            border: 1px solid var(--secondary-color);
-            color: var(--secondary-color);
-        }
-        
-        .btn-outline-secondary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-            transform: none;
-        }
-        
-        .detail-item {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .detail-item:last-child {
-            border-bottom: none;
-        }
-        
-        .badge {
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-weight: 500;
-            font-size: 0.75rem;
-        }
-        
-        .file-item {
-            background-color: var(--light-bg);
-            border-radius: 4px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-            border: 1px solid var(--border-color);
-        }
-        
-        .file-item:hover {
-            background-color: #f1f3f5;
-        }
-        
-        .team-member {
-            display: flex;
-            align-items: center;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            background-color: var(--light-bg);
-            border-radius: 4px;
-            transition: all 0.2s;
-            border: 1px solid var(--border-color);
-        }
-        
-        .team-member:hover {
-            background-color: #f1f3f5;
-        }
-        
-        .header-section {
-            background: #fff;
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 25px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .icon-container {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            flex-shrink: 0;
-            background-color: #f1f3f5;
-            color: var(--primary-color);
-        }
-        
-        .status-badge {
-            font-size: 0.8rem;
-            padding: 5px 10px;
-            border-radius: 4px;
-            background-color: #f1f3f5;
-            color: var(--secondary-color);
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-        
-        .text-primary {
-            color: var(--primary-color) !important;
-        }
-        
-        .text-secondary {
-            color: var(--secondary-color) !important;
-        }
-        
-        .bg-primary {
-            background-color: var(--primary-color) !important;
-        }
-        
-        .bg-success {
-            background-color: var(--success-color) !important;
-        }
-        
-        .bg-info {
-            background-color: var(--info-color) !important;
-        }
-        
-        .bg-danger {
-            background-color: var(--danger-color) !important;
-        }
-        
-        .text-muted {
-            color: #95a5a6 !important;
-        }
-        
-        .card-body {
-            padding: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container py-4">
-        <!-- Header Section -->
-        <div class="header-section">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-1">
-                        <i class="bi bi-clipboard-data me-2"></i> Emergency Request Details
-                    </h1>
-                </div>
-                <div class="d-flex align-items-center">
-                    <div class="btn-group">
-                        <a href="{{ route('calendar.view') }}" class="btn btn-outline-secondary me-2">
-                            <i class="bi bi-arrow-left me-1"></i> Back to List
-                        </a>
-                        <a href="{{ route('emergency.edit', $emergency->id) }}" class="btn btn-primary me-2">
-                            <i class="bi bi-pencil-square me-2"></i> Edit Job
-                        </a>
-                        <form id="delete-emergency-form-{{ $emergency->id }}" action="{{ route('emergency.destroy', $emergency->id) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" class="btn btn-danger" onclick="confirmDelete({{ $emergency->id }})">
-                                <i class="bi bi-trash me-1"></i> Delete Emergency
-                            </button>
-                        </form>
-                    </div>
-                </div>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+    --ink:#0f172a;--ink2:#334155;--ink3:#64748b;--ink4:#94a3b8;
+    --line:#e2e8f0;--line2:#f1f5f9;--white:#ffffff;--page:#f0f2f5;
+    --red:#dc2626;--red-bg:#fef2f2;--red-bd:#fecaca;
+    --cyan:#0891b2;--cyan-bg:#ecfeff;--cyan-bd:#a5f3fc;
+    --green:#059669;--green-bg:#f0fdf4;--green-bd:#6ee7b7;
+    --amber:#d97706;--amber-bg:#fffbeb;--amber-bd:#fde68a;
+    --purple:#7c3aed;--purple-bg:#f5f3ff;--purple-bd:#ddd6fe;
+    --blue:#2563eb;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Montserrat',sans-serif;background:var(--page);}
+.em-page{min-height:100vh;padding:1.75rem 1.5rem 3rem;}
+
+/* ── Hero ── */
+.em-hero{
+    background:var(--ink);border-radius:18px;
+    padding:1.6rem 2rem;margin-bottom:1.25rem;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:1rem;flex-wrap:wrap;position:relative;overflow:hidden;
+}
+.em-hero::before{
+    content:'';position:absolute;right:-80px;top:-80px;
+    width:260px;height:260px;border-radius:50%;
+    background:radial-gradient(circle,rgba(220,38,38,.20) 0%,transparent 70%);
+    pointer-events:none;
+}
+.em-hero::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#f87171,var(--red));border-radius:18px 0 0 18px;}
+.hero-eye{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink4);margin-bottom:.3rem;display:flex;align-items:center;gap:.35rem;}
+.hero-title{font-size:1.45rem;font-weight:800;color:#fff;letter-spacing:-.035em;line-height:1.1;margin-bottom:.2rem;}
+.hero-sub{font-size:.73rem;color:var(--ink4);display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.hero-sub-sep{color:rgba(255,255,255,.15);}
+.hero-actions{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;position:relative;z-index:1;}
+
+.btn-hg{display:inline-flex;align-items:center;gap:.35rem;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.75rem;padding:.4rem .9rem;border-radius:8px;text-decoration:none;white-space:nowrap;transition:all .18s;cursor:pointer;border:none;}
+.btn-back{background:rgba(255,255,255,.07);color:var(--ink4);border:1px solid rgba(255,255,255,.1);}
+.btn-back:hover{color:#fff;background:rgba(255,255,255,.13);}
+.btn-edit-hero{background:#fff;color:var(--ink);}
+.btn-edit-hero:hover{background:#f1f5f9;color:var(--ink);}
+.btn-repair-hero{background:rgba(8,145,178,.15);color:#67e8f9;border:1px solid rgba(8,145,178,.3);}
+.btn-repair-hero:hover{background:rgba(8,145,178,.25);color:#a5f3fc;}
+.btn-del-hero{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3);}
+.btn-del-hero:hover{background:rgba(239,68,68,.25);color:#fca5a5;}
+
+/* ── Quick Stats ── */
+.qs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.1rem;}
+.qs-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:.85rem 1rem;display:flex;align-items:center;gap:.85rem;transition:all .15s;position:relative;overflow:hidden;}
+.qs-card:hover{border-color:rgba(15,23,42,.12);box-shadow:0 2px 8px rgba(15,23,42,.05);transform:translateY(-1px);}
+.qs-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.9rem;}
+.qs-icon.red   {background:var(--red-bg);   color:var(--red);}
+.qs-icon.amber {background:var(--amber-bg); color:var(--amber);}
+.qs-icon.cyan  {background:var(--cyan-bg);  color:var(--cyan);}
+.qs-icon.purple{background:var(--purple-bg);color:var(--purple);}
+.qs-num{font-size:1.4rem;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--ink);}
+.qs-lbl{font-size:.6rem;color:var(--ink4);margin-top:3px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;}
+.qs-bar{position:absolute;bottom:0;left:0;height:2px;width:100%;background:transparent;}
+.qs-bar-fill{height:100%;transition:width .5s cubic-bezier(.4,0,.2,1);}
+
+/* ── Cards ── */
+.card{background:var(--white);border-radius:16px;border:1px solid var(--line);overflow:hidden;margin-bottom:1.1rem;box-shadow:0 1px 6px rgba(15,23,42,.05);}
+.card-head{padding:.9rem 1.3rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.55rem;background:linear-gradient(to right,var(--red-bg),#fafbfd);}
+.card-head.cyan-head{background:linear-gradient(to right,var(--cyan-bg),#fafbfd);}
+.card-head.green-head{background:linear-gradient(to right,var(--green-bg),#fafbfd);}
+.card-head.purple-head{background:linear-gradient(to right,var(--purple-bg),#fafbfd);}
+.card-head.amber-head{background:linear-gradient(to right,var(--amber-bg),#fafbfd);}
+.card-head.neutral-head{background:linear-gradient(to right,var(--line2),#fafbfd);}
+.card-head-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.8rem;}
+.card-head h6{font-size:.82rem;font-weight:700;color:var(--ink);margin:0;letter-spacing:-.01em;}
+.card-body{padding:1.1rem 1.3rem;}
+
+/* ── Info rows ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.info-row{padding:.6rem 0;border-bottom:1px solid var(--line2);display:flex;flex-direction:column;gap:.18rem;}
+.info-row:last-child{border-bottom:none;}
+.info-row.full{grid-column:span 2;}
+.info-key{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink4);display:flex;align-items:center;gap:.3rem;}
+.info-key i{font-size:.62rem;}
+.info-val{font-size:.85rem;font-weight:500;color:var(--ink2);line-height:1.4;}
+.info-row.pe{padding-right:1.5rem;border-right:1px solid var(--line2);}
+.info-row.ps{padding-left:1.5rem;}
+
+/* Status badge dinámico */
+.status-pill{display:inline-flex;align-items:center;gap:.3rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.22rem .7rem;border-radius:99px;border:1.5px solid;}
+.status-emergency  {color:var(--red);    border-color:var(--red-bd);    background:var(--red-bg);}
+.status-pending    {color:var(--amber);  border-color:var(--amber-bd);  background:var(--amber-bg);}
+.status-scheduled  {color:var(--blue);   border-color:var(--blue-bd);   background:var(--blue-bg);}
+.status-in_progress,
+.status-en_process {color:var(--purple); border-color:var(--purple-bd); background:var(--purple-bg);}
+.status-completed,
+.status-resolved   {color:var(--green);  border-color:var(--green-bd);  background:var(--green-bg);}
+.status-cancelled,
+.status-closed     {color:var(--ink3);   border-color:var(--line);      background:var(--line2);}
+
+/* Address block */
+.addr-block{background:var(--line2);border-radius:10px;padding:.75rem 1rem;font-size:.82rem;color:var(--ink2);font-weight:500;line-height:1.55;display:flex;align-items:flex-start;gap:.65rem;}
+.addr-block i{color:var(--ink4);font-size:.85rem;margin-top:2px;flex-shrink:0;}
+
+/* ── Terms ── */
+.terms-pair{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.terms-item{display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;border-radius:11px;border:1.5px solid var(--line);background:var(--line2);}
+.terms-item.ok{border-color:var(--green-bd);background:var(--green-bg);}
+.terms-item.no{border-color:var(--red-bd);background:var(--red-bg);}
+.terms-ico{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;}
+.terms-ico.ok{background:var(--green);color:#fff;}
+.terms-ico.no{background:var(--red);color:#fff;}
+.terms-name{font-weight:600;font-size:.8rem;color:var(--ink);}
+.terms-sub{font-size:.68rem;color:var(--ink4);margin-top:1px;}
+
+/* ── Team ── */
+.team-row{display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;border-radius:10px;background:var(--line2);border:1px solid var(--line);margin-bottom:.5rem;transition:transform .15s;}
+.team-row:hover{transform:translateX(3px);}
+.team-av{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.8rem;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--ink3),var(--ink));}
+.team-name{font-weight:600;font-size:.82rem;color:var(--ink);}
+.team-role{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink4);margin-top:1px;}
+.team-badge{margin-left:auto;font-size:.6rem;font-weight:700;text-transform:uppercase;padding:.15rem .5rem;border-radius:99px;background:var(--line);color:var(--ink3);flex-shrink:0;}
+
+/* ── Files ── */
+.file-section-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink3);margin:1rem 0 .5rem;display:flex;align-items:center;gap:.35rem;}
+.file-section-title:first-child{margin-top:0;}
+.file-row{display:flex;align-items:center;gap:.65rem;padding:.65rem .9rem;border-radius:9px;background:var(--line2);border:1px solid var(--line);margin-bottom:.4rem;}
+.file-ico{width:30px;height:30px;border-radius:7px;background:var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink3);flex-shrink:0;font-size:.85rem;}
+.file-nm{font-size:.78rem;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.btn-fview{font-size:.68rem;font-weight:600;padding:.22rem .65rem;border-radius:6px;background:var(--ink);color:#fff;text-decoration:none;flex-shrink:0;transition:background .15s;}
+.btn-fview:hover{background:#1d4ed8;color:#fff;}
+.empty-txt{text-align:center;padding:1.25rem;color:var(--ink4);font-size:.78rem;font-style:italic;}
+
+@media(max-width:992px){.qs-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+    .em-page{padding:1rem .75rem 2.5rem;}
+    .em-hero{padding:1.1rem 1.25rem;}
+    .hero-title{font-size:1.2rem;}
+    .info-grid{grid-template-columns:1fr;}
+    .info-row.pe{padding-right:0;border-right:none;}
+    .info-row.ps{padding-left:0;}
+    .info-row.full{grid-column:span 1;}
+    .terms-pair{grid-template-columns:1fr;}
+}
+</style>
+
+@php
+    // ── Pre-cálculos para Quick Stats y Repair History ──
+    $allTickets   = $emergency->repairTickets()->with(['fotosAdmin','fotosCrew'])->latest('repair_date')->get();
+    $rtTotal      = $allTickets->count();
+    $rtPending    = $allTickets->where('status','pending')->count();
+    $rtInProcess  = $allTickets->where('status','en_process')->count();
+    $rtCompleted  = $allTickets->where('status','completed')->count();
+
+    $teamCount    = $emergency->teamMembers->count();
+
+    $aerials      = $emergency->aerial_measurement_path  ?? [];
+    $contracts    = $emergency->contract_upload_path     ?? [];
+    $pictures     = $emergency->file_picture_upload_path ?? [];
+    $fileCount    = count($aerials) + count($contracts) + count($pictures);
+    $hasFiles     = $fileCount > 0;
+
+    // Status normalizado
+    $statusKey   = strtolower(str_replace(' ','_', $emergency->status ?? 'emergency'));
+    $statusLabel = match($statusKey){
+        'pending'     => 'Pending',
+        'scheduled'   => 'Scheduled',
+        'in_progress',
+        'en_process'  => 'In Progress',
+        'completed',
+        'resolved'    => 'Completed',
+        'cancelled'   => 'Cancelled',
+        'closed'      => 'Closed',
+        default       => 'Emergency',
+    };
+    $statusIcon = match($statusKey){
+        'pending'     => 'bi-clock-fill',
+        'scheduled'   => 'bi-calendar-check-fill',
+        'in_progress',
+        'en_process'  => 'bi-tools',
+        'completed',
+        'resolved'    => 'bi-check-circle-fill',
+        'cancelled'   => 'bi-x-circle-fill',
+        'closed'      => 'bi-lock-fill',
+        default       => 'bi-exclamation-octagon-fill',
+    };
+@endphp
+
+<div class="em-page">
+<div class="container-xl px-0">
+
+    {{-- Hero --}}
+    <div class="em-hero">
+        <div style="position:relative;">
+            <div class="hero-eye"><i class="bi bi-exclamation-octagon"></i> Emergency Request #{{ $emergency->id }}</div>
+            <h1 class="hero-title">{{ $emergency->job_number_name ?? 'Emergency Details' }}</h1>
+            <div class="hero-sub">
+                <span><i class="bi bi-building" style="font-size:.65rem;"></i> {{ $emergency->company_name }}</span>
+                <span class="hero-sub-sep">|</span>
+                <span><i class="bi bi-calendar3" style="font-size:.65rem;"></i> Submitted: {{ $emergency->date_submitted }}</span>
+                <span class="hero-sub-sep">|</span>
+                <span><i class="bi bi-clock-history" style="font-size:.65rem;"></i> Created {{ $emergency->created_at->format('M d, Y') }}</span>
             </div>
         </div>
-
-        <div class="row">
-            <!-- Left Column - Job Information -->
-            <div class="col-lg-8">
-                <!-- Job Information Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Job Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-calendar me-2"></i> Date Submitted</p>
-                                    <p class="fw-semibold">{{ $emergency->date_submitted }}</p>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-tag me-2"></i> Type of Supplement</p>
-                                    <p class="fw-semibold">{{ $emergency->type_of_supplement }}</p>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-building me-2"></i> Company Name</p>
-                                    <p class="fw-semibold">{{ $emergency->company_name }}</p>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-envelope me-2"></i> Contact Email</p>
-                                    <p class="fw-semibold">{{ $emergency->company_contact_email }}</p>
-                                </div>
-                                
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-file-earmark-text me-2"></i> Job Number/Name</p>
-                                    <p class="fw-semibold">{{ $emergency->job_number_name }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-item">
-                            <p class="mb-1 text-secondary"><i class="bi bi-geo-alt me-2"></i> Job Address</p>
-                            <p class="fw-semibold">
-                                {{ $emergency->job_address }}<br>
-                                {{ $emergency->job_address_line2 }}
-                            </p>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-building me-2"></i> City</p>
-                                    <p class="fw-semibold">{{ $emergency->job_city }}</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-map me-2"></i> State</p>
-                                    <p class="fw-semibold">{{ $emergency->job_state }}</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="detail-item">
-                                    <p class="mb-1 text-secondary"><i class="bi bi-postcard me-2"></i> Zip Code</p>
-                                    <p class="fw-semibold">{{ $emergency->job_zip_code }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Terms & Conditions Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-file-earmark-check me-2"></i> Terms & Conditions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center p-3 bg-opacity-10 rounded {{ $emergency->terms_conditions ? 'bg-success' : 'bg-danger' }}">
-                                    <div class="icon-container {{ $emergency->terms_conditions ? 'bg-success text-white' : 'bg-danger text-white' }}">
-                                        <i class="bi {{ $emergency->terms_conditions ? 'bi-check-lg' : 'bi-x-lg' }}"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Submission Responsibility</h6>
-                                        <p class="mb-0 text-muted small">{{ $emergency->terms_conditions ? 'Accepted' : 'Not Accepted' }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center p-3 bg-opacity-10 rounded {{ $emergency->requirements ? 'bg-success' : 'bg-danger' }}">
-                                    <div class="icon-container {{ $emergency->requirements ? 'bg-success text-white' : 'bg-danger text-white' }}">
-                                        <i class="bi {{ $emergency->requirements ? 'bi-check-lg' : 'bi-x-lg' }}"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0">Supplement Processing</h6>
-                                        <p class="mb-0 text-muted small">{{ $emergency->requirements ? 'Accepted' : 'Not Accepted' }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Right Column - Team and Documents -->
-            <div class="col-lg-4">
-                <!-- Team Members Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i> Assigned Team Members</h5>
-                    </div>
-                    <div class="card-body">
-                        @forelse ($emergency->teamMembers as $member)
-                            <div class="team-member">
-                                <div class="icon-container">
-                                    <i class="bi bi-person"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0">{{ $member->name }}</h6>
-                                    <p class="mb-0 text-muted small">{{ ucfirst(str_replace('_', ' ', $member->role)) }}</p>
-                                </div>
-                                <span class="badge bg-secondary text-uppercase">{{ $member->role }}</span>
-                            </div>
-                        @empty
-                            <div class="text-muted fst-italic">No team members assigned to this emergency.</div>
-                        @endforelse
-                    </div>
-                </div>
-                
-                <!-- Attached Documents Card -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0"><i class="bi bi-paperclip me-2"></i> Attached Documents</h5>
-                    </div>
-                    <div class="card-body">
-                        @php
-                            $aerials = $emergency->aerial_measurement_path ?? [];
-                            $contracts = $emergency->contract_upload_path ?? [];
-                            $pictures = $emergency->file_picture_upload_path ?? [];
-                        @endphp
-
-                        {{-- Aerial Measurements --}}
-                        @if (!empty($aerials))
-                            <h6 class="fw-semibold mb-3"><i class="bi bi-map me-2"></i> Aerial Measurements</h6>
-                            @foreach ($aerials as $file)
-                                <div class="file-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-container">
-                                            <i class="bi bi-file-earmark-text"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">{{ $file['original_name'] ?? basename($file['path']) }}</div>
-                                        </div>
-                                    </div>
-                                    <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
-                                </div>
-                            @endforeach
-                        @endif
-
-                        {{-- Contract Files --}}
-                        @if (!empty($contracts))
-                            <h6 class="fw-semibold mt-4 mb-3"><i class="bi bi-file-earmark-richtext me-2"></i> Contract Uploads</h6>
-                            @foreach ($contracts as $file)
-                                <div class="file-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-container">
-                                            <i class="bi bi-file-earmark-text"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">{{ $file['original_name'] ?? basename($file['path']) }}</div>
-                                        </div>
-                                    </div>
-                                    <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
-                                </div>
-                            @endforeach
-                        @endif
-
-                        {{-- Additional Files --}}
-                        @if (!empty($pictures))
-                            <h6 class="fw-semibold mt-4 mb-3"><i class="bi bi-images me-2"></i> Additional Files</h6>
-                            @foreach ($pictures as $file)
-                                <div class="file-item">
-                                    <div class="d-flex align-items-center">
-                                        <div class="icon-container">
-                                            <i class="bi bi-file-earmark-text"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-semibold">{{ $file['original_name'] ?? basename($file['path']) }}</div>
-                                        </div>
-                                    </div>
-                                    <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
-                                </div>
-                            @endforeach
-                        @endif
-
-                        @if (empty($aerials) && empty($contracts) && empty($pictures))
-                            <p class="text-muted">No documents uploaded for this emergency case.</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
+        <div class="hero-actions">
+            <a href="{{ route('calendar.view') }}" class="btn-hg btn-back"><i class="bi bi-arrow-left"></i> Back</a>
+            <a href="{{ route('emergency.edit', $emergency->id) }}" class="btn-hg btn-edit-hero"><i class="bi bi-pencil-square"></i> Edit</a>
+            <a href="{{ route('repair-tickets.index', ['ref_type'=>'emergency','ref_id'=>$emergency->id]) }}"
+               class="btn-hg btn-repair-hero">
+                <i class="bi bi-tools"></i> Repair Tickets
+            </a>
+            <form id="del-form-{{ $emergency->id }}" action="{{ route('emergency.destroy', $emergency->id) }}" method="POST" style="display:inline;">
+                @csrf @method('DELETE')
+                <button type="button" class="btn-hg btn-del-hero" onclick="confirmDel({{ $emergency->id }})">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </form>
         </div>
     </div>
 
-    <script>
-        function confirmDelete(id) {
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "This will permanently delete the emergency.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, delete it',
-                cancelButtonText: 'Cancel',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById('delete-emergency-form-' + id).submit();
-                }
-            });
-        }
-    </script>
-    
-    <!-- SweetAlert Script -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- ── QUICK STATS ── --}}
+    <div class="qs-grid">
+        <div class="qs-card">
+            <div class="qs-icon red"><i class="bi bi-exclamation-octagon-fill"></i></div>
+            <div>
+                <div class="qs-num">{{ $rtTotal }}</div>
+                <div class="qs-lbl">Repair Tickets</div>
+            </div>
+            <div class="qs-bar"><div class="qs-bar-fill" style="background:var(--red);width:100%"></div></div>
+        </div>
+        <div class="qs-card">
+            <div class="qs-icon amber"><i class="bi bi-clock-fill"></i></div>
+            <div>
+                <div class="qs-num" style="color:var(--amber);">{{ $rtPending }}</div>
+                <div class="qs-lbl">Pending</div>
+            </div>
+            <div class="qs-bar"><div class="qs-bar-fill" style="background:var(--amber);width:{{ $rtTotal ? ($rtPending/$rtTotal*100) : 0 }}%"></div></div>
+        </div>
+        <div class="qs-card">
+            <div class="qs-icon purple"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="qs-num" style="color:var(--purple);">{{ $teamCount }}</div>
+                <div class="qs-lbl">Team Members</div>
+            </div>
+            <div class="qs-bar"><div class="qs-bar-fill" style="background:var(--purple);width:{{ $teamCount ? 100 : 0 }}%"></div></div>
+        </div>
+        <div class="qs-card">
+            <div class="qs-icon cyan"><i class="bi bi-paperclip"></i></div>
+            <div>
+                <div class="qs-num" style="color:var(--cyan);">{{ $fileCount }}</div>
+                <div class="qs-lbl">Documents</div>
+            </div>
+            <div class="qs-bar"><div class="qs-bar-fill" style="background:var(--cyan);width:{{ $hasFiles ? 100 : 0 }}%"></div></div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+
+        {{-- LEFT ── 8 cols ── --}}
+        <div class="col-lg-8">
+
+            {{-- Job Information --}}
+            <div class="card">
+                <div class="card-head">
+                    <div class="card-head-icon" style="background:var(--red-bg);color:var(--red);"><i class="bi bi-info-circle-fill"></i></div>
+                    <h6>Job Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="info-grid">
+                        <div class="info-row pe">
+                            <span class="info-key"><i class="bi bi-calendar3"></i> Date Submitted</span>
+                            <span class="info-val">{{ $emergency->date_submitted }}</span>
+                        </div>
+                        <div class="info-row ps">
+                            <span class="info-key"><i class="bi bi-file-earmark-text"></i> Job Number</span>
+                            <span class="info-val">{{ $emergency->job_number_name }}</span>
+                        </div>
+                        <div class="info-row pe">
+                            <span class="info-key"><i class="bi bi-tag"></i> Type of Supplement</span>
+                            <span class="info-val">{{ $emergency->type_of_supplement }}</span>
+                        </div>
+                        <div class="info-row ps">
+                            <span class="info-key"><i class="bi bi-building"></i> Company</span>
+                            <span class="info-val">{{ $emergency->company_name }}</span>
+                        </div>
+                        <div class="info-row pe">
+                            <span class="info-key"><i class="bi bi-envelope"></i> Contact Email</span>
+                            <span class="info-val" style="word-break:break-all;">{{ $emergency->company_contact_email }}</span>
+                        </div>
+                        <div class="info-row ps">
+                            <span class="info-key"><i class="bi bi-flag"></i> Status</span>
+                            <span class="info-val">
+                                <span class="status-pill status-{{ $statusKey }}">
+                                    <i class="bi {{ $statusIcon }}"></i>
+                                    {{ $statusLabel }}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="info-row full" style="padding-top:.85rem;">
+                            <span class="info-key" style="margin-bottom:.4rem;"><i class="bi bi-geo-alt"></i> Job Address</span>
+                            <div class="addr-block">
+                                <i class="bi bi-geo-alt-fill"></i>
+                                <div>
+                                    {{ $emergency->job_address }}
+                                    @if($emergency->job_address_line2)<br>{{ $emergency->job_address_line2 }}@endif
+                                    <br>{{ $emergency->job_city }}, {{ $emergency->job_state }} {{ $emergency->job_zip_code }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Terms --}}
+            <div class="card">
+                <div class="card-head green-head">
+                    <div class="card-head-icon" style="background:var(--green-bg);color:var(--green);"><i class="bi bi-file-earmark-check-fill"></i></div>
+                    <h6>Terms & Conditions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="terms-pair">
+                        <div class="terms-item {{ $emergency->terms_conditions ? 'ok' : 'no' }}">
+                            <div class="terms-ico {{ $emergency->terms_conditions ? 'ok' : 'no' }}">
+                                <i class="bi {{ $emergency->terms_conditions ? 'bi-check-lg' : 'bi-x-lg' }}"></i>
+                            </div>
+                            <div>
+                                <div class="terms-name">Submission Responsibility</div>
+                                <div class="terms-sub">{{ $emergency->terms_conditions ? 'Accepted' : 'Not Accepted' }}</div>
+                            </div>
+                        </div>
+                        <div class="terms-item {{ $emergency->requirements ? 'ok' : 'no' }}">
+                            <div class="terms-ico {{ $emergency->requirements ? 'ok' : 'no' }}">
+                                <i class="bi {{ $emergency->requirements ? 'bi-check-lg' : 'bi-x-lg' }}"></i>
+                            </div>
+                            <div>
+                                <div class="terms-name">Supplement Processing</div>
+                                <div class="terms-sub">{{ $emergency->requirements ? 'Accepted' : 'Not Accepted' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- RIGHT ── 4 cols ── --}}
+        <div class="col-lg-4">
+
+            {{-- Assigned Team --}}
+            <div class="card">
+                <div class="card-head neutral-head">
+                    <div class="card-head-icon" style="background:var(--line);color:var(--ink3);"><i class="bi bi-people-fill"></i></div>
+                    <h6>Assigned Team</h6>
+                </div>
+                <div class="card-body">
+                    @forelse($emergency->teamMembers as $member)
+                        <div class="team-row">
+                            <div class="team-av">{{ strtoupper(substr($member->name,0,2)) }}</div>
+                            <div>
+                                <div class="team-name">{{ $member->name }}</div>
+                                <div class="team-role">{{ ucfirst(str_replace('_',' ',$member->role)) }}</div>
+                            </div>
+                            <span class="team-badge">{{ $member->role }}</span>
+                        </div>
+                    @empty
+                        <div class="empty-txt">No team members assigned.</div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Documents --}}
+            <div class="card">
+                <div class="card-head neutral-head">
+                    <div class="card-head-icon" style="background:var(--line);color:var(--ink3);"><i class="bi bi-paperclip"></i></div>
+                    <h6>Attached Documents</h6>
+                </div>
+                <div class="card-body">
+                    @if(!empty($aerials))
+                        <div class="file-section-title"><i class="bi bi-map"></i> Aerial Measurements</div>
+                        @foreach($aerials as $file)
+                            <div class="file-row">
+                                <div class="file-ico"><i class="bi bi-file-earmark-text"></i></div>
+                                <span class="file-nm">{{ $file['original_name'] ?? basename($file['path']) }}</span>
+                                <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn-fview">View</a>
+                            </div>
+                        @endforeach
+                    @endif
+                    @if(!empty($contracts))
+                        <div class="file-section-title"><i class="bi bi-file-earmark-richtext"></i> Contract Uploads</div>
+                        @foreach($contracts as $file)
+                            <div class="file-row">
+                                <div class="file-ico"><i class="bi bi-file-earmark-text"></i></div>
+                                <span class="file-nm">{{ $file['original_name'] ?? basename($file['path']) }}</span>
+                                <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn-fview">View</a>
+                            </div>
+                        @endforeach
+                    @endif
+                    @if(!empty($pictures))
+                        <div class="file-section-title"><i class="bi bi-images"></i> Additional Files</div>
+                        @foreach($pictures as $file)
+                            <div class="file-row">
+                                <div class="file-ico"><i class="bi bi-file-earmark-image"></i></div>
+                                <span class="file-nm">{{ $file['original_name'] ?? basename($file['path']) }}</span>
+                                <a href="{{ Storage::url($file['path']) }}" target="_blank" class="btn-fview">View</a>
+                            </div>
+                        @endforeach
+                    @endif
+                    @if(!$hasFiles)<div class="empty-txt">No documents uploaded.</div>@endif
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {{-- ── REPAIR HISTORY — full width, protagonista ── --}}
+    <div class="card" style="margin-top:.25rem;">
+        {{-- Header --}}
+        <div style="background:linear-gradient(135deg,#0c4a6e 0%,#0e7490 100%);padding:1.1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:.85rem;">
+                <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-tools" style="color:#67e8f9;font-size:.9rem;"></i>
+                </div>
+                <div>
+                    <div style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.45);">Project</div>
+                    <div style="font-size:1rem;font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.1;">Repair History</div>
+                </div>
+                {{-- Mini stats CORRECTOS ── --}}
+                <div style="display:flex;gap:.5rem;margin-left:.5rem;flex-wrap:wrap;">
+                    <span style="font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);">
+                        {{ $rtTotal }} total
+                    </span>
+                    @if($rtPending)
+                        <span style="font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;background:rgba(251,191,36,.2);color:#fde68a;border:1px solid rgba(251,191,36,.3);">
+                            {{ $rtPending }} scheduled
+                        </span>
+                    @endif
+                    @if($rtInProcess)
+                        <span style="font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;background:rgba(167,139,250,.2);color:#c4b5fd;border:1px solid rgba(167,139,250,.3);">
+                            {{ $rtInProcess }} in progress
+                        </span>
+                    @endif
+                    @if($rtCompleted)
+                        <span style="font-size:.65rem;font-weight:700;padding:.2rem .65rem;border-radius:99px;background:rgba(52,211,153,.2);color:#6ee7b7;border:1px solid rgba(52,211,153,.3);">
+                            {{ $rtCompleted }} completed
+                        </span>
+                    @endif
+                </div>
+            </div>
+            <a href="{{ route('repair-tickets.index', ['ref_type'=>'emergency','ref_id'=>$emergency->id]) }}"
+               style="display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;padding:.38rem .9rem;border-radius:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.75);text-decoration:none;transition:all .15s;white-space:nowrap;"
+               onmouseover="this.style.background='rgba(255,255,255,.18)';this.style.color='#fff'"
+               onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.color='rgba(255,255,255,.75)'">
+                <i class="bi bi-arrow-up-right-from-square" style="font-size:.65rem;"></i> View all
+            </a>
+        </div>
+
+        {{-- Ticket grid --}}
+        @if($allTickets->isEmpty())
+            <div style="text-align:center;padding:3rem 1rem;">
+                <div style="width:56px;height:56px;border-radius:14px;background:var(--cyan-bg);border:1px solid var(--cyan-bd);display:flex;align-items:center;justify-content:center;margin:0 auto .85rem;">
+                    <i class="bi bi-tools" style="font-size:1.3rem;color:var(--cyan);"></i>
+                </div>
+                <div style="font-size:.88rem;font-weight:700;color:var(--ink);margin-bottom:.3rem;">No repair tickets yet</div>
+                <div style="font-size:.75rem;color:var(--ink4);margin-bottom:1.1rem;">Start tracking repairs for this emergency.</div>
+                <a href="{{ route('repair-tickets.index', ['ref_type'=>'emergency','ref_id'=>$emergency->id]) }}"
+                   style="display:inline-flex;align-items:center;gap:.4rem;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.78rem;padding:.55rem 1.3rem;border-radius:9px;background:var(--cyan);color:#fff;text-decoration:none;box-shadow:0 4px 12px rgba(8,145,178,.3);">
+                    <i class="bi bi-plus-lg"></i> Create First Ticket
+                </a>
+            </div>
+        @else
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0;border-top:1px solid var(--line);">
+                @foreach($allTickets as $rt)
+                    @php
+                        [$rtBg,$rtColor,$rtBd] = match($rt->status){
+                            'pending'    => ['#fffbeb','#b45309','#fde68a'],
+                            'en_process' => ['#f5f3ff','#6d28d9','#ddd6fe'],
+                            'completed'  => ['#f0fdf4','#059669','#6ee7b7'],
+                            default      => ['#f1f5f9','#64748b','#e2e8f0'],
+                        };
+                        $rtIcon = match($rt->status){
+                            'pending'    => 'bi-clock',
+                            'en_process' => 'bi-tools',
+                            'completed'  => 'bi-check-circle-fill',
+                            default      => 'bi-circle',
+                        };
+                        $rtLabel = match($rt->status){
+                            'pending'    => 'Scheduled',
+                            'en_process' => 'In Progress',
+                            'completed'  => 'Completed',
+                            default      => ucfirst(str_replace('_',' ',$rt->status)),
+                        };
+                        $adminPh = $rt->fotosAdmin ?? collect();
+                        $crewPh  = $rt->fotosCrew  ?? collect();
+                        $phTotal = $adminPh->count() + $crewPh->count();
+                    @endphp
+                    <div style="padding:1rem 1.3rem;border-bottom:1px solid var(--line);border-right:1px solid var(--line);transition:background .15s;position:relative;"
+                         onmouseover="this.style.background='#fafbff'" onmouseout="this.style.background=''">
+
+                        {{-- Top row --}}
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.65rem;margin-bottom:.65rem;">
+                            <div style="flex:1;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap;">
+                                    <span style="font-size:.62rem;font-weight:700;color:var(--ink4);background:var(--line2);padding:.12rem .48rem;border-radius:99px;">
+                                        RT-{{ str_pad($rt->id,4,'0',STR_PAD_LEFT) }}
+                                    </span>
+                                    <span style="font-size:.62rem;color:var(--ink4);display:flex;align-items:center;gap:.2rem;">
+                                        <i class="bi bi-calendar3" style="font-size:.58rem;"></i>
+                                        {{ \Carbon\Carbon::parse($rt->repair_date)->format('M d, Y') }}
+                                    </span>
+                                </div>
+                                <p style="font-size:.82rem;font-weight:600;color:var(--ink);line-height:1.45;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                                    {{ $rt->description }}
+                                </p>
+                            </div>
+                            <span style="display:inline-flex;align-items:center;gap:.25rem;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:.2rem .62rem;border-radius:99px;background:{{ $rtBg }};color:{{ $rtColor }};border:1px solid {{ $rtBd }};flex-shrink:0;white-space:nowrap;">
+                                <i class="bi {{ $rtIcon }}" style="font-size:.6rem;"></i>
+                                {{ $rtLabel }}
+                            </span>
+                        </div>
+
+                        {{-- Photo strip --}}
+                        @if($phTotal)
+                            <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.65rem;">
+                                @foreach($adminPh->take(3) as $foto)
+                                    @php $url = str_starts_with($foto->url,'http') ? $foto->url : asset('storage/'.$foto->url); @endphp
+                                    <div style="position:relative;flex-shrink:0;">
+                                        <a href="{{ $url }}" target="_blank">
+                                            <img src="{{ $url }}" alt="" style="width:50px;height:50px;border-radius:7px;object-fit:cover;border:2px solid #ffb347;display:block;">
+                                        </a>
+                                        <span style="position:absolute;bottom:2px;left:2px;font-size:7px;font-weight:700;background:rgba(255,179,71,.9);color:#7c3a00;padding:1px 4px;border-radius:3px;text-transform:uppercase;">dmg</span>
+                                    </div>
+                                @endforeach
+                                @foreach($crewPh->take(3) as $foto)
+                                    @php $url = str_starts_with($foto->url,'http') ? $foto->url : asset('storage/'.$foto->url); @endphp
+                                    <div style="position:relative;flex-shrink:0;">
+                                        <a href="{{ $url }}" target="_blank">
+                                            <img src="{{ $url }}" alt="" style="width:50px;height:50px;border-radius:7px;object-fit:cover;border:2px solid #a5f3fc;display:block;">
+                                        </a>
+                                        <span style="position:absolute;bottom:2px;left:2px;font-size:7px;font-weight:700;background:rgba(8,145,178,.85);color:#fff;padding:1px 4px;border-radius:3px;text-transform:uppercase;">work</span>
+                                    </div>
+                                @endforeach
+                                @if($phTotal > 6)
+                                    <div style="width:50px;height:50px;border-radius:7px;background:var(--cyan-bg);border:1.5px solid var(--cyan-bd);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:800;color:var(--cyan);flex-shrink:0;">
+                                        +{{ $phTotal - 6 }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        {{-- Footer actions --}}
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:.6rem;border-top:1px dashed var(--line);">
+                            <div style="display:flex;align-items:center;gap:.85rem;font-size:.67rem;color:var(--ink4);">
+                                @if($adminPh->count())
+                                    <span style="display:flex;align-items:center;gap:.25rem;">
+                                        <i class="bi bi-camera-fill" style="font-size:.6rem;color:#e65100;"></i>
+                                        {{ $adminPh->count() }} dmg
+                                    </span>
+                                @endif
+                                @if($crewPh->count())
+                                    <span style="display:flex;align-items:center;gap:.25rem;">
+                                        <i class="bi bi-person-fill-gear" style="font-size:.6rem;color:var(--cyan);"></i>
+                                        {{ $crewPh->count() }} work
+                                    </span>
+                                @endif
+                                @if(!$adminPh->count() && !$crewPh->count())
+                                    <span style="display:flex;align-items:center;gap:.25rem;">
+                                        <i class="bi bi-camera" style="font-size:.6rem;"></i> No photos
+                                    </span>
+                                @endif
+                                <span style="display:flex;align-items:center;gap:.25rem;">
+                                    <i class="bi bi-clock" style="font-size:.6rem;"></i>
+                                    {{ $rt->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                            <a href="{{ route('repair-tickets.edit', $rt->id) }}"
+                               style="display:inline-flex;align-items:center;gap:.25rem;font-size:.65rem;font-weight:600;padding:.2rem .6rem;border-radius:6px;background:var(--line2);color:var(--ink2);text-decoration:none;border:1px solid var(--line);transition:all .15s;"
+                               onmouseover="this.style.background='var(--line)'" onmouseout="this.style.background='var(--line2)'">
+                                <i class="bi bi-pencil" style="font-size:.6rem;"></i> Edit
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            {{-- Bottom CTA --}}
+            <div style="padding:1rem 1.3rem;background:linear-gradient(to right,var(--cyan-bg),#f0f9ff);border-top:1px solid var(--cyan-bd);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:.55rem;">
+                    <i class="bi bi-tools" style="color:var(--cyan);font-size:.85rem;"></i>
+                    <span style="font-size:.75rem;font-weight:600;color:var(--ink2);">
+                        {{ $rtTotal }} repair ticket{{ $rtTotal !== 1 ? 's' : '' }} total
+                        @if($rtPending) · <span style="color:var(--amber);">{{ $rtPending }} scheduled</span>@endif
+                    </span>
+                </div>
+                <a href="{{ route('repair-tickets.index', ['ref_type'=>'emergency','ref_id'=>$emergency->id]) }}"
+                   style="display:inline-flex;align-items:center;gap:.4rem;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.75rem;padding:.42rem 1rem;border-radius:8px;background:var(--cyan);color:#fff;text-decoration:none;box-shadow:0 4px 10px rgba(8,145,178,.28);transition:filter .15s;white-space:nowrap;"
+                   onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+                    <i class="bi bi-plus-lg"></i> New Repair Ticket
+                </a>
+            </div>
+        @endif
+    </div>
+
+</div>
+</div>
+
+{{-- Delete confirm --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmDel(id) {
+    Swal.fire({
+        title: 'Delete Emergency?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+    }).then(result => {
+        if (result.isConfirmed) document.getElementById('del-form-' + id).submit();
+    });
+}
+</script>
+
 @endsection

@@ -1,511 +1,478 @@
 @extends('admin.layouts.superadmin')
-
 @section('title', 'Create Crew')
 
 @section('content')
-<div class="min-h-screen bg-gray-50/30 p-6">
-    
-    <!-- Header Section -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="relative">
-                    <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-user-plus text-white text-lg"></i>
-                    </div>
-                    <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 border-2 border-white rounded-full"></div>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Create New Crew</h1>
-                    <p class="text-gray-500 mt-1">Register a new work team with all necessary details</p>
-                </div>
-            </div>
-            <a href="{{ route('superadmin.crew.index') }}" 
-               class="group relative bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                <div class="flex items-center gap-2">
-                    <div class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
-                        <i class="fas fa-arrow-left text-xs"></i>
-                    </div>
-                    <span>Back to Crews</span>
-                </div>
-                <div class="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </a>
-        </div>
-    </div>
 
-    <!-- Form Section -->
-    <div class="max-w-6xl mx-auto">
-        <!-- Form Card -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <!-- Form Header -->
-            <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-users text-blue-600"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-900">Crew Information</h3>
-                        <p class="text-sm text-gray-600">Fill in the essential details for the new crew</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Content -->
-            <div class="p-6">
-                <form method="POST" action="{{ route('superadmin.crew.store') }}" id="crewForm">
-                    @csrf
-
-                    <!-- Basic Information Section -->
-                    <div class="mb-8">
-                        <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-info-circle text-blue-500"></i>
-                            Basic Information
-                        </h4>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Crew Name -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Crew Name <span class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-users text-gray-400"></i>
-                                    </div>
-                                    <input type="text" 
-                                           name="name" 
-                                           value="{{ old('name') }}" 
-                                           class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 @error('name') border-red-500 @enderror" 
-                                           placeholder="Enter crew name"
-                                           required>
-                                </div>
-                                @error('name')
-                                    <p class="text-red-500 text-sm mt-1 flex items-center gap-1">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Company -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Company <span class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-building text-gray-400"></i>
-                                    </div>
-                                    <input type="text" 
-                                           name="company" 
-                                           value="{{ old('company') }}" 
-                                           class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 @error('company') border-red-500 @enderror" 
-                                           placeholder="Company name"
-                                           required>
-                                </div>
-                                @error('company')
-                                    <p class="text-red-500 text-sm mt-1 flex items-center gap-1">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Email -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Email Address <span class="text-red-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-envelope text-gray-400"></i>
-                                    </div>
-                                    <input type="email" 
-                                           name="email" 
-                                           value="{{ old('email') }}" 
-                                           class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 @error('email') border-red-500 @enderror" 
-                                           placeholder="crew@example.com"
-                                           required>
-                                </div>
-                                @error('email')
-                                    <p class="text-red-500 text-sm mt-1 flex items-center gap-1">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Phone -->
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Phone Number
-                                </label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <i class="fas fa-phone text-gray-400"></i>
-                                    </div>
-                                    <input type="text" 
-                                           name="phone" 
-                                           value="{{ old('phone') }}" 
-                                           class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all duration-200 @error('phone') border-red-500 @enderror" 
-                                           placeholder="(123) 456-7890">
-                                </div>
-                                @error('phone')
-                                    <p class="text-red-500 text-sm mt-1 flex items-center gap-1">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                        {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Trailer Availability -->
-                    <div class="mb-8">
-                        <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-truck text-blue-500"></i>
-                            Trailer Availability
-                        </h4>
-
-                        <div class="flex items-center gap-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            
-                            <!-- Toggle -->
-                            <div class="flex items-center gap-3">
-                                <div class="relative inline-block w-12 h-6">
-                                    <!-- hidden fallback -->
-                                    <input type="hidden" name="has_trailer" value="0">
-
-                                    <input type="checkbox"
-                                        id="has_trailer"
-                                        name="has_trailer"
-                                        value="1"
-                                        {{ old('has_trailer') ? 'checked' : '' }}
-                                        class="absolute w-12 h-6 rounded-full bg-gray-300 checked:bg-blue-600
-                                                cursor-pointer transition-colors duration-200 appearance-none">
-
-                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full
-                                                transition-transform duration-200
-                                                {{ old('has_trailer') ? 'translate-x-6' : '' }}">
-                                    </span>
-                                </div>
-
-                                <div>
-                                    <label for="has_trailer" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                        Has Trailer
-                                    </label>
-                                    <p class="text-xs text-gray-500">
-                                        This crew operates with its own trailer
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Badge -->
-                            <div class="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium
-                                {{ old('has_trailer') ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700' }}">
-                                <i class="fas {{ old('has_trailer') ? 'fa-truck' : 'fa-ban' }}"></i>
-                                <span>{{ old('has_trailer') ? 'With Trailer' : 'No Trailer' }}</span>
-                            </div>
-
-                        </div>
-                    </div>
-
-
-                    <!-- Status Toggle -->
-                    <div class="mb-8">
-                        <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-toggle-on text-blue-500"></i>
-                            Crew Status
-                        </h4>
-                        
-                        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="flex items-center gap-3">
-                                <div class="relative inline-block w-12 h-6">
-                                    <input type="hidden" name="is_active" value="0">
-                                    <input type="checkbox" 
-                                           id="is_active" 
-                                           name="is_active" 
-                                           value="1"
-                                           {{ old('is_active', true) ? 'checked' : '' }}
-                                           class="absolute w-12 h-6 rounded-full bg-gray-300 checked:bg-blue-600 cursor-pointer transition-colors duration-200 appearance-none">
-                                    <span class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 transform {{ old('is_active', true) ? 'translate-x-6' : '' }}"></span>
-                                </div>
-                                <div>
-                                    <label for="is_active" class="text-sm font-medium text-gray-700 cursor-pointer">
-                                        Active Crew
-                                    </label>
-                                    <p class="text-xs text-gray-500">Crew will be available for assignments</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium {{ old('is_active', true) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                <i class="fas {{ old('is_active', true) ? 'fa-check-circle' : 'fa-times-circle' }}"></i>
-                                <span>{{ old('is_active', true) ? 'Active' : 'Inactive' }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Operating States Section -->
-                    <div class="mb-8">
-                        <h4 class="text-md font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt text-blue-500"></i>
-                            Operating States
-                        </h4>
-                        
-                        <div class="bg-gray-50 rounded-xl border border-gray-200 p-4">
-                            @php
-                                $availableStates = [
-                                    'AL' => 'Alabama', 'AK' => 'Alaska', 'AZ' => 'Arizona', 'AR' => 'Arkansas',
-                                    'CA' => 'California', 'CO' => 'Colorado', 'CT' => 'Connecticut', 'DE' => 'Delaware',
-                                    'FL' => 'Florida', 'GA' => 'Georgia', 'HI' => 'Hawaii', 'ID' => 'Idaho',
-                                    'IL' => 'Illinois', 'IN' => 'Indiana', 'IA' => 'Iowa', 'KS' => 'Kansas',
-                                    'KY' => 'Kentucky', 'LA' => 'Louisiana', 'ME' => 'Maine', 'MD' => 'Maryland',
-                                    'MA' => 'Massachusetts', 'MI' => 'Michigan', 'MN' => 'Minnesota', 'MS' => 'Mississippi',
-                                    'MO' => 'Missouri', 'MT' => 'Montana', 'NE' => 'Nebraska', 'NV' => 'Nevada',
-                                    'NH' => 'New Hampshire', 'NJ' => 'New Jersey', 'NM' => 'New Mexico', 'NY' => 'New York',
-                                    'NC' => 'North Carolina', 'ND' => 'North Dakota', 'OH' => 'Ohio', 'OK' => 'Oklahoma',
-                                    'OR' => 'Oregon', 'PA' => 'Pennsylvania', 'RI' => 'Rhode Island', 'SC' => 'South Carolina',
-                                    'SD' => 'South Dakota', 'TN' => 'Tennessee', 'TX' => 'Texas', 'UT' => 'Utah',
-                                    'VT' => 'Vermont', 'VA' => 'Virginia', 'WA' => 'Washington', 'WV' => 'West Virginia',
-                                    'WI' => 'Wisconsin', 'WY' => 'Wyoming'
-                                ];
-
-                                $selectedStates = old('states', []);
-                            @endphp
-
-                            <!-- States Selection Controls -->
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <button type="button" 
-                                        id="selectAllStates" 
-                                        class="px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors duration-200">
-                                    <i class="fas fa-check-square mr-1"></i>Select All
-                                </button>
-                                <button type="button" 
-                                        id="deselectAllStates" 
-                                        class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors duration-200">
-                                    <i class="fas fa-times-circle mr-1"></i>Deselect All
-                                </button>
-                                <div class="ml-auto text-sm text-gray-500">
-                                    <span id="selectedCount">0</span> states selected
-                                </div>
-                            </div>
-
-                            <!-- States Grid -->
-                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-96 overflow-y-auto p-2">
-                                @foreach($availableStates as $code => $name)
-                                    <div class="relative">
-                                        <input type="checkbox" 
-                                               name="states[]" 
-                                               value="{{ $code }}" 
-                                               id="state_{{ $code }}" 
-                                               class="hidden peer"
-                                               {{ in_array($code, $selectedStates) ? 'checked' : '' }}>
-                                        <label for="state_{{ $code }}" 
-                                               class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer transition-all duration-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:shadow-sm hover:border-gray-300">
-                                            <div class="flex-1">
-                                                <div class="font-medium text-gray-900 text-sm">{{ $name }}</div>
-                                                <div class="text-xs text-gray-500">{{ $code }}</div>
-                                            </div>
-                                            <div class="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-blue-500 peer-checked:border-blue-500 flex items-center justify-center transition-colors duration-200">
-                                                <i class="fas fa-check text-white text-xs opacity-0 peer-checked:opacity-100 transition-opacity duration-200"></i>
-                                            </div>
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            @error('states')
-                                <p class="text-red-500 text-sm mt-3 flex items-center gap-1">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="flex flex-col sm:flex-row gap-3 justify-end pt-6 border-t border-gray-200">
-                        <a href="{{ route('superadmin.crew.index') }}" 
-                           class="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl font-medium transition-all duration-200 hover:bg-gray-50 flex items-center justify-center gap-2">
-                            <i class="fas fa-arrow-left"></i>
-                            Cancel
-                        </a>
-                        <button type="submit" 
-                                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-md flex items-center justify-center gap-2">
-                            <i class="fas fa-save"></i>
-                            Create Crew
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    /* Custom scrollbar for states grid */
-    .max-h-96 {
-        scrollbar-width: thin;
-        scrollbar-color: #d1d5db #f9fafb;
-    }
-    
-    .max-h-96::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .max-h-96::-webkit-scrollbar-track {
-        background: #f9fafb;
-        border-radius: 3px;
-    }
-    
-    .max-h-96::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 3px;
-    }
-    
-    .max-h-96::-webkit-scrollbar-thumb:hover {
-        background: #9ca3af;
-    }
-    
-    /* Smooth transitions for form elements */
-    .form-transition {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* Custom checkbox animation */
-    input[type="checkbox"]:checked + label {
-        animation: pulse 0.3s ease-in-out;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
+*, *::before, *::after { box-sizing: border-box; }
+.cc { font-family: 'Montserrat', sans-serif; padding: 28px 32px; max-width: 1100px; }
+
+:root {
+    --ink:  #0f1117; --ink2: #3c4353; --ink3: #8c95a6;
+    --bg:   #f4f5f8; --surf: #ffffff;
+    --bd:   #e4e7ed; --bd2:  #eef0f4;
+    --blue: #1855e0; --blt:  #eef2ff; --bbd:  #c7d4fb;
+    --grn:  #0d9e6a; --glt:  #edfaf4; --gbd:  #9fe6c8;
+    --red:  #d92626; --rlt:  #fff0f0; --rbd:  #fbcfcf;
+    --amb:  #d97706; --alt:  #fffbeb; --abd:  #fde68a;
+    --r:    8px; --rlg: 13px; --rxl: 18px;
+}
+
+/* ── HERO ── */
+.cc-hero {
+    position: relative; border-radius: var(--rxl);
+    padding: 30px 36px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; background: var(--ink); overflow: hidden;
+}
+.cc-hero-glow {
+    position: absolute; pointer-events: none;
+    width: 500px; height: 260px;
+    background: radial-gradient(ellipse, rgba(24,85,224,.35) 0%, transparent 70%);
+    right: -40px; top: -40px;
+}
+.cc-hero-accent {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: linear-gradient(180deg,#4f80ff 0%,#1855e0 50%,transparent 100%);
+    border-radius: 0 2px 2px 0;
+}
+.cc-hero-grid {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+.cc-hero-left { position: relative; display: flex; align-items: center; gap: 16px; }
+.cc-hero-badge {
+    width: 50px; height: 50px; border-radius: 13px; flex-shrink: 0;
+    background: rgba(24,85,224,.2); border: 1px solid rgba(24,85,224,.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; color: #8aadff;
+}
+.cc-hero-title { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -.4px; line-height: 1; }
+.cc-hero-sub   { font-size: 12px; color: rgba(255,255,255,.38); margin-top: 5px; font-weight: 500; }
+.cc-back {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 15px; border-radius: var(--r);
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.11);
+    color: rgba(255,255,255,.6); font-size: 12px; font-weight: 600;
+    text-decoration: none; transition: all .15s; font-family: 'Montserrat', sans-serif;
+}
+.cc-back:hover { background: rgba(255,255,255,.13); color: #fff; }
+
+/* ── ERRORS ── */
+.cc-err {
+    padding: 14px 18px; border-radius: var(--rlg);
+    background: var(--rlt); border: 1px solid var(--rbd);
+    margin-bottom: 20px; animation: fd .25s ease;
+}
+.cc-err-title { font-size: 12.5px; font-weight: 800; color: var(--red); display: flex; align-items: center; gap: 7px; margin-bottom: 6px; }
+.cc-err ul { margin: 0 0 0 18px; }
+.cc-err li { font-size: 12px; font-weight: 500; color: #991b1b; }
+@keyframes fd { from { opacity:0; transform:translateY(-6px); } to { opacity:1; } }
+
+/* ── SECTION CARD ── */
+.cc-card {
+    background: var(--surf); border: 1px solid var(--bd);
+    border-radius: var(--rlg); overflow: hidden; margin-bottom: 16px;
+}
+.cc-card-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 15px 20px; border-bottom: 1px solid var(--bd2);
+    background: linear-gradient(to right, var(--surf), #fafbfd);
+}
+.cc-card-head-icon { font-size: 13px; color: var(--blue); }
+.cc-card-title { font-size: 12.5px; font-weight: 800; color: var(--ink); text-transform: uppercase; letter-spacing: .4px; }
+.cc-card-body  { padding: 20px; }
+
+/* ── FORM GRID ── */
+.cc-fg { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cc-field { display: flex; flex-direction: column; gap: 6px; }
+.cc-label {
+    font-size: 10.5px; font-weight: 800; color: var(--ink3);
+    text-transform: uppercase; letter-spacing: .6px;
+}
+.cc-label .req { color: var(--red); margin-left: 2px; }
+.cc-iw { position: relative; }
+.cc-ii { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink3); font-size: 12px; pointer-events: none; }
+.cc-input {
+    padding: 9px 12px 9px 34px;
+    border: 1px solid var(--bd); border-radius: var(--r);
+    font-size: 13px; font-weight: 500; font-family: 'Montserrat', sans-serif;
+    color: var(--ink); background: var(--surf); outline: none; width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+}
+.cc-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,85,224,.09); }
+.cc-input.err   { border-color: var(--red); background: var(--rlt); }
+.cc-field-err   { font-size: 11px; font-weight: 600; color: var(--red); display: flex; align-items: center; gap: 4px; }
+
+/* ── TOGGLE ROW ── */
+.cc-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border: 1px solid var(--bd2);
+    border-radius: var(--rlg); background: var(--bg);
+}
+.cc-toggle-left  { display: flex; align-items: center; gap: 12px; }
+.cc-toggle-lbl   { font-size: 13px; font-weight: 700; color: var(--ink); }
+.cc-toggle-hint  { font-size: 11.5px; font-weight: 500; color: var(--ink3); margin-top: 1px; }
+.cc-toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.cc-toggle input { opacity: 0; width: 0; height: 0; }
+.cc-toggle-slider {
+    position: absolute; inset: 0; border-radius: 9999px;
+    background: var(--bd); cursor: pointer; transition: background .2s;
+}
+.cc-toggle-slider::before {
+    content: ''; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    left: 3px; top: 3px; transition: transform .2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+}
+.cc-toggle input:checked + .cc-toggle-slider { background: var(--blue); }
+.cc-toggle input:checked + .cc-toggle-slider::before { transform: translateX(20px); }
+.cc-status-badge {
+    font-size: 10.5px; font-weight: 800; padding: 4px 10px;
+    border-radius: 9999px; text-transform: uppercase; letter-spacing: .4px;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.cc-status-badge.on  { background: var(--glt); color: var(--grn); border: 1px solid var(--gbd); }
+.cc-status-badge.off { background: var(--bg);  color: var(--ink3); border: 1px solid var(--bd); }
+.cc-status-badge.trailer-on  { background: var(--blt); color: var(--blue); border: 1px solid var(--bbd); }
+.cc-status-badge.trailer-off { background: var(--bg);  color: var(--ink3); border: 1px solid var(--bd); }
+
+/* ── STATES ── */
+.cc-states-controls {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+.cc-states-ctrl-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px; border-radius: var(--r);
+    font-size: 11.5px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+    border: 1px solid transparent; cursor: pointer; transition: all .13s;
+}
+.cc-states-ctrl-btn.all   { background: var(--blt); color: var(--blue); border-color: var(--bbd); }
+.cc-states-ctrl-btn.all:hover   { background: #dbeafe; }
+.cc-states-ctrl-btn.none  { background: var(--bg);  color: var(--ink2); border-color: var(--bd); }
+.cc-states-ctrl-btn.none:hover  { background: var(--bd2); }
+.cc-states-count { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--ink3); }
+.cc-states-count span { color: var(--blue); }
+
+.cc-states-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+    gap: 7px;
+    max-height: 340px; overflow-y: auto;
+    padding: 2px;
+    scrollbar-width: thin; scrollbar-color: #cdd0d8 var(--bg);
+}
+.cc-states-grid::-webkit-scrollbar { width: 4px; }
+.cc-states-grid::-webkit-scrollbar-track { background: var(--bg); }
+.cc-states-grid::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 9999px; }
+
+.cc-state-item { display: none; } /* real checkbox hidden */
+.cc-state-label {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 10px; border: 1px solid var(--bd);
+    border-radius: var(--r); cursor: pointer;
+    background: var(--surf); transition: all .13s;
+    user-select: none;
+}
+.cc-state-label:hover { border-color: var(--blue); background: var(--blt); }
+.cc-state-item:checked + .cc-state-label {
+    border-color: var(--blue); background: var(--blt);
+}
+.cc-state-box {
+    width: 16px; height: 16px; border-radius: 4px; flex-shrink: 0;
+    border: 1.5px solid var(--bd); background: var(--surf);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: #fff; transition: all .13s;
+}
+.cc-state-item:checked + .cc-state-label .cc-state-box {
+    background: var(--blue); border-color: var(--blue);
+}
+.cc-state-item:checked + .cc-state-label .cc-state-box::after { content: '✓'; }
+.cc-state-name { font-size: 12px; font-weight: 600; color: var(--ink2); }
+.cc-state-code { font-size: 10px; font-weight: 700; color: var(--ink3); }
+
+/* ── FOOTER ── */
+.cc-footer {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+    padding: 18px 22px; background: var(--bg);
+    border: 1px solid var(--bd); border-radius: var(--rlg);
+    margin-top: 4px;
+}
+.cc-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: var(--r);
+    font-size: 13px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+    border: 1px solid transparent; cursor: pointer; transition: all .15s;
+    text-decoration: none; white-space: nowrap;
+}
+.cc-btn i { font-size: 11px; }
+.cc-btn-blue  { background: var(--blue); color: #fff; }
+.cc-btn-blue:hover  { background: #1344c2; color: #fff; }
+.cc-btn-ghost { background: var(--surf); border-color: var(--bd); color: var(--ink2); }
+.cc-btn-ghost:hover { background: var(--bg); color: var(--ink); }
+
+@media (max-width: 768px) {
+    .cc { padding: 16px; }
+    .cc-hero { padding: 22px 20px; flex-direction: column; align-items: flex-start; }
+    .cc-fg { grid-template-columns: 1fr; }
+    .cc-states-grid { grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); }
+}
 </style>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Status toggle functionality
-        const statusToggle = document.getElementById('is_active');
-        const statusBadge = document.querySelector('.flex.items-center.gap-2.px-3');
-        
-        if (statusToggle) {
-            statusToggle.addEventListener('change', function() {
-                const isActive = this.checked;
-                if (isActive) {
-                    statusBadge.className = 'flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700';
-                    statusBadge.innerHTML = '<i class="fas fa-check-circle"></i><span>Active</span>';
-                } else {
-                    statusBadge.className = 'flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700';
-                    statusBadge.innerHTML = '<i class="fas fa-times-circle"></i><span>Inactive</span>';
-                }
-            });
-        }
-        
-        // States selection functionality
-        const selectAllBtn = document.getElementById('selectAllStates');
-        const deselectAllBtn = document.getElementById('deselectAllStates');
-        const stateCheckboxes = document.querySelectorAll('input[name="states[]"]');
-        const selectedCount = document.getElementById('selectedCount');
-        
-        // Update selected count
-        function updateSelectedCount() {
-            const checkedCount = Array.from(stateCheckboxes).filter(checkbox => checkbox.checked).length;
-            selectedCount.textContent = checkedCount;
-        }
-        
-        // Initialize count
-        updateSelectedCount();
-        
-        // Select all states
-        if (selectAllBtn) {
-            selectAllBtn.addEventListener('click', function() {
-                stateCheckboxes.forEach(checkbox => {
-                    checkbox.checked = true;
-                    // Trigger change event to update UI
-                    checkbox.dispatchEvent(new Event('change'));
-                });
-                updateSelectedCount();
-            });
-        }
-        
-        // Deselect all states
-        if (deselectAllBtn) {
-            deselectAllBtn.addEventListener('click', function() {
-                stateCheckboxes.forEach(checkbox => {
-                    checkbox.checked = false;
-                    // Trigger change event to update UI
-                    checkbox.dispatchEvent(new Event('change'));
-                });
-                updateSelectedCount();
-            });
-        }
-        
-        // Update count when individual checkboxes change
-        stateCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', updateSelectedCount);
-        });
-        
-        // Form validation
-        const form = document.getElementById('crewForm');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                const requiredFields = form.querySelectorAll('[required]');
-                let isValid = true;
-                
-                requiredFields.forEach(field => {
-                    if (!field.value.trim()) {
-                        isValid = false;
-                        field.classList.add('border-red-500');
-                    } else {
-                        field.classList.remove('border-red-500');
-                    }
-                });
-                
-                if (!isValid) {
-                    e.preventDefault();
-                    // Show error message
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-xl shadow-lg z-50';
-                    errorDiv.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <span>Please fill in all required fields</span>
+<div class="cc">
+
+    {{-- ── HERO ── --}}
+    <div class="cc-hero">
+        <div class="cc-hero-glow"></div>
+        <div class="cc-hero-accent"></div>
+        <div class="cc-hero-grid"></div>
+        <div class="cc-hero-left">
+            <div class="cc-hero-badge"><i class="fas fa-user-plus"></i></div>
+            <div>
+                <div class="cc-hero-title">Create New Crew</div>
+                <div class="cc-hero-sub">Register a new work team with all necessary details</div>
+            </div>
+        </div>
+        <a href="{{ route('superadmin.crew.index') }}" class="cc-back">
+            <i class="fas fa-arrow-left" style="font-size:10px"></i> Back to Crews
+        </a>
+    </div>
+
+    {{-- ── ERRORS ── --}}
+    @if($errors->any())
+    <div class="cc-err">
+        <div class="cc-err-title"><i class="fas fa-exclamation-circle"></i> Please fix the following errors:</div>
+        <ul>@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+    @endif
+
+    <form method="POST" action="{{ route('superadmin.crew.store') }}" id="crew-form">
+        @csrf
+
+        {{-- ── BASIC INFORMATION ── --}}
+        <div class="cc-card">
+            <div class="cc-card-head">
+                <i class="fas fa-info-circle cc-card-head-icon"></i>
+                <span class="cc-card-title">Basic Information</span>
+            </div>
+            <div class="cc-card-body">
+                <div class="cc-fg">
+
+                    <div class="cc-field">
+                        <label class="cc-label">Crew Name <span class="req">*</span></label>
+                        <div class="cc-iw">
+                            <i class="fas fa-users cc-ii"></i>
+                            <input type="text" name="name" value="{{ old('name') }}"
+                                   class="cc-input {{ $errors->has('name') ? 'err' : '' }}"
+                                   placeholder="Enter crew name" required>
                         </div>
-                    `;
-                    document.body.appendChild(errorDiv);
-                    
-                    // Remove error message after 3 seconds
-                    setTimeout(() => {
-                        errorDiv.remove();
-                    }, 3000);
-                }
-            });
-        }
-        
-        // Phone number formatting
-        const phoneInput = document.querySelector('input[name="phone"]');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 0) {
-                    value = value.match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
-                    e.target.value = !value[2] ? value[1] : '(' + value[1] + ') ' + value[2] + (value[3] ? '-' + value[3] : '');
-                }
-            });
-        }
-        
-        // Add focus effects to form inputs
-        const formInputs = document.querySelectorAll('input, select, textarea');
-        formInputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('ring-2', 'ring-blue-200', 'rounded-xl');
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.classList.remove('ring-2', 'ring-blue-200');
-            });
-        });
-    });
+                        @error('name')<div class="cc-field-err"><i class="fas fa-exclamation-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="cc-field">
+                        <label class="cc-label">Company <span class="req">*</span></label>
+                        <div class="cc-iw">
+                            <i class="fas fa-building cc-ii"></i>
+                            <input type="text" name="company" value="{{ old('company') }}"
+                                   class="cc-input {{ $errors->has('company') ? 'err' : '' }}"
+                                   placeholder="Company name" required>
+                        </div>
+                        @error('company')<div class="cc-field-err"><i class="fas fa-exclamation-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="cc-field">
+                        <label class="cc-label">Email Address <span class="req">*</span></label>
+                        <div class="cc-iw">
+                            <i class="fas fa-envelope cc-ii"></i>
+                            <input type="email" name="email" value="{{ old('email') }}"
+                                   class="cc-input {{ $errors->has('email') ? 'err' : '' }}"
+                                   placeholder="crew@example.com" required>
+                        </div>
+                        @error('email')<div class="cc-field-err"><i class="fas fa-exclamation-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="cc-field">
+                        <label class="cc-label">Phone Number</label>
+                        <div class="cc-iw">
+                            <i class="fas fa-phone cc-ii"></i>
+                            <input type="text" name="phone" value="{{ old('phone') }}"
+                                   class="cc-input" id="phone-input"
+                                   placeholder="(123) 456-7890">
+                        </div>
+                        @error('phone')<div class="cc-field-err"><i class="fas fa-exclamation-circle"></i>{{ $message }}</div>@enderror
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        {{-- ── TRAILER + STATUS ── --}}
+        <div class="cc-card">
+            <div class="cc-card-head">
+                <i class="fas fa-toggle-on cc-card-head-icon"></i>
+                <span class="cc-card-title">Status & Equipment</span>
+            </div>
+            <div class="cc-card-body" style="display:flex;flex-direction:column;gap:10px">
+
+                {{-- Trailer --}}
+                <div class="cc-toggle-row">
+                    <div class="cc-toggle-left">
+                        <label class="cc-toggle">
+                            <input type="hidden" name="has_trailer" value="0">
+                            <input type="checkbox" name="has_trailer" id="toggle-trailer" value="1"
+                                   {{ old('has_trailer') ? 'checked' : '' }}
+                                   onchange="updateBadge('trailer-badge','trailer-badge','trailer-on','trailer-off',
+                                       '<i class=\'fas fa-truck\' style=\'font-size:9px\'></i> With Trailer',
+                                       '<i class=\'fas fa-ban\' style=\'font-size:9px\'></i> No Trailer',this.checked)">
+                            <span class="cc-toggle-slider"></span>
+                        </label>
+                        <div>
+                            <div class="cc-toggle-lbl">Has Trailer</div>
+                            <div class="cc-toggle-hint">This crew operates with its own trailer</div>
+                        </div>
+                    </div>
+                    <span class="cc-status-badge {{ old('has_trailer') ? 'trailer-on' : 'trailer-off' }}" id="trailer-badge">
+                        <i class="fas fa-{{ old('has_trailer') ? 'truck' : 'ban' }}" style="font-size:9px"></i>
+                        {{ old('has_trailer') ? 'With Trailer' : 'No Trailer' }}
+                    </span>
+                </div>
+
+                {{-- Active --}}
+                <div class="cc-toggle-row">
+                    <div class="cc-toggle-left">
+                        <label class="cc-toggle">
+                            <input type="hidden" name="is_active" value="0">
+                            <input type="checkbox" name="is_active" id="toggle-active" value="1"
+                                   {{ old('is_active', true) ? 'checked' : '' }}
+                                   onchange="updateBadge('active-badge','active-badge','on','off',
+                                       '<i class=\'fas fa-check-circle\' style=\'font-size:9px\'></i> Active',
+                                       '<i class=\'fas fa-times-circle\' style=\'font-size:9px\'></i> Inactive',this.checked)">
+                            <span class="cc-toggle-slider"></span>
+                        </label>
+                        <div>
+                            <div class="cc-toggle-lbl">Active Crew</div>
+                            <div class="cc-toggle-hint">Crew will be available for job assignments</div>
+                        </div>
+                    </div>
+                    <span class="cc-status-badge {{ old('is_active', true) ? 'on' : 'off' }}" id="active-badge">
+                        <i class="fas fa-{{ old('is_active', true) ? 'check-circle' : 'times-circle' }}" style="font-size:9px"></i>
+                        {{ old('is_active', true) ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        {{-- ── OPERATING STATES ── --}}
+        <div class="cc-card">
+            <div class="cc-card-head">
+                <i class="fas fa-map-marker-alt cc-card-head-icon"></i>
+                <span class="cc-card-title">Operating States</span>
+            </div>
+            <div class="cc-card-body">
+
+                <div class="cc-states-controls">
+                    <button type="button" class="cc-states-ctrl-btn all" onclick="selectStates(true)">
+                        <i class="fas fa-check-square" style="font-size:11px"></i> Select All
+                    </button>
+                    <button type="button" class="cc-states-ctrl-btn none" onclick="selectStates(false)">
+                        <i class="fas fa-times-circle" style="font-size:11px"></i> Deselect All
+                    </button>
+                    <div class="cc-states-count"><span id="state-count">0</span> selected</div>
+                </div>
+
+                @php
+                    $states = [
+                        'AL'=>'Alabama','AK'=>'Alaska','AZ'=>'Arizona','AR'=>'Arkansas',
+                        'CA'=>'California','CO'=>'Colorado','CT'=>'Connecticut','DE'=>'Delaware',
+                        'FL'=>'Florida','GA'=>'Georgia','HI'=>'Hawaii','ID'=>'Idaho',
+                        'IL'=>'Illinois','IN'=>'Indiana','IA'=>'Iowa','KS'=>'Kansas',
+                        'KY'=>'Kentucky','LA'=>'Louisiana','ME'=>'Maine','MD'=>'Maryland',
+                        'MA'=>'Massachusetts','MI'=>'Michigan','MN'=>'Minnesota','MS'=>'Mississippi',
+                        'MO'=>'Missouri','MT'=>'Montana','NE'=>'Nebraska','NV'=>'Nevada',
+                        'NH'=>'New Hampshire','NJ'=>'New Jersey','NM'=>'New Mexico','NY'=>'New York',
+                        'NC'=>'North Carolina','ND'=>'North Dakota','OH'=>'Ohio','OK'=>'Oklahoma',
+                        'OR'=>'Oregon','PA'=>'Pennsylvania','RI'=>'Rhode Island','SC'=>'South Carolina',
+                        'SD'=>'South Dakota','TN'=>'Tennessee','TX'=>'Texas','UT'=>'Utah',
+                        'VT'=>'Vermont','VA'=>'Virginia','WA'=>'Washington','WV'=>'West Virginia',
+                        'WI'=>'Wisconsin','WY'=>'Wyoming'
+                    ];
+                    $selected = old('states', []);
+                @endphp
+
+                <div class="cc-states-grid">
+                    @foreach($states as $code => $name)
+                    <div>
+                        <input type="checkbox" name="states[]" value="{{ $code }}"
+                               id="s{{ $code }}" class="cc-state-item"
+                               {{ in_array($code, $selected) ? 'checked' : '' }}
+                               onchange="countStates()">
+                        <label for="s{{ $code }}" class="cc-state-label">
+                            <span class="cc-state-box"></span>
+                            <div>
+                                <div class="cc-state-name">{{ $name }}</div>
+                                <div class="cc-state-code">{{ $code }}</div>
+                            </div>
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+
+                @error('states')
+                <div class="cc-field-err" style="margin-top:10px">
+                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                </div>
+                @enderror
+            </div>
+        </div>
+
+        {{-- ── FOOTER ── --}}
+        <div class="cc-footer">
+            <a href="{{ route('superadmin.crew.index') }}" class="cc-btn cc-btn-ghost">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="cc-btn cc-btn-blue">
+                <i class="fas fa-floppy-disk"></i> Create Crew
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+/* ── TOGGLE BADGE ── */
+function updateBadge(id, _, onClass, offClass, onHtml, offHtml, checked) {
+    const badge = document.getElementById(id);
+    badge.className = 'cc-status-badge ' + (checked ? onClass : offClass);
+    badge.innerHTML  = checked ? onHtml : offHtml;
+}
+
+/* ── STATE COUNT ── */
+function countStates() {
+    const n = document.querySelectorAll('.cc-state-item:checked').length;
+    document.getElementById('state-count').textContent = n;
+}
+function selectStates(all) {
+    document.querySelectorAll('.cc-state-item').forEach(cb => { cb.checked = all; });
+    countStates();
+}
+
+/* ── PHONE FORMAT ── */
+document.getElementById('phone-input').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'');
+    const m = v.match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+    this.value = !m[2] ? m[1] : '(' + m[1] + ') ' + m[2] + (m[3] ? '-' + m[3] : '');
+});
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded', countStates);
 </script>
 
 @endsection

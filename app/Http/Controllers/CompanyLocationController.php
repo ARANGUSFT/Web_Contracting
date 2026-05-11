@@ -5,21 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\CompanyLocation;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Models\Item;
-use App\Models\ItemPrice;
 use Illuminate\Support\Facades\DB;
 
 class CompanyLocationController extends Controller
 {
     /**
-     * Listado de ubicaciones por empresa
-     * (empresa + estado + ciudad)
+     * List all locations grouped by company → state.
      */
     public function index()
     {
         $locations = CompanyLocation::with('user')
             ->orderBy('state')
-            ->orderByRaw('city IS NOT NULL') // state base primero
+            ->orderByRaw('CASE WHEN city IS NULL THEN 0 ELSE 1 END') // base price first, cross-DB compatible
             ->orderBy('city')
             ->get()
             ->groupBy([
@@ -30,6 +27,9 @@ class CompanyLocationController extends Controller
         return view('admin.locations.index', compact('locations'));
     }
 
+    /**
+     * Show the create form.
+     */
     public function create()
     {
         $companies = User::where('is_admin', 0)
@@ -38,20 +38,23 @@ class CompanyLocationController extends Controller
 
         return view('admin.locations.create', compact('companies'));
     }
+
     /**
-     * Formulario para crear ubicación
+     * Store one or more locations (bulk, skips duplicates silently).
      */
     public function store(Request $request)
     {
         $request->validate([
-            'user_id'            => 'required|exists:users,id',
-            'locations'          => 'required|array|min:1',
-            'locations.*.state'  => 'required|string|max:5',
-            'locations.*.city'   => 'nullable|string|max:100',
+            'user_id'           => 'required|exists:users,id',
+            'locations'         => 'required|array|min:1',
+            'locations.*.state' => 'required|string|max:5',
+            'locations.*.city'  => 'nullable|string|max:100',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $created = 0;
+        $skipped = 0;
 
+        DB::transaction(function () use ($request, &$created, &$skipped) {
             foreach ($request->locations as $loc) {
 
                 $state = strtoupper(trim($loc['state']));
@@ -65,7 +68,8 @@ class CompanyLocationController extends Controller
                     ->exists();
 
                 if ($exists) {
-                    continue; // saltamos duplicados sin romper
+                    $skipped++;
+                    continue;
                 }
 
                 CompanyLocation::create([
@@ -73,21 +77,26 @@ class CompanyLocationController extends Controller
                     'state'   => $state,
                     'city'    => $city,
                 ]);
+
+                $created++;
             }
         });
 
+        $message = $created > 0
+            ? "{$created} location" . ($created > 1 ? 's' : '') . " created successfully."
+            : "No new locations were added.";
+
+        if ($skipped > 0) {
+            $message .= " {$skipped} duplicate" . ($skipped > 1 ? 's were' : ' was') . " skipped.";
+        }
+
         return redirect()
             ->route('superadmin.locations.index')
-            ->with('success', 'Locations created successfully');
+            ->with('success', $message);
     }
 
-
-
-
-
-
     /**
-     * Editar ubicación
+     * Show the edit form.
      */
     public function edit(CompanyLocation $location)
     {
@@ -95,7 +104,7 @@ class CompanyLocationController extends Controller
     }
 
     /**
-     * Actualizar ubicación
+     * Update a location.
      */
     public function update(Request $request, CompanyLocation $location)
     {
@@ -104,42 +113,45 @@ class CompanyLocationController extends Controller
             'city'  => 'nullable|string|max:100',
         ]);
 
-        // 🔒 Evitar duplicados al actualizar
-        $exists = CompanyLocation::where('user_id', $location->user_id)
-            ->where('state', strtoupper($request->state))
-            ->where('city', $request->city)
+        $state = strtoupper(trim($request->state));
+        $city  = $request->city ? trim($request->city) : null;
+
+        $duplicate = CompanyLocation::where('user_id', $location->user_id)
+            ->where('state', $state)
+            ->where('city', $city)
             ->where('id', '!=', $location->id)
             ->exists();
 
-        if ($exists) {
+        if ($duplicate) {
             return back()
-                ->withErrors('Another location with the same state and city already exists.')
+                ->withErrors(['state' => 'A location with this state and city already exists for this company.'])
                 ->withInput();
         }
 
         $location->update([
-            'state' => strtoupper($request->state),
-            'city'  => $request->city,
+            'state' => $state,
+            'city'  => $city,
         ]);
 
         return redirect()
             ->route('superadmin.locations.index')
-            ->with('success', 'Location updated successfully');
+            ->with('success', 'Location updated successfully.');
     }
 
     /**
-     * Eliminar ubicación
+     * Delete a location.
      */
     public function destroy(CompanyLocation $location)
     {
         $location->delete();
 
-        return back()->with('success', 'Location deleted successfully');
+        return back()->with('success', 'Location deleted successfully.');
     }
 
     /**
-     * AJAX – obtener ubicaciones por empresa
-     * (usado en invoices, prices, etc.)
+     * AJAX — return all locations for a given company.
+     * Used in invoices, price selectors, etc.
+     * Route is already protected by the superadmin middleware in web.php.
      */
     public function byCompany($companyId)
     {
@@ -152,25 +164,9 @@ class CompanyLocationController extends Controller
         return response()->json($locations);
     }
 
-
-
-
-
-
-
-
-    
-    public function manageCompanyLocations(User $user)
-    {
-        $locations = CompanyLocation::where('user_id', $user->id)
-            ->orderBy('state')
-            ->orderBy('city')
-            ->get()
-            ->groupBy('state');
-
-        return view('admin.locations.manage', compact('user', 'locations'));
-    }
-
+    /**
+     * Show all locations for a specific company (manage view).
+     */
     public function manage(User $company)
     {
         $company->load('companyLocations');
@@ -185,37 +181,56 @@ class CompanyLocationController extends Controller
         ]);
     }
 
+    /**
+     * Add one or more locations to a specific company (from the manage view).
+     */
     public function storeForCompany(Request $request, User $company)
     {
         $request->validate([
-            'locations'          => 'required|array|min:1',
-            'locations.*.state'  => 'required|string|max:5',
-            'locations.*.city'   => 'nullable|string|max:100',
+            'locations'         => 'required|array|min:1',
+            'locations.*.state' => 'required|string|max:5',
+            'locations.*.city'  => 'nullable|string|max:100',
         ]);
 
-        foreach ($request->locations as $loc) {
-            $state = strtoupper(trim($loc['state']));
-            $city  = isset($loc['city']) && trim($loc['city']) !== ''
-                ? trim($loc['city'])
-                : null;
+        $created = 0;
+        $skipped = 0;
 
-            $exists = CompanyLocation::where('user_id', $company->id)
-                ->where('state', $state)
-                ->where('city', $city)
-                ->exists();
+        DB::transaction(function () use ($request, $company, &$created, &$skipped) {
+            foreach ($request->locations as $loc) {
 
-            if ($exists) continue;
+                $state = strtoupper(trim($loc['state']));
+                $city  = isset($loc['city']) && trim($loc['city']) !== ''
+                    ? trim($loc['city'])
+                    : null;
 
-            CompanyLocation::create([
-                'user_id' => $company->id,
-                'state'   => $state,
-                'city'    => $city,
-            ]);
+                $exists = CompanyLocation::where('user_id', $company->id)
+                    ->where('state', $state)
+                    ->where('city', $city)
+                    ->exists();
+
+                if ($exists) {
+                    $skipped++;
+                    continue;
+                }
+
+                CompanyLocation::create([
+                    'user_id' => $company->id,
+                    'state'   => $state,
+                    'city'    => $city,
+                ]);
+
+                $created++;
+            }
+        });
+
+        $message = $created > 0
+            ? "{$created} location" . ($created > 1 ? 's' : '') . " added successfully."
+            : "No new locations were added.";
+
+        if ($skipped > 0) {
+            $message .= " {$skipped} duplicate" . ($skipped > 1 ? 's were' : ' was') . " skipped.";
         }
 
-        return back()->with('success', 'Locations added successfully');
+        return back()->with('success', $message);
     }
-
-
-
 }

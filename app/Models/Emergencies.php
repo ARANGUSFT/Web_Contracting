@@ -27,11 +27,16 @@ class Emergencies extends Model
         'job_zip_code',
         'terms_conditions',
         'requirements',
-            'status',
+        'status',
 
         'aerial_measurement_path',
         'contract_upload_path',
         'file_picture_upload_path',
+
+        'amount',
+        'payment_receipt_path', 
+        'payment_date',
+        'payment_status',
 
     ];
 
@@ -98,6 +103,23 @@ class Emergencies extends Model
     }
 
 
+        // En app/Models/Emergencies.php
+    public function repairTickets()
+    {
+        return $this->hasMany(RepairTicket::class, 'reference_id')
+                    ->where('reference_type', 'emergency');
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(
+            \App\Models\Team::class,   // modelo Team (tabla "team")
+            'emergency_team',          // tabla pivot
+            'emergency_id',            // FK hacia emergencies
+            'team_id'                  // FK hacia team
+        );
+    }
+
 
    public function fotos()
     {
@@ -113,7 +135,7 @@ class Emergencies extends Model
     // ✅ Devuelve todos los estados posibles
     public static function availableStatuses(): array
     {
-        return ['pendiente', 'en_proceso', 'completado'];
+          return ['pending', 'en_process', 'completed'];
     }
 
     // ✅ Avanza al siguiente estado
@@ -137,6 +159,11 @@ class Emergencies extends Model
             $this->save();
         }
     }
+
+    public function invoices()
+{
+    return $this->morphMany(Invoice::class, 'invoiceable');
+}
 
 
     

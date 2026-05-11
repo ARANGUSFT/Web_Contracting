@@ -1,356 +1,391 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>{{ $title ?? 'Public Photo Gallery' }}</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    .gallery-image {
-      transition: all 0.3s ease;
-    }
-    
-    .gallery-item:hover .gallery-image {
-      transform: scale(1.05);
-    }
-    
-    .modal {
-      transition: opacity 0.3s ease;
-    }
-    
-    /* Scrollbar customization */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e0;
-      border-radius: 3px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-      background: #a0aec0;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $title ?? 'Photo Gallery' }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+        --ink:  #0f1117; --ink2: #3c4353; --ink3: #8c95a6;
+        --bg:   #f4f5f8; --surf: #ffffff;
+        --bd:   #e4e7ed; --bd2:  #eef0f4;
+        --blue: #1855e0; --blt:  #eef2ff; --bbd:  #c7d4fb;
+        --grn:  #0d9e6a; --glt:  #edfaf4; --gbd:  #9fe6c8;
+        --r:    8px; --rlg: 13px; --rxl: 18px;
     }
 
-    /* Smooth animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
+    html, body {
+        min-height: 100vh;
+        font-family: 'Montserrat', sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        font-size: 14px;
     }
 
-    .modal-content {
-      animation: fadeIn 0.2s ease-out;
+    /* ── HEADER ── */
+    .pg-header {
+        position: sticky; top: 0; z-index: 100;
+        background: var(--ink);
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        padding: 0 28px;
     }
-  </style>
+    .pg-header-inner {
+        max-width: 1540px; margin: 0 auto;
+        height: 62px;
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px;
+    }
+    .pg-header-left { display: flex; align-items: center; gap: 12px; }
+    .pg-header-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: rgba(24,85,224,.25); border: 1px solid rgba(24,85,224,.4);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; color: #8aadff; flex-shrink: 0;
+    }
+    .pg-header-title { font-size: 15px; font-weight: 800; color: #fff; letter-spacing: -.3px; }
+    .pg-header-count {
+        font-size: 11px; font-weight: 700; padding: 3px 9px;
+        border-radius: 9999px; background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.5);
+    }
+    .pg-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .pg-url-input {
+        width: 260px; padding: 7px 12px;
+        background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+        border-radius: var(--r); font-size: 12px; font-weight: 500;
+        font-family: 'Montserrat', sans-serif; color: rgba(255,255,255,.5);
+        outline: none;
+    }
+    .pg-copy-btn {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 7px 14px; border-radius: var(--r);
+        background: var(--blue); color: #fff;
+        font-size: 12px; font-weight: 700; font-family: 'Montserrat', sans-serif;
+        border: none; cursor: pointer; transition: background .13s; white-space: nowrap;
+    }
+    .pg-copy-btn:hover { background: #1344c2; }
+    .pg-copy-btn.copied { background: var(--grn); }
+
+    /* ── MAIN ── */
+    .pg-main {
+        max-width: 1540px; margin: 0 auto;
+        padding: 28px 28px 48px;
+    }
+
+    /* ── EMPTY ── */
+    .pg-empty {
+        background: var(--surf); border: 1px solid var(--bd);
+        border-radius: var(--rxl); padding: 72px 24px; text-align: center;
+        max-width: 400px; margin: 0 auto;
+    }
+    .pg-empty-icon {
+        width: 64px; height: 64px; border-radius: 16px;
+        background: var(--bg); border: 1px solid var(--bd);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 24px; color: var(--ink3); margin: 0 auto 16px;
+    }
+    .pg-empty-t { font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom: 5px; }
+    .pg-empty-s { font-size: 12.5px; font-weight: 500; color: var(--ink3); }
+
+    /* ── GRID ── */
+    .pg-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+    }
+
+    /* ── PHOTO CARD ── */
+    .pg-card {
+        background: var(--surf); border: 1px solid var(--bd);
+        border-radius: var(--rlg); overflow: hidden;
+        transition: box-shadow .15s, border-color .15s, transform .15s;
+        cursor: pointer;
+    }
+    .pg-card:hover {
+        border-color: var(--blue);
+        box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        transform: translateY(-2px);
+    }
+    .pg-card-thumb-wrap {
+        position: relative; overflow: hidden;
+        aspect-ratio: 1 / 1;
+        background: var(--bg);
+    }
+    .pg-card-thumb {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        transition: transform .3s ease;
+    }
+    .pg-card:hover .pg-card-thumb { transform: scale(1.06); }
+    .pg-card-overlay {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0);
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        opacity: 0; transition: all .2s;
+    }
+    .pg-card:hover .pg-card-overlay { background: rgba(0,0,0,.35); opacity: 1; }
+    .pg-card-ov-btn {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: rgba(255,255,255,.95); border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 12px; color: var(--ink2); transition: all .13s;
+    }
+    .pg-card-ov-btn:hover { background: #fff; transform: scale(1.1); }
+    .pg-card-ov-btn.grn:hover { background: var(--glt); color: var(--grn); }
+    .pg-card-foot {
+        padding: 8px 12px; display: flex; align-items: center; justify-content: space-between;
+        border-top: 1px solid var(--bd2);
+    }
+    .pg-card-num { font-size: 11px; font-weight: 700; color: var(--ink2); }
+
+    /* ── LIGHTBOX ── */
+    .pg-lb {
+        display: none; position: fixed; inset: 0; z-index: 9999;
+        align-items: center; justify-content: center;
+        background: rgba(0,0,0,.88);
+        backdrop-filter: blur(6px);
+    }
+    .pg-lb.open { display: flex; }
+    .pg-lb-box {
+        position: relative;
+        max-width: min(92vw, 900px);
+        display: flex; flex-direction: column; align-items: center;
+    }
+    .pg-lb-img {
+        max-width: 92vw; max-height: 82vh;
+        object-fit: contain; border-radius: var(--rlg);
+        box-shadow: 0 8px 48px rgba(0,0,0,.6); display: block;
+    }
+    .pg-lb-close {
+        position: absolute; top: -44px; right: 0;
+        width: 36px; height: 36px; border-radius: 10px;
+        background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+        color: rgba(255,255,255,.7); font-size: 14px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all .13s;
+    }
+    .pg-lb-close:hover { background: rgba(255,255,255,.2); color: #fff; }
+    .pg-lb-nav {
+        position: absolute; top: 50%; transform: translateY(-50%);
+        width: 42px; height: 42px; border-radius: 50%;
+        background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+        color: rgba(255,255,255,.8); font-size: 15px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all .13s;
+    }
+    .pg-lb-nav:hover { background: rgba(255,255,255,.2); color: #fff; }
+    .pg-lb-nav.prev { left: -58px; }
+    .pg-lb-nav.next { right: -58px; }
+    .pg-lb-bar {
+        position: absolute; bottom: -44px;
+        display: flex; align-items: center; gap: 12px;
+    }
+    .pg-lb-counter {
+        font-size: 12px; font-weight: 700; color: rgba(255,255,255,.55);
+        font-family: 'Montserrat', sans-serif;
+    }
+    .pg-lb-dl {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 6px 14px; border-radius: var(--r);
+        background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+        color: rgba(255,255,255,.7); font-size: 11.5px; font-weight: 700;
+        font-family: 'Montserrat', sans-serif; cursor: pointer;
+        transition: all .13s; text-decoration: none;
+    }
+    .pg-lb-dl:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+    /* ── FOOTER ── */
+    .pg-footer {
+        text-align: center; padding: 20px 24px 32px;
+        font-size: 11.5px; font-weight: 600; color: var(--ink3);
+    }
+    .pg-footer a { color: var(--blue); text-decoration: none; }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #cdd0d8; border-radius: 9999px; }
+
+    @media (max-width: 768px) {
+        .pg-header-inner { padding: 0; height: 56px; }
+        .pg-url-input { display: none; }
+        .pg-main { padding: 16px 16px 40px; }
+        .pg-grid { grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 8px; }
+        .pg-lb-nav { display: none; }
+        .pg-lb-bar { bottom: -40px; }
+    }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen text-gray-800">
+<body>
 
-  <!-- Header Compacto -->
-  <header class="bg-white shadow-sm sticky top-0 z-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3">
-        <div class="flex items-center gap-2">
-          <i class="fas fa-camera text-blue-600 text-xl"></i>
-          <h1 class="text-xl font-bold text-blue-700 truncate">
-            {{ $title ?? 'Public Photo Gallery' }}
-          </h1>
-          <span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
-            {{ count($items ?? []) }} photos
-          </span>
+@php
+    $raw   = $photos ?? $fotos ?? [];
+    $items = [];
+    foreach ($raw as $it) {
+        if      (is_string($it))                       $items[] = $it;
+        elseif  (is_array($it)  && isset($it['url']))  $items[] = $it['url'];
+        elseif  (is_object($it) && isset($it->url))    $items[] = $it->url;
+    }
+    $total = count($items);
+@endphp
+
+{{-- ── HEADER ── --}}
+<header class="pg-header">
+    <div class="pg-header-inner">
+        <div class="pg-header-left">
+            <div class="pg-header-icon"><i class="fas fa-images"></i></div>
+            <div class="pg-header-title">{{ $title ?? 'Photo Gallery' }}</div>
+            <span class="pg-header-count">{{ $total }} {{ Str::plural('photo', $total) }}</span>
         </div>
-
-        <!-- URL sharing compacto -->
-        <div class="flex items-center gap-2">
-          <div class="relative flex-1 min-w-0 max-w-xs">
-            <input id="publicLink"
-                   class="w-full bg-gray-50 rounded-lg border border-gray-300 pl-3 pr-20 py-1.5 text-xs truncate"
-                   readonly
-                   value="{{ request()->fullUrl() }}">
-          </div>
-          <div class="flex gap-1">
-            <button type="button"
-                    class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
-                    onclick="copyLink()">
-              <i class="fas fa-copy text-xs"></i> Copy
+        <div class="pg-header-right">
+            <input id="pg-url" class="pg-url-input" readonly value="{{ request()->fullUrl() }}">
+            <button type="button" class="pg-copy-btn" id="pg-copy-btn" onclick="pgCopy()">
+                <i class="fas fa-copy" style="font-size:10px"></i> Copy link
             </button>
-          </div>
         </div>
-      </div>
     </div>
-  </header>
+</header>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6">
-    @php
-      // Normalize the list of photos that come as $photos or $fotos,
-      // as string, array ['url'=>...], or object with ->url
-      $raw = $photos ?? $fotos ?? [];
-      $items = [];
-      foreach ($raw as $it) {
-        if (is_string($it)) {
-          $items[] = $it;
-        } elseif (is_array($it) && isset($it['url'])) {
-          $items[] = $it['url'];
-        } elseif (is_object($it) && isset($it->url)) {
-          $items[] = $it->url;
-        }
-      }
-    @endphp
+{{-- ── MAIN ── --}}
+<main class="pg-main">
 
-    <!-- Gallery Grid -->
-    @if (empty($items))
-      <div class="bg-white rounded-xl shadow-sm p-8 text-center max-w-md mx-auto">
-        <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-        </svg>
-        <h2 class="text-lg font-medium text-gray-700">No photos available</h2>
-        <p class="mt-1 text-sm text-gray-500">This gallery doesn't have any images yet.</p>
-      </div>
+    @if(empty($items))
+    <div class="pg-empty">
+        <div class="pg-empty-icon"><i class="fas fa-camera"></i></div>
+        <div class="pg-empty-t">No photos available</div>
+        <div class="pg-empty-s">This gallery doesn't have any images yet.</div>
+    </div>
     @else
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-        @foreach ($items as $i => $u)
-          @php
-            $isAbs = preg_match('#^https?://#i', $u);
-            $src   = $isAbs ? $u : asset('storage/'.$u);
-          @endphp
-          <div class="gallery-item bg-white rounded-lg shadow-sm overflow-hidden transition-all duration-300 hover:shadow-md border border-gray-100">
-            <div class="relative overflow-hidden aspect-square">
-              <img src="{{ $src }}"
-                   alt="Photo {{ $i + 1 }}"
-                   loading="lazy"
-                   class="gallery-image w-full h-full object-cover cursor-pointer"
-                   data-index="{{ $i }}"
-                   onclick="openModal(this)">
-              
-              <!-- Overlay con botones más pequeños -->
-              <div class="absolute inset-0 bg-black bg-opacity-0 transition-all duration-300 flex items-center justify-center gap-1 opacity-0 hover:bg-opacity-30 hover:opacity-100">
-                <button class="bg-white p-1.5 rounded-full shadow-sm hover:bg-blue-50 transition-colors" 
-                        onclick="openModal(this.parentElement.parentElement.querySelector('img')); event.stopPropagation();"
-                        title="View full size">
-                  <i class="fas fa-expand text-xs text-gray-600"></i>
-                </button>
-                <button class="bg-white p-1.5 rounded-full shadow-sm hover:bg-green-50 transition-colors" 
-                        onclick="downloadImage('{{ $src }}', 'photo-{{ $i+1 }}'); event.stopPropagation();"
-                        title="Download photo">
-                  <i class="fas fa-download text-xs text-gray-600"></i>
-                </button>
-              </div>
-            </div>
-            
-            <!-- Información mínima -->
-            <div class="p-2">
-              <p class="text-xs font-medium text-gray-600 text-center">#{{ $i + 1 }}</p>
-            </div>
-          </div>
-        @endforeach
-      </div>
-    @endif
-  </main>
-
-  <!-- Modal Compacto para imagen ampliada -->
-  <div id="imageModal" class="modal fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 opacity-0 pointer-events-none transition-opacity duration-300 p-3">
-    <div class="relative max-w-2xl w-full modal-content">
-      <!-- Botón cerrar compacto -->
-      <button class="absolute -top-8 right-0 text-white hover:text-gray-300 transition-colors z-10" 
-              onclick="closeModal()"
-              title="Close (ESC)">
-        <i class="fas fa-times text-lg"></i>
-      </button>
-      
-      <!-- Contenedor de imagen -->
-      <div class="bg-black rounded-lg overflow-hidden">
-        <img id="modalImage" src="" alt="Enlarged view" class="w-full max-h-[65vh] object-contain">
-      </div>
-      
-      <!-- Controles de navegación compactos -->
-      <button class="absolute left-2 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10"
-              onclick="navigateModal(-1)"
-              title="Previous (←)">
-        <i class="fas fa-chevron-left text-sm"></i>
-      </button>
-      <button class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white bg-black bg-opacity-50 rounded-full p-2 hover:bg-opacity-70 transition-colors z-10"
-              onclick="navigateModal(1)"
-              title="Next (→)">
-        <i class="fas fa-chevron-right text-sm"></i>
-      </button>
-      
-      <!-- Información e controles inferiores -->
-      <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-        <!-- Contador -->
-        <div class="bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
-          <span id="modalCounter">{{ count($items ?? []) ? '1/' . count($items) : '0/0' }}</span>
-        </div>
-        
-        <!-- Botones de acción -->
-        <div class="flex gap-1">
-          <button class="bg-black bg-opacity-70 text-white p-2 rounded-full hover:bg-opacity-90 transition-colors"
-                  onclick="downloadCurrentImage()"
-                  title="Download current photo">
-            <i class="fas fa-download text-xs"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Image data for the modal
-    const galleryImages = [
-      @foreach($items as $u)
+    <div class="pg-grid">
+        @foreach($items as $i => $u)
         @php
-          $isAbs = preg_match('#^https?://#i', $u);
-          $src   = $isAbs ? $u : asset('storage/'.$u);
+            $src = preg_match('#^https?://#i', $u) ? $u : asset('storage/'.$u);
         @endphp
-        '{{ $src }}',
-      @endforeach
-    ];
-    
-    let currentModalIndex = 0;
-    
-    // Function to copy the link
-    function copyLink() {
-      const linkInput = document.getElementById('publicLink');
-      navigator.clipboard.writeText(linkInput.value).then(() => {
-        // Feedback visual temporal
-        const copyButton = document.querySelector('button[onclick="copyLink()"]');
-        const originalHtml = copyButton.innerHTML;
-        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        copyButton.classList.remove('bg-blue-600');
-        copyButton.classList.add('bg-green-600');
-        
-        setTimeout(() => {
-          copyButton.innerHTML = originalHtml;
-          copyButton.classList.remove('bg-green-600');
-          copyButton.classList.add('bg-blue-600');
-        }, 1500);
-      });
+        <div class="pg-card" onclick="pgLb({{ $i }})">
+            <div class="pg-card-thumb-wrap">
+                <img src="{{ $src }}" alt="Photo {{ $i+1 }}"
+                     class="pg-card-thumb" loading="lazy" data-index="{{ $i }}">
+                <div class="pg-card-overlay">
+                    <button type="button" class="pg-card-ov-btn"
+                            onclick="pgLb({{ $i }});event.stopPropagation()" title="View">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button type="button" class="pg-card-ov-btn grn"
+                            onclick="pgDl('{{ $src }}',{{ $i+1 }});event.stopPropagation()" title="Download">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="pg-card-foot">
+                <span class="pg-card-num">Photo #{{ $i+1 }}</span>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
+
+</main>
+
+{{-- ── FOOTER ── --}}
+<footer class="pg-footer">
+    &copy; {{ date('Y') }} Contracting Alliance Inc. · All rights reserved.
+</footer>
+
+{{-- ── LIGHTBOX ── --}}
+<div class="pg-lb" id="pg-lb">
+    <div class="pg-lb-box">
+        <button class="pg-lb-close" onclick="pgLbClose()"><i class="fas fa-times"></i></button>
+        <button class="pg-lb-nav prev" onclick="pgLbNav(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="pg-lb-nav next" onclick="pgLbNav(1)"><i class="fas fa-chevron-right"></i></button>
+        <img id="pg-lb-img" class="pg-lb-img" src="" alt="">
+        <div class="pg-lb-bar">
+            <span class="pg-lb-counter" id="pg-lb-counter">1 / {{ $total }}</span>
+            <a id="pg-lb-dl" href="#" download class="pg-lb-dl">
+                <i class="fas fa-download" style="font-size:10px"></i> Download
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+const pgPhotos = [
+    @foreach($items as $u)
+    @php $src = preg_match('#^https?://#i', $u) ? $u : asset('storage/'.$u); @endphp
+    '{{ $src }}',
+    @endforeach
+];
+let pgIdx = 0;
+
+/* ── LIGHTBOX ── */
+function pgLb(idx) {
+    pgIdx = idx;
+    document.getElementById('pg-lb-img').src = pgPhotos[pgIdx];
+    document.getElementById('pg-lb-dl').href = pgPhotos[pgIdx];
+    document.getElementById('pg-lb-dl').download = 'photo-' + (pgIdx+1) + '.jpg';
+    document.getElementById('pg-lb-counter').textContent = (pgIdx+1) + ' / ' + pgPhotos.length;
+    document.getElementById('pg-lb').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function pgLbClose() {
+    document.getElementById('pg-lb').classList.remove('open');
+    document.body.style.overflow = '';
+}
+function pgLbNav(dir) {
+    pgIdx = (pgIdx + dir + pgPhotos.length) % pgPhotos.length;
+    document.getElementById('pg-lb-img').src = pgPhotos[pgIdx];
+    document.getElementById('pg-lb-dl').href = pgPhotos[pgIdx];
+    document.getElementById('pg-lb-dl').download = 'photo-' + (pgIdx+1) + '.jpg';
+    document.getElementById('pg-lb-counter').textContent = (pgIdx+1) + ' / ' + pgPhotos.length;
+}
+
+/* ── DOWNLOAD ── */
+function pgDl(url, num) {
+    const a = document.createElement('a');
+    a.href = url; a.download = 'photo-' + num + '.jpg';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ── COPY LINK ── */
+function pgCopy() {
+    const inp = document.getElementById('pg-url');
+    const btn = document.getElementById('pg-copy-btn');
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(inp.value);
+    } else {
+        inp.select(); document.execCommand('copy');
     }
-    
-    // Function to open the image modal
-    function openModal(element) {
-      const index = parseInt(element.getAttribute('data-index'));
-      currentModalIndex = index;
-      
-      const modal = document.getElementById('imageModal');
-      const modalImage = document.getElementById('modalImage');
-      const modalCounter = document.getElementById('modalCounter');
-      
-      modalImage.src = galleryImages[index];
-      modalCounter.textContent = `${index + 1}/${galleryImages.length}`;
-      
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      modal.classList.add('opacity-100');
-      
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden';
-    }
-    
-    // Function to close the modal
-    function closeModal() {
-      const modal = document.getElementById('imageModal');
-      modal.classList.remove('opacity-100');
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      
-      // Restore body scroll
-      document.body.style.overflow = 'auto';
-    }
-    
-    // Navigation between images in the modal
-    function navigateModal(direction) {
-      currentModalIndex += direction;
-      
-      // Circular navigation
-      if (currentModalIndex >= galleryImages.length) {
-        currentModalIndex = 0;
-      } else if (currentModalIndex < 0) {
-        currentModalIndex = galleryImages.length - 1;
-      }
-      
-      const modalImage = document.getElementById('modalImage');
-      const modalCounter = document.getElementById('modalCounter');
-      
-      modalImage.src = galleryImages[currentModalIndex];
-      modalCounter.textContent = `${currentModalIndex + 1}/${galleryImages.length}`;
-    }
-    
-    // Download current image in modal
-    function downloadCurrentImage() {
-      const currentImage = galleryImages[currentModalIndex];
-      const filename = `photo-${currentModalIndex + 1}.jpg`;
-      downloadImage(currentImage, filename);
-    }
-    
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(event) {
-      const modal = document.getElementById('imageModal');
-      if (!modal.classList.contains('opacity-0')) {
-        switch(event.key) {
-          case 'Escape':
-            closeModal();
-            break;
-          case 'ArrowLeft':
-            navigateModal(-1);
-            break;
-          case 'ArrowRight':
-            navigateModal(1);
-            break;
-        }
-      }
-    });
-    
-    // Close modal when clicking on background
-    document.getElementById('imageModal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeModal();
-      }
-    });
-    
-    // Download image function
-    function downloadImage(url, filename) {
-      // Crear un enlace temporal para descargar
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-    
-    // Swipe support for mobile
-    let touchStartX = 0;
-    let touchEndX = 0;
-    
-    document.addEventListener('touchstart', e => {
-      touchStartX = e.changedTouches[0].screenX;
-    });
-    
-    document.addEventListener('touchend', e => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
-    });
-    
-    function handleSwipe() {
-      const modal = document.getElementById('imageModal');
-      if (!modal.classList.contains('opacity-0')) {
-        if (touchEndX < touchStartX - 50) {
-          navigateModal(1); // Swipe left - next
-        }
-        if (touchEndX > touchStartX + 50) {
-          navigateModal(-1); // Swipe right - previous
-        }
-      }
-    }
-  </script>
+    btn.innerHTML = '<i class="fas fa-check" style="font-size:10px"></i> Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-copy" style="font-size:10px"></i> Copy link';
+        btn.classList.remove('copied');
+    }, 2000);
+}
+
+/* ── KEYBOARD + SWIPE ── */
+document.addEventListener('keydown', e => {
+    if (!document.getElementById('pg-lb').classList.contains('open')) return;
+    if (e.key === 'Escape')      pgLbClose();
+    if (e.key === 'ArrowLeft')   pgLbNav(-1);
+    if (e.key === 'ArrowRight')  pgLbNav(1);
+});
+
+document.getElementById('pg-lb').addEventListener('click', function(e) {
+    if (e.target === this) pgLbClose();
+});
+
+let tStart = 0;
+document.addEventListener('touchstart', e => { tStart = e.changedTouches[0].screenX; });
+document.addEventListener('touchend',   e => {
+    if (!document.getElementById('pg-lb').classList.contains('open')) return;
+    const diff = e.changedTouches[0].screenX - tStart;
+    if (Math.abs(diff) > 50) pgLbNav(diff < 0 ? 1 : -1);
+});
+</script>
+
 </body>
 </html>

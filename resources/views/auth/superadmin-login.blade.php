@@ -5,184 +5,458 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Login | Contracting Alliance Inc.</title>
 
-  <!-- Tailwind CDN + config -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: '#003366',        // Deep blue
-            'primary-light': '#1a4d80', // Lighter blue
-            'primary-dark': '#002244', // Darker blue
-            slate: {
-              950: '#0b1220'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
-          },
-          boxShadow: {
-            brand: '0 30px 60px -20px rgba(0,0,0,.25)',
-            'inner-lg': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)'
-          }
-        }
-      }
-    }
-  </script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:     #003366;
+      --primary-mid: #1a4d80;
+      --primary-lt:  #e8f0fb;
+      --accent:      #0066cc;
+      --surf:        #ffffff;
+      --bg:          #f0f4f8;
+      --ink:         #0f172a;
+      --ink2:        #475569;
+      --ink3:        #94a3b8;
+      --bd:          #e2e8f0;
+      --red:         #dc2626;
+      --rlt:         #fef2f2;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    /* ══════════════════════════════
+       DESKTOP — two column
+    ══════════════════════════════ */
+    .shell {
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* LEFT */
+    .panel-left {
+      width: 48%; flex-shrink: 0;
+      background: var(--primary);
+      position: relative;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 44px 52px;
+      overflow: hidden;
+    }
+    .panel-left::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+    .panel-left::after {
+      content: ''; position: absolute; top: -80px; right: -80px;
+      width: 360px; height: 360px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .glow-b {
+      position: absolute; bottom: -60px; left: -60px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,102,204,.35) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* Logo row */
+    .left-logo { position: relative; display: flex; align-items: center; gap: 12px; }
+    .left-logo-box {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+    }
+    .left-logo-box img  { height: 24px; width: auto; object-fit: contain; }
+    .left-brand         { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .left-brand-sub     { font-size: 10px; font-weight: 600; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: 1.2px; margin-top: 2px; }
+
+    /* Body */
+    .left-body { position: relative; }
+    .left-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px; padding: 5px 12px;
+      font-size: 11px; font-weight: 600; color: rgba(255,255,255,.7);
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 24px;
+    }
+    .left-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,.25);
+    }
+    .left-headline {
+      font-size: 38px; font-weight: 800; color: #fff;
+      line-height: 1.15; letter-spacing: -.8px; margin-bottom: 16px;
+    }
+    .left-headline span { color: rgba(255,255,255,.4); font-weight: 400; }
+    .left-desc { font-size: 14px; color: rgba(255,255,255,.5); line-height: 1.7; max-width: 300px; margin-bottom: 36px; }
+    .left-features { display: flex; flex-direction: column; gap: 12px; }
+    .left-feat { display: flex; align-items: center; gap: 12px; }
+    .left-feat-icon {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .left-feat-icon svg { width: 15px; height: 15px; color: rgba(255,255,255,.6); }
+    .left-feat-text { font-size: 13px; font-weight: 500; color: rgba(255,255,255,.55); }
+
+    .left-foot {
+      position: relative; display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; color: rgba(255,255,255,.3); font-weight: 500;
+      padding-top: 24px; border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    /* RIGHT */
+    .panel-right {
+      flex: 1; background: var(--surf);
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 32px;
+    }
+
+    .form-box { width: 100%; max-width: 400px; }
+
+    /* Form elements */
+    .form-title    { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -.4px; margin-bottom: 6px; }
+    .form-subtitle { font-size: 14px; color: var(--ink3); margin-bottom: 32px; }
+
+    .form-alert {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: var(--rlt); border: 1px solid #fecaca;
+      border-radius: 10px; padding: 12px 14px; margin-bottom: 24px;
+      font-size: 13px; color: var(--red); font-weight: 500;
+    }
+    .form-alert svg { flex-shrink: 0; margin-top: 1px; }
+
+    .field { margin-bottom: 18px; }
+    .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--ink2); margin-bottom: 7px; }
+    .field-wrap  { position: relative; }
+    .field-ico {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      display: flex; pointer-events: none; color: var(--ink3);
+    }
+    .field-ico svg { width: 15px; height: 15px; }
+    .field-input {
+      width: 100%; padding: 11px 14px 11px 40px;
+      border: 1.5px solid var(--bd); border-radius: 10px;
+      font-size: 14px; font-family: 'Inter', sans-serif;
+      color: var(--ink); background: #f8fafc; outline: none;
+      transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .field-input::placeholder { color: #b8c4cf; }
+    .field-input:focus {
+      border-color: var(--primary); background: var(--surf);
+      box-shadow: 0 0 0 3px rgba(0,51,102,.08);
+    }
+    .field-input.is-error { border-color: var(--red); background: var(--rlt); }
+    .field-err { font-size: 11.5px; color: var(--red); font-weight: 500; margin-top: 5px; }
+
+    .pwd-eye {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--ink3); display: flex; padding: 3px; transition: color .13s;
+    }
+    .pwd-eye:hover { color: var(--ink2); }
+    .pwd-eye svg { width: 16px; height: 16px; }
+
+    .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .check-label input { width: 15px; height: 15px; border-radius: 4px; accent-color: var(--primary); }
+    .check-text { font-size: 13px; font-weight: 500; color: var(--ink2); }
+    .forgot { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; transition: color .13s; }
+    .forgot:hover { color: var(--primary); }
+
+    .submit {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-mid) 100%);
+      color: #fff; border: none; border-radius: 10px;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 14px rgba(0,51,102,.3);
+    }
+    .submit:hover {
+      background: linear-gradient(135deg, #002244 0%, #003d80 100%);
+      box-shadow: 0 6px 20px rgba(0,51,102,.4); transform: translateY(-1px);
+    }
+    .submit:active { transform: translateY(0); }
+    .submit svg { width: 16px; height: 16px; }
+
+    .form-foot {
+      margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--bd);
+      text-align: center; font-size: 11.5px; color: var(--ink3);
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .form-title    { animation: fadeUp .45s ease both .1s;  opacity: 0; }
+    .form-subtitle { animation: fadeUp .45s ease both .15s; opacity: 0; }
+    .field         { animation: fadeUp .45s ease both .2s;  opacity: 0; }
+    .field:nth-child(2) { animation-delay: .25s; }
+    .field-row     { animation: fadeUp .45s ease both .3s;  opacity: 0; }
+    .submit        { animation: fadeUp .45s ease both .35s; opacity: 0; }
+    .form-foot     { animation: fadeUp .45s ease both .4s;  opacity: 0; }
+
+    /* ══════════════════════════════
+       MOBILE — full navy bg,
+       centered card with logo inside
+    ══════════════════════════════ */
+    @media (max-width: 860px) {
+
+      /* Navy fills entire screen */
+      html, body { background: var(--primary); }
+
+      .shell {
+        flex-direction: column;
+        min-height: 100vh;
+        background: var(--primary);
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* Grid texture on shell */
+      .shell::before {
+        content: ''; position: absolute; inset: 0; pointer-events: none;
+        background-image:
+          linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+        background-size: 48px 48px;
+      }
+      /* Glow blobs */
+      .shell::after {
+        content: ''; position: absolute; top: -80px; right: -80px;
+        width: 320px; height: 320px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(255,255,255,.07) 0%, transparent 65%);
+        pointer-events: none;
+      }
+
+      /* Left panel disappears */
+      .panel-left { display: none; }
+
+      /* Right panel: transparent wrapper */
+      .panel-right {
+        flex: none; background: transparent; padding: 0;
+        width: 100%; max-width: 420px;
+        position: relative;
+      }
+
+      /* The card */
+      .form-box {
+        max-width: 100%;
+        background: var(--surf);
+        border-radius: 22px;
+        padding: 36px 28px 28px;
+        box-shadow: 0 24px 64px rgba(0,15,40,.4);
+        position: relative;
+      }
+
+      /* Logo inside card at the top, centered */
+      .form-box::before {
+        content: '';
+        display: block;
+        width: 52px; height: 52px;
+        border-radius: 14px;
+        background: var(--primary-lt) url("{{ asset('img/dd.png') }}") center/26px no-repeat;
+        border: 1px solid rgba(0,51,102,.12);
+        margin: 0 auto 20px;
+      }
+
+      .form-title    { font-size: 22px; text-align: center; }
+      .form-subtitle { text-align: center; margin-bottom: 28px; }
+    }
+
+    @media (max-width: 480px) {
+      .shell    { padding: 24px 16px; }
+      .form-box { padding: 30px 20px 24px; border-radius: 18px; }
+      .field-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 font-sans">
+<body>
+<div class="shell">
 
-  <div class="w-full max-w-5xl grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-brand bg-white">
-    <!-- Panel de marca (izquierda) -->
-    <div class="relative hidden lg:flex flex-col justify-between bg-gradient-to-br from-primary to-primary-dark p-10">
-      <!-- Ornamentos -->
-      <div class="absolute inset-0 opacity-10 pointer-events-none">
-        <svg class="absolute -top-6 -left-6 w-64 h-64 text-white" viewBox="0 0 200 200" fill="currentColor" aria-hidden="true"><circle cx="100" cy="100" r="100"/></svg>
-        <svg class="absolute bottom-8 right-8 w-40 h-40 text-white" viewBox="0 0 200 200" fill="currentColor" aria-hidden="true"><rect width="200" height="200" rx="32"/></svg>
+  {{-- ══ LEFT (desktop only) ══ --}}
+  <div class="panel-left">
+    <div class="glow-b"></div>
+
+    <div class="left-logo">
+      <div class="left-logo-box">
+        <img src="{{ asset('img/dd.png') }}" alt="Contracting Alliance Logo">
       </div>
+      <div>
+        <div class="left-brand">Contracting Alliance</div>
+        <div class="left-brand-sub">Admin Portal</div>
+      </div>
+    </div>
 
-      <!-- Branding superior - Solo con la imagen -->
-      <div class="relative flex justify-center">
-        <div class="flex flex-col items-center">
-          <div class="h-24 w-24 bg-white/20 rounded-2xl flex items-center justify-center p-3 backdrop-blur-sm mb-4">
-            <img src="{{ asset('img/dd.png') }}" alt="Contracting Alliance Inc. Logo" class="h-16 w-auto object-contain" />
+    <div class="left-body">
+      <div class="left-badge">
+        <div class="left-badge-dot"></div>
+        System Online
+      </div>
+      <h1 class="left-headline">
+        Your operations,<br>
+        <span>all in one place.</span>
+      </h1>
+      <p class="left-desc">
+        Manage crews, invoices, contracts and job requests from a single secure dashboard.
+      </p>
+      <div class="left-features">
+        <div class="left-feat">
+          <div class="left-feat-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
           </div>
-          <h2 class="text-2xl font-bold text-white text-center mt-2">Contracting Alliance</h2>
-          <p class="text-white/80 text-sm mt-1">Administrative System</p>
+          <span class="left-feat-text">Enterprise-grade security & access control</span>
         </div>
-      </div>
-
-      <!-- Contenido central -->
-      <div class="relative flex-1 flex flex-col justify-center items-center text-center mt-8">
-        <h2 class="text-2xl font-bold text-white max-w-md leading-tight mb-4">Secure Admin Portal</h2>
-        <p class="text-white/80 max-w-md">Access your management dashboard with enterprise-grade security.</p>
-        
-        <div class="mt-10 space-y-4">
-          <div class="flex items-center gap-3 text-white/80">
-            <svg class="w-5 h-5 flex-shrink-0 text-white" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span class="text-sm">Advanced security protocols</span>
+        <div class="left-feat">
+          <div class="left-feat-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
           </div>
-          <div class="flex items-center gap-3 text-white/80">
-            <svg class="w-5 h-5 flex-shrink-0 text-white" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span class="text-sm">Real-time monitoring</span>
-          </div>
-          <div class="flex items-center gap-3 text-white/80">
-            <svg class="w-5 h-5 flex-shrink-0 text-white" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            <span class="text-sm">Role-based access control</span>
-          </div>
+          <span class="left-feat-text">Role-based access for all team members</span>
         </div>
-      </div>
-
-      <!-- Información inferior -->
-      <div class="relative text-center">
-        <div class="flex items-center justify-center gap-3 text-white/70 text-sm mt-8 pt-6 border-t border-white/20">
-          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path fill-rule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.2 6.5 10.266a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z" clip-rule="evenodd"/></svg>
-          <span>Authorized access only</span>
+        <div class="left-feat">
+          <div class="left-feat-icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <span class="left-feat-text">Real-time monitoring and reporting</span>
         </div>
       </div>
     </div>
 
-    <!-- Panel de formulario (derecha) -->
-    <div class="relative p-8 sm:p-12">
-      <!-- Branding compacto para móvil -->
-      <div class="lg:hidden flex flex-col items-center mb-8 pb-6 border-b border-slate-100">
-        <div class="h-20 w-20 bg-primary/10 rounded-xl flex items-center justify-center p-2 mb-4">
-          <img src="{{ asset('img/logo.png') }}" alt="Contracting Alliance Inc. Logo" class="h-14 w-auto object-contain" />
-        </div>
-        <div class="text-center">
-          <h1 class="text-xl font-bold text-primary">Contracting Alliance</h1>
-          <p class="text-sm text-slate-500 mt-1">Administrative Portal</p>
-        </div>
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary-dark border border-primary/20 mt-3">Secure Login</span>
-      </div>
-
-      <div class="max-w-md mx-auto lg:mx-0">
-        <div class="text-center lg:text-left">
-          <h1 class="text-2xl sm:text-3xl font-bold text-slate-900">Admin Login</h1>
-          <p class="mt-2 text-slate-500">Enter your credentials to continue</p>
-        </div>
-
-        @if ($errors->any())
-          <div class="mt-6 bg-red-50 text-red-700 p-4 rounded-xl border border-red-200 flex items-start">
-            <svg class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-            <div class="text-sm">{{ $errors->first() }}</div>
-          </div>
-        @endif
-
-        <form action="{{ route('superadmin.login') }}" method="POST" class="mt-8 space-y-6" novalidate>
-          @csrf
-
-          <!-- Email -->
-          <div>
-            <label for="email" class="block text-sm font-medium text-slate-700 mb-2">Email address</label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path></svg>
-              </div>
-              <input id="email" type="email" name="email" required autofocus value="{{ old('email') }}"
-                    class="pl-10 w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:ring-4 focus:ring-primary/20 focus:border-primary transition placeholder-slate-400 shadow-inner-lg"
-                    placeholder="admin@contractingalliance.com" />
-            </div>
-            @error('email')
-              <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <!-- Password -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
-              <a href="{{ route('password.request') }}" class="text-sm font-medium text-primary hover:text-primary-dark transition-colors">Forgot password?</a>
-            </div>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg class="h-5 w-5 text-slate-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-              </div>
-              <input id="password" type="password" name="password" required
-                    class="pl-10 w-full border border-slate-200 rounded-xl px-4 py-3.5 focus:ring-4 focus:ring-primary/20 focus:border-primary transition placeholder-slate-400 shadow-inner-lg"
-                    placeholder="••••••••" />
-              <button type="button" aria-label="Show password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition-colors" onclick="togglePwd()">
-                <svg id="eye" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              </button>
-            </div>
-            @error('password')
-              <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-            @enderror
-          </div>
-
-          <!-- Remember me -->
-          <div class="flex items-center">
-            <label class="inline-flex items-center">
-              <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-slate-300 rounded" />
-              <span class="ml-2 text-sm text-slate-700">Remember this device</span>
-            </label>
-          </div>
-
-          <!-- Submit -->
-          <button type="submit" class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-primary to-primary-light hover:opacity-95 focus:outline-none focus:ring-4 focus:ring-primary/30 transition transform hover:-translate-y-0.5 shadow-md hover:shadow-lg">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            Sign in to dashboard
-          </button>
-
-        </form>
-
-        <div class="mt-10 pt-6 border-t border-slate-100 text-center text-sm text-slate-500">&copy; {{ date('Y') }} Contracting Alliance Inc. All rights reserved.</div>
-      </div>
+    <div class="left-foot">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      &copy; {{ date('Y') }} Contracting Alliance Inc. · Authorized access only.
     </div>
   </div>
 
-  <script>
-    function togglePwd() {
-      const input = document.getElementById('password');
-      const eye = document.getElementById('eye');
-      const isPassword = input.getAttribute('type') === 'password';
-      input.setAttribute('type', isPassword ? 'text' : 'password');
-      eye.innerHTML = isPassword
-        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.548-4.26M15 12a3 3 0 00-4.243-2.829M9.88 9.88L4.12 4.12M6.1 6.1L3 3m5.064 12.936A9.956 9.956 0 0012 19c4.478 0 8.268-2.943 9.542-7a9.97 9.97 0 00-4.043-5.197" />'
-        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
-    }
-  </script>
+  {{-- ══ RIGHT ══ --}}
+  <div class="panel-right">
+    <div class="form-box">
+
+      <div class="form-title">Sign in</div>
+      <div class="form-subtitle">Enter your credentials to continue</div>
+
+      @if ($errors->any())
+      <div class="form-alert">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        {{ $errors->first() }}
+      </div>
+      @endif
+
+      <form action="{{ route('superadmin.login') }}" method="POST" novalidate>
+        @csrf
+
+        <div class="field">
+          <label class="field-label" for="email">Email address</label>
+          <div class="field-wrap">
+            <span class="field-ico">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+            </span>
+            <input id="email" type="email" name="email" required autofocus
+                   value="{{ old('email') }}"
+                   class="field-input {{ $errors->has('email') ? 'is-error' : '' }}"
+                   placeholder="admin@contractingalliance.com">
+          </div>
+          @error('email')
+            <div class="field-err">{{ $message }}</div>
+          @enderror
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password">Password</label>
+          <div class="field-wrap">
+            <span class="field-ico">
+              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+            </span>
+            <input id="password" type="password" name="password" required
+                   class="field-input {{ $errors->has('password') ? 'is-error' : '' }}"
+                   placeholder="••••••••">
+            <button type="button" class="pwd-eye" onclick="togglePwd()" aria-label="Toggle password">
+              <svg id="eye-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+          @error('password')
+            <div class="field-err">{{ $message }}</div>
+          @enderror
+        </div>
+
+      
+
+        <button type="submit" class="submit">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+          </svg>
+          Sign in to Dashboard
+        </button>
+
+      </form>
+
+      <div class="form-foot">
+        &copy; {{ date('Y') }} Contracting Alliance Inc. All rights reserved.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+function togglePwd() {
+  const input = document.getElementById('password');
+  const icon  = document.getElementById('eye-icon');
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  icon.innerHTML = show
+    ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.548-4.26M15 12a3 3 0 00-4.243-2.829M9.88 9.88L4.12 4.12M6.1 6.1L3 3"/>`
+    : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+}
+</script>
+
 </body>
 </html>

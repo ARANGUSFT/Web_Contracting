@@ -8,8 +8,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class EventNote extends Model
 {
-    protected $fillable = ['noteable_type', 'noteable_id', 'user_id', 'subcontractor_id', 'content'];
-
+protected $fillable = [
+    'noteable_type',
+    'noteable_id', 
+    'user_id',
+    'subcontractor_id',
+    'content',
+    'image_path',  // ← esto debe estar
+];
 
    public function user()
     {

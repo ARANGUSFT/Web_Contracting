@@ -6,9 +6,10 @@ use App\Models\Invoice;
 use App\Models\CompanyLocation;
 use App\Models\Item;
 use App\Models\InvoicePayoutItem;
-
 use App\Models\User;
 use App\Models\Crew;
+use App\Models\JobRequest;
+use App\Models\Emergencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -20,131 +21,91 @@ class InvoiceController extends Controller
      * LISTADO DE FACTURAS
      * ============================
      */
-   public function index(Request $request)
-{
-    $query = Invoice::query()
-        ->with(['companyLocation', 'companyLocation.user'])
-        ->withSum('items as invoice_subtotal', 'total'); // SUM(invoice_items.total)
+    public function index(Request $request)
+    {
+        $query = Invoice::query()
+            ->with(['companyLocation', 'companyLocation.user', 'payoutItems', 'invoiceable'])
+            ->withSum('items as invoice_subtotal', 'total');
 
-    // 🔍 Invoice #
-    if ($request->filled('invoice_number')) {
-        $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
-    }
-
-    // 🏢 Company
-    if ($request->filled('company_id')) {
-        $query->whereHas('companyLocation.user', function ($q) use ($request) {
-            $q->where('id', $request->company_id);
-        });
-    }
-
-    // 📍 State
-    if ($request->filled('state')) {
-        $query->whereHas('companyLocation', function ($q) use ($request) {
-            $q->where('state', $request->state);
-        });
-    }
-
-    // 🏷️ Status
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    // 📆 Period
-    if ($request->filled('period')) {
-        $now = now();
-
-        switch ($request->period) {
-            case 'this_month':
-                $query->whereBetween('invoice_date', [
-                    $now->copy()->startOfMonth()->toDateString(),
-                    $now->copy()->endOfMonth()->toDateString()
-                ]);
-                break;
-
-            case 'last_3_months':
-                $query->whereBetween('invoice_date', [
-                    $now->copy()->subMonths(3)->startOfDay()->toDateString(),
-                    $now->toDateString()
-                ]);
-                break;
-
-            case 'last_6_months':
-                $query->whereBetween('invoice_date', [
-                    $now->copy()->subMonths(6)->startOfDay()->toDateString(),
-                    $now->toDateString()
-                ]);
-                break;
-
-            case 'last_12_months':
-                $query->whereBetween('invoice_date', [
-                    $now->copy()->subMonths(12)->startOfDay()->toDateString(),
-                    $now->toDateString()
-                ]);
-                break;
-
-            case 'this_year':
-                $query->whereYear('invoice_date', $now->year);
-                break;
+        if ($request->filled('invoice_number')) {
+            $query->where('invoice_number', 'like', '%' . $request->invoice_number . '%');
         }
-    }
+        if ($request->filled('company_id')) {
+            $query->whereHas('companyLocation.user', fn($q) =>
+                $q->where('id', $request->company_id));
+        }
+        if ($request->filled('state')) {
+            $query->whereHas('companyLocation', fn($q) =>
+                $q->where('state', $request->state));
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('period')) {
+            $now = now();
+            switch ($request->period) {
+                case 'this_month':
+                    $query->whereBetween('invoice_date', [
+                        $now->copy()->startOfMonth()->toDateString(),
+                        $now->copy()->endOfMonth()->toDateString()
+                    ]); break;
+                case 'last_30_days':
+                    $query->whereBetween('invoice_date', [
+                        $now->copy()->subDays(30)->toDateString(),
+                        $now->toDateString()
+                    ]); break;
+                case 'this_quarter':
+                    $query->whereBetween('invoice_date', [
+                        $now->copy()->startOfQuarter()->toDateString(),
+                        $now->copy()->endOfQuarter()->toDateString()
+                    ]); break;
+                case 'this_year':
+                    $query->whereYear('invoice_date', $now->year); break;
+            }
+        }
 
-        // 🔧 Order y paginación
         $invoices = $query->orderBy('invoice_date', 'desc')
-                        ->paginate(20)
-                        ->withQueryString();
+            ->paginate(20)
+            ->withQueryString();
 
-        // 📊 Estadísticas para la vista
-        $totalInvoices = Invoice::count();
-        $draftCount = Invoice::where('status', 'draft')->count();
-        $sentCount = Invoice::where('status', 'sent')->count();
-        $paidCount = Invoice::where('status', 'paid')->count();
-
-        // 🏢 Compañías para filtro
         $companies = User::whereNotNull('company_name')
-                        ->whereHas('companyLocations')
-                        ->orderBy('company_name')
-                        ->get();
+            ->whereHas('companyLocations')
+            ->orderBy('company_name')
+            ->get();
 
-        // 📍 Estados para filtro
         $states = CompanyLocation::select('state')
             ->distinct()
             ->orderBy('state')
             ->pluck('state');
 
-        return view('admin.invoices.index', compact(
-            'invoices',
-            'companies',
-            'states',
-            'totalInvoices',
-            'draftCount',
-            'sentCount',
-            'paidCount'
-        ));
+        return view('admin.invoices.index', compact('invoices', 'companies', 'states'));
     }
+
     /**
      * ============================
      * FORMULARIO DE CREACIÓN
      * ============================
      */
-    
+   public function create()
+{
+    $companies = User::whereNotNull('company_name')->get();
+    $crews     = Crew::where('is_active', true)->get();
 
-    public function create()
-    {
-        $companies = User::whereNotNull('company_name')->get();
-        $crews = Crew::where('is_active', true)->get(); // o simplemente Crew::all()
+    // Busca el siguiente número que no exista en la tabla
+    $base = 1000;
+    do {
+        $base++;
+        $candidate = 'INV-' . $base;
+    } while (Invoice::where('invoice_number', $candidate)->exists());
 
-        $lastInvoice = \App\Models\Invoice::latest('id')->first();
-        $nextNumber = 1000 + ($lastInvoice?->id ?? 0) + 1;
-        $nextInvoiceNumber = 'INV-' . $nextNumber;
+    $nextInvoiceNumber = $candidate;
 
-        return view('admin.invoices.create', compact('companies', 'nextInvoiceNumber', 'crews'));
-    }
-
+    return view('admin.invoices.create', compact('companies', 'nextInvoiceNumber', 'crews'));
+}
 
     /**
      * ============================
-     * ITEMS POR ESTADO (CLAVE 🔑)
+     * ITEMS POR UBICACIÓN
      * ============================
      */
     public function itemsByLocation($locationId)
@@ -171,20 +132,15 @@ class InvoiceController extends Controller
             ->orderBy('items.sort_order')
             ->orderBy('items.name')
             ->get()
-            ->map(function ($item) {
-                return [
-                    'id'       => $item->id,
-                    'name'     => $item->name,
-                    'price'    => $item->price,
-                    'category' => $item->category?->name ?? 'Uncategorized',
-                ];
-            });
+            ->map(fn($item) => [
+                'id'       => $item->id,
+                'name'     => $item->name,
+                'price'    => $item->price,
+                'category' => $item->category?->name ?? 'Uncategorized',
+            ]);
 
         return response()->json($items);
     }
-
-
-
 
     /**
      * ============================
@@ -204,14 +160,12 @@ class InvoiceController extends Controller
             'bill_to'             => 'nullable|string|max:255',
             'status'              => 'nullable|in:draft,sent,paid',
             'tax'                 => 'nullable|numeric|min:0',
-
             'items'               => 'required|array|min:1',
-            'items.*.id'          => 'nullable|integer', // 🔥 CAMBIO
+            'items.*.id'          => 'nullable|integer',
             'items.*.name'        => 'required|string',
             'items.*.price'       => 'required|numeric|min:0',
             'items.*.quantity'    => 'required|integer|min:1',
             'items.*.note'        => 'nullable|string|max:2000',
-
             'memo'                => 'nullable|string',
             'notes'               => 'nullable|string',
             'attachments.*'       => 'file|max:10240',
@@ -220,7 +174,6 @@ class InvoiceController extends Controller
         DB::beginTransaction();
 
         try {
-
             $invoice = Invoice::create([
                 'user_id'             => auth()->id(),
                 'company_location_id' => $validated['company_location_id'],
@@ -242,12 +195,11 @@ class InvoiceController extends Controller
             $subtotal = 0;
 
             foreach ($validated['items'] as $item) {
-
                 $lineTotal = $item['price'] * $item['quantity'];
                 $subtotal += $lineTotal;
 
                 $invoice->items()->create([
-                    'item_id'     => !empty($item['id']) ? $item['id'] : null, // 🔥 SAFE
+                    'item_id'     => !empty($item['id']) ? $item['id'] : null,
                     'description' => $item['name'],
                     'price'       => $item['price'],
                     'quantity'    => $item['quantity'],
@@ -263,9 +215,7 @@ class InvoiceController extends Controller
 
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-
                     $path = $file->store('invoice_attachments', 'public');
-
                     $invoice->attachments()->create([
                         'original_name' => $file->getClientOriginalName(),
                         'file_path'     => $path,
@@ -273,6 +223,20 @@ class InvoiceController extends Controller
                         'size'          => $file->getSize(),
                     ]);
                 }
+            }
+
+            // ── Asociar a job / emergency / repair ───────────────
+            $typeMap = [
+                'job'       => \App\Models\JobRequest::class,
+                'emergency' => \App\Models\Emergencies::class,
+                'repair'    => \App\Models\RepairTicket::class,
+            ];
+            $invType = $request->input('invoiceable_type');
+            $invId   = $request->input('invoiceable_id');
+            if ($invType && $invId && isset($typeMap[$invType])) {
+                $invoice->invoiceable_type = $typeMap[$invType];
+                $invoice->invoiceable_id   = (int) $invId;
+                $invoice->save();
             }
 
             DB::commit();
@@ -283,162 +247,131 @@ class InvoiceController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-
             DB::rollBack();
+            return response()->json(['error' => true, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * ============================
+     * FORMULARIO DE EDICIÓN
+     * ============================
+     */
+    public function edit(Invoice $invoice)
+    {
+        $companies = User::whereNotNull('company_name')->get();
+        $crews     = Crew::where('is_active', true)->get();
+
+        $invoiceItems = $invoice->items->map(fn($i) => [
+            'id'       => $i->item_id,
+            'name'     => $i->description,
+            'price'    => (float) $i->price,
+            'quantity' => (int)   $i->quantity,
+            'note'     => $i->note,
+        ]);
+
+        return view('admin.invoices.edit', compact('invoice', 'companies', 'invoiceItems', 'crews'));
+    }
+
+    /**
+     * ============================
+     * ACTUALIZAR FACTURA
+     * ============================
+     */
+    public function update(Request $request, Invoice $invoice)
+    {
+        $validated = $request->validate([
+            'company_location_id' => 'required|exists:company_locations,id',
+            'crew_id'             => 'nullable|exists:crews,id',
+            'invoice_date'        => 'required|date',
+            'due_date'            => 'nullable|date',
+            'customer_email'      => 'nullable|email',
+            'bill_to'             => 'nullable|string|max:255',
+            'address'             => 'nullable|string|max:255',
+            'status'              => 'required|in:draft,sent,paid',
+            'items'               => 'required|array|min:1',
+            'items.*.id'          => 'nullable|integer',
+            'items.*.name'        => 'required|string',
+            'items.*.price'       => 'required|numeric|min:0',
+            'items.*.quantity'    => 'required|integer|min:1',
+            'items.*.note'        => 'nullable|string|max:2000',
+            'memo'                => 'nullable|string',
+            'notes'               => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $invoice->update([
+                'company_location_id' => $validated['company_location_id'],
+                'crew_id'             => $validated['crew_id'] ?? null,
+                'customer_email'      => $validated['customer_email'] ?? null,
+                'bill_to'             => $validated['bill_to'] ?? null,
+                'address'             => $validated['address'] ?? null,
+                'invoice_date'        => $validated['invoice_date'],
+                'due_date'            => $validated['due_date'] ?? null,
+                'status'              => $validated['status'],
+                'memo'                => $validated['memo'] ?? null,
+                'notes'               => $validated['notes'] ?? null,
+            ]);
+
+            $invoice->items()->delete();
+
+            $subtotal = 0;
+
+            foreach ($validated['items'] as $item) {
+                $lineTotal = (float) $item['price'] * (int) $item['quantity'];
+                $subtotal += $lineTotal;
+
+                $invoice->items()->create([
+                    'item_id'     => !empty($item['id']) ? $item['id'] : null,
+                    'description' => $item['name'],
+                    'price'       => (float) $item['price'],
+                    'quantity'    => (int)   $item['quantity'],
+                    'note'        => $item['note'] ?? null,
+                    'total'       => $lineTotal,
+                ]);
+            }
+
+            $tax = (float) ($invoice->tax ?? 0);
+
+            $invoice->update([
+                'subtotal' => $subtotal,
+                'total'    => $subtotal + $tax,
+            ]);
+
+            DB::commit();
 
             return response()->json([
-                'error'   => true,
+                'success'    => true,
+                'invoice_id' => $invoice->id,
+            ]);
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
                 'message' => $e->getMessage(),
             ], 500);
         }
     }
 
-
-
-
-    public function edit(Invoice $invoice)
-    {
-        $companies = User::whereNotNull('company_name')->get();
-        $crews = Crew::where('is_active', true)->get();
-
-        $invoiceItems = $invoice->items->map(function ($i) {
-            return [
-                'id'       => $i->item_id,
-                'name'     => $i->description,
-                'price'    => $i->price,
-                'quantity' => $i->quantity,
-                'note'     => $i->note, // 🔥 IMPORTANTE
-            ];
-        });
-
-        return view('admin.invoices.edit', compact(
-            'invoice',
-            'companies',
-            'invoiceItems',
-            'crews'
-        ));
-    }
-
-
-
-
-    public function update(Request $request, Invoice $invoice)
-    {
-            $validated = $request->validate([
-                'company_location_id' => 'required|exists:company_locations,id',
-                'crew_id'             => 'nullable|exists:crews,id',
-                'invoice_date'        => 'required|date',
-                'due_date'            => 'nullable|date',
-                'customer_email'      => 'nullable|email',
-                'bill_to'             => 'nullable|string|max:255',
-                'address'             => 'nullable|string|max:255',
-                'status'              => 'required|in:draft,sent,paid',
-
-                'items'               => 'required|array|min:1',
-                'items.*.id'          => 'nullable|integer', // 🔥 igual que store
-                'items.*.name'        => 'required|string',  // 🔥 necesario
-                'items.*.price'       => 'required|numeric|min:0',
-                'items.*.quantity'    => 'required|integer|min:1',
-                'items.*.note'        => 'nullable|string|max:2000',
-
-                'memo'                => 'nullable|string',
-                'notes'               => 'nullable|string',
-            ]);
-
-
-            DB::beginTransaction();
-
-            try {
-
-                /* =============================
-                1️⃣ UPDATE INVOICE BASE
-                ============================== */
-                $invoice->update([
-                    'company_location_id' => $validated['company_location_id'],
-                    'crew_id'             => $validated['crew_id'] ?? null, // 👈 AÑADIR
-                    'customer_email'      => $validated['customer_email'] ?? null,
-                    'bill_to'             => $validated['bill_to'] ?? null,
-                    'address'             => $validated['address'] ?? null, // ✅ NUEVO
-                    'invoice_date'        => $validated['invoice_date'],
-                    'due_date'            => $validated['due_date'] ?? null,
-                    'status'              => $validated['status'],
-                    'tax'                 => 0,
-                ]);
-
-
-               /* =============================
-                2️⃣ RESET ITEMS
-                ============================= */
-                $invoice->items()->delete();
-
-                $subtotal = 0;
-
-                foreach ($validated['items'] as $item) {
-
-                    $lineTotal = $item['price'] * $item['quantity'];
-                    $subtotal += $lineTotal;
-
-                    $invoice->items()->create([
-                        'item_id'     => !empty($item['id']) ? $item['id'] : null,
-                        'description' => $item['name'], // 🔥 importante
-                        'price'       => $item['price'],
-                        'quantity'    => $item['quantity'],
-                        'note'        => $item['note'] ?? null,
-                        'total'       => $lineTotal,
-                    ]);
-                }
-
-                /* =============================
-                3️⃣ UPDATE TOTALS
-                ============================== */
-                $invoice->update([
-                    'company_location_id' => $validated['company_location_id'],
-                    'crew_id'             => $validated['crew_id'] ?? null,
-                    'customer_email'      => $validated['customer_email'] ?? null,
-                    'bill_to'             => $validated['bill_to'] ?? null,
-                    'address'             => $validated['address'] ?? null,
-                    'invoice_date'        => $validated['invoice_date'],
-                    'due_date'            => $validated['due_date'] ?? null,
-                    'status'              => $validated['status'],
-                    'memo'                => $validated['memo'] ?? null,
-                    'notes'               => $validated['notes'] ?? null,
-                    'tax'                 => 0,
-                ]);
-
-                DB::commit();
-
-                return response()->json([
-                    'success'    => true,
-                    'invoice_id' => $invoice->id
-                ]);
-
-            } catch (\Throwable $e) {
-
-                DB::rollBack();
-
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage()
-                ], 500);
-            }
-    }
-
-
-
-
-      /**
+    /**
+     * ============================
      * VER FACTURA
+     * ============================
      */
     public function show(Invoice $invoice)
     {
-        
         $invoice->load(['items', 'companyLocation.user']);
         return view('admin.invoices.show', compact('invoice'));
     }
 
-
-
-
+    /**
+     * ============================
+     * ELIMINAR FACTURA
+     * ============================
+     */
     public function destroy(Invoice $invoice)
     {
         try {
@@ -449,58 +382,55 @@ class InvoiceController extends Controller
         }
     }
 
-
-
-
-
+    /**
+     * ============================
+     * DESCARGAR PDF
+     * ============================
+     */
     public function downloadPdf(Invoice $invoice)
     {
         $invoice->load(['items', 'companyLocation', 'attachments']);
 
         $pdf = Pdf::loadView('admin.invoices.pdf_invoices', compact('invoice'))
-                ->setPaper('a4');
+            ->setPaper('a4');
 
         return $pdf->download("Invoice-{$invoice->invoice_number}.pdf");
     }
 
-
-
-
+    /**
+     * ============================
+     * PREPARAR PAYOUT
+     * ============================
+     */
     public function prepareInvoice(Invoice $invoice)
     {
         $invoice->load(['items.item', 'crew', 'payoutItems']);
 
-   DB::transaction(function () use ($invoice) {
+        DB::transaction(function () use ($invoice) {
+            foreach ($invoice->items as $invoiceItem) {
+                $existingPayout = $invoice->payoutItems()
+                    ->where('description', $invoiceItem->description)
+                    ->first();
 
-    foreach ($invoice->items as $invoiceItem) {
+                if (!$existingPayout) {
+                    $price = 0;
 
-        $existingPayout = $invoice->payoutItems()
-            ->where('description', $invoiceItem->description)
-            ->first();
+                    if ($invoiceItem->item && $invoice->crew) {
+                        $price = $invoiceItem->item->getCrewPrice(
+                            $invoice->crew->has_trailer
+                        );
+                    }
 
-        if (!$existingPayout) {
-
-            $price = 0;
-
-            if ($invoiceItem->item && $invoice->crew) {
-                $price = $invoiceItem->item->getCrewPrice(
-                    $invoice->crew->has_trailer
-                );
+                    $invoice->payoutItems()->create([
+                        'description' => $invoiceItem->description,
+                        'quantity'    => $invoiceItem->quantity,
+                        'price'       => $price,
+                        'total'       => $price * $invoiceItem->quantity,
+                    ]);
+                }
             }
+        });
 
-            $invoice->payoutItems()->create([
-                'description' => $invoiceItem->description,
-                'quantity'    => $invoiceItem->quantity,
-                'price'       => $price,
-                'total'       => $price * $invoiceItem->quantity,
-            ]);
-        }
-
-        // ❌ ELIMINAMOS LA SINCRONIZACIÓN
-    }
-});
-
-        // 🔥 Cargar items con categoría para el select agrupado
         $availableItems = Item::with('category')
             ->where('is_active', true)
             ->orderBy('sort_order')
@@ -509,38 +439,32 @@ class InvoiceController extends Controller
 
         $invoice->load('payoutItems');
 
-        return view(
-            'admin.invoices.prepare_payout',
-            compact('invoice', 'availableItems')
-        );
+        return view('admin.invoices.prepare_payout', compact('invoice', 'availableItems'));
     }
 
-
-
-
+    /**
+     * ============================
+     * GENERAR PDF CUSTOM (PAYOUT)
+     * ============================
+     */
     public function generateCustomPdf(Request $request, Invoice $invoice)
     {
         $request->validate([
-            'address' => 'nullable|string|max:255',
-            'items' => 'required|array|min:1',
+            'address'             => 'nullable|string|max:255',
+            'items'               => 'required|array|min:1',
             'items.*.description' => 'required|string|max:255',
-            'items.*.price' => 'required|numeric|min:0',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.price'       => 'required|numeric|min:0',
+            'items.*.quantity'    => 'required|numeric|min:0.01',
         ]);
 
         DB::transaction(function () use ($request, $invoice) {
-
-            // 🔥 Guardar dirección si cambió
             $invoice->update([
                 'address' => $request->input('address', $invoice->address),
             ]);
 
-            // 🔥 Borrar payout anterior
             $invoice->payoutItems()->delete();
 
-            // 🔥 Guardar exactamente lo que viene del formulario
             foreach ($request->items as $item) {
-
                 $invoice->payoutItems()->create([
                     'description' => $item['description'],
                     'price'       => $item['price'],
@@ -561,6 +485,54 @@ class InvoiceController extends Controller
     }
 
 
+
+   public function linked(Request $request)
+    {
+        $typeMap = [
+            'job'       => \App\Models\JobRequest::class,
+            'emergency' => \App\Models\Emergencies::class,
+            'repair'    => \App\Models\RepairTicket::class,
+        ];
+
+        $type = $request->query('type');
+        $id   = $request->query('id');
+
+        if (!$type || !$id || !isset($typeMap[$type])) {
+            return response()->json(null);
+        }
+
+        $invoice = \App\Models\Invoice::where('invoiceable_type', $typeMap[$type])
+            ->where('invoiceable_id', $id)
+            ->latest()
+            ->first(['id', 'invoice_number']);
+
+        return response()->json($invoice); // null si no existe, {id, invoice_number} si existe
+    }
+
+    public function workOrderInfo(Request $request)
+    {
+        $type = $request->query('type');
+        $id   = $request->query('id');
+
+        if ($type === 'job') {
+            $record = \App\Models\JobRequest::find($id);
+            $userId = $record?->user_id;
+        } elseif ($type === 'emergency') {
+            $record = \App\Models\Emergencies::find($id);
+            $userId = $record?->user_id;
+        } elseif ($type === 'repair') {
+            $record = \App\Models\RepairTicket::find($id);
+            if ($record?->reference_type === 'job') {
+                $userId = \App\Models\JobRequest::find($record->reference_id)?->user_id;
+            } else {
+                $userId = \App\Models\Emergencies::find($record->reference_id)?->user_id;
+            }
+        } else {
+            return response()->json(null);
+        }
+
+        return response()->json(['company_id' => $userId]);
+    }
 
 
 }

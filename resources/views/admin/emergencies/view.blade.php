@@ -19,6 +19,8 @@
         <p><strong>Crew Assigned:</strong> {{ optional($emergency->crew)->name ?? 'Not Assigned' }}</p>
     </div>
 
-    {{-- Add more fields or actions here --}}
+    
+<x-payment-form :item="$emergency" type="emergency" />
+
 </div>
 @endsection

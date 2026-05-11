@@ -1,262 +1,509 @@
 @extends('admin.layouts.superadmin')
+@section('title', 'Edit Item · ' . $item->name)
 
 @section('content')
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    {{-- Header with title and description --}}
-    <div class="mb-8">
-        <h1 class="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-            </svg>
-            Edit item
-        </h1>
-        <p class="text-sm text-gray-600 mt-1">
-            Update global service details, category and fallback price.
-        </p>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+.ie { font-family: 'Montserrat', sans-serif; padding: 28px 32px; }
+
+:root {
+    --ink:  #0f1117; --ink2: #3c4353; --ink3: #8c95a6;
+    --bg:   #f4f5f8; --surf: #ffffff;
+    --bd:   #e4e7ed; --bd2:  #eef0f4;
+    --blue: #1855e0; --blt:  #eef2ff; --bbd:  #c7d4fb;
+    --grn:  #0d9e6a; --glt:  #edfaf4; --gbd:  #9fe6c8;
+    --red:  #d92626; --rlt:  #fff0f0; --rbd:  #fbcfcf;
+    --amb:  #d97706; --alt:  #fffbeb; --abd:  #fde68a;
+    --orn:  #ea580c; --olt:  #fff7ed; --obd:  #fed7aa;
+    --r:    8px; --rlg: 13px; --rxl: 18px;
+}
+
+/* ══ HERO ══ */
+.ie-hero {
+    position: relative; border-radius: var(--rxl);
+    padding: 30px 40px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; background: var(--ink); overflow: hidden;
+}
+.ie-hero::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image: linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size: 48px 48px;
+}
+.ie-hero::after {
+    content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+    background: linear-gradient(180deg,#4f80ff,var(--blue) 60%,transparent);
+    border-radius: 0 2px 2px 0;
+}
+.ie-glow {
+    position:absolute; right:-60px; top:-60px; width:540px; height:280px;
+    background: radial-gradient(ellipse,rgba(24,85,224,.35) 0%,transparent 70%);
+    pointer-events:none;
+}
+.ie-hero-l { position:relative; display:flex; align-items:center; gap:16px; }
+.ie-hero-icon {
+    width:52px; height:52px; border-radius:14px; flex-shrink:0;
+    background:rgba(24,85,224,.2); border:1px solid rgba(24,85,224,.35);
+    display:flex; align-items:center; justify-content:center; font-size:20px; color:#8aadff;
+}
+.ie-hero-title { font-size:22px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1; }
+.ie-hero-sub   { font-size:12.5px; font-weight:600; color:rgba(255,255,255,.38); margin-top:6px; }
+.ie-hero-sub strong { color:#8aadff; font-weight:700; }
+.ie-back {
+    position:relative; display:inline-flex; align-items:center; gap:6px;
+    padding:9px 16px; border-radius:var(--r);
+    background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+    color:rgba(255,255,255,.55); font-size:12px; font-weight:600;
+    font-family:'Montserrat',sans-serif; text-decoration:none; transition:all .13s;
+}
+.ie-back:hover { background:rgba(255,255,255,.13); color:#fff; }
+
+/* ══ ERRORS ══ */
+.ie-err {
+    padding:12px 16px; border-radius:var(--rlg); margin-bottom:18px;
+    background:var(--rlt); border:1px solid var(--rbd); animation:fd .25s ease;
+}
+.ie-err-h { font-size:12px; font-weight:800; color:var(--red); display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.ie-err ul { margin:0 0 0 16px; }
+.ie-err li  { font-size:11.5px; font-weight:500; color:#991b1b; }
+@keyframes fd { from{opacity:0;transform:translateY(-5px)} to{opacity:1} }
+
+/* ══ LAYOUT ══ */
+.ie-body { display:grid; grid-template-columns:1fr 320px; gap:16px; align-items:start; }
+.ie-left { display:flex; flex-direction:column; gap:16px; }
+.ie-right { display:flex; flex-direction:column; gap:16px; }
+
+/* ══ CARDS ══ */
+.ie-card {
+    background:var(--surf); border:1px solid var(--bd);
+    border-radius:var(--rlg); overflow:hidden;
+}
+.ie-card-h {
+    display:flex; align-items:center; gap:8px;
+    padding:14px 20px; border-bottom:1px solid var(--bd2);
+    background:linear-gradient(to right,var(--surf),#fafbfd);
+}
+.ie-card-h i     { font-size:13px; color:var(--blue); }
+.ie-card-title   { font-size:12px; font-weight:800; color:var(--ink); text-transform:uppercase; letter-spacing:.5px; }
+.ie-card-b       { padding:20px; display:flex; flex-direction:column; gap:16px; }
+
+/* ══ FIELDS ══ */
+.ie-lbl {
+    display:block; font-size:10px; font-weight:800; color:var(--ink3);
+    text-transform:uppercase; letter-spacing:.7px; margin-bottom:6px;
+}
+.ie-lbl .req { color:var(--red); margin-left:2px; }
+.ie-lbl .opt { color:var(--ink3); font-weight:500; text-transform:none; letter-spacing:0; margin-left:4px; }
+.ie-input, .ie-sel, .ie-textarea {
+    padding:10px 13px; border:1px solid var(--bd); border-radius:var(--r);
+    font-size:13px; font-weight:500; font-family:'Montserrat',sans-serif;
+    color:var(--ink); background:var(--surf); outline:none; width:100%;
+    transition:border-color .15s, box-shadow .15s;
+}
+.ie-input:focus, .ie-sel:focus, .ie-textarea:focus {
+    border-color:var(--blue); box-shadow:0 0 0 3px rgba(24,85,224,.09);
+}
+.ie-input.err { border-color:var(--red); background:var(--rlt); }
+.ie-sel { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c95a6' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:36px; }
+.ie-textarea { resize:vertical; min-height:90px; }
+.ie-ferr     { font-size:11px; font-weight:600; color:var(--red); display:flex; align-items:center; gap:4px; margin-top:5px; }
+.ie-hint     { font-size:11px; font-weight:500; color:var(--ink3); display:flex; align-items:center; gap:5px; margin-top:5px; }
+.ie-hint i   { color:var(--blue); font-size:10px; }
+
+/* price input with $ prefix */
+.ie-price-wrap { position:relative; }
+.ie-price-prefix {
+    position:absolute; left:13px; top:50%; transform:translateY(-50%);
+    font-size:13px; font-weight:700; color:var(--ink3); pointer-events:none;
+}
+.ie-price-wrap .ie-input { padding-left:26px; }
+
+/* 2-col grid for crew prices */
+.ie-2col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* ══ TOGGLE ROW ══ */
+.ie-toggle-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; border:1px solid var(--bd2);
+    border-radius:var(--rlg); background:var(--bg);
+}
+.ie-toggle-l  { display:flex; align-items:center; gap:12px; }
+.ie-toggle-lbl  { font-size:13px; font-weight:700; color:var(--ink); }
+.ie-toggle-hint { font-size:11.5px; font-weight:500; color:var(--ink3); margin-top:1px; }
+.ie-toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+.ie-toggle input { opacity:0; width:0; height:0; }
+.ie-toggle-slider {
+    position:absolute; inset:0; border-radius:9999px;
+    background:var(--bd); cursor:pointer; transition:background .2s;
+}
+.ie-toggle-slider::before {
+    content:''; position:absolute;
+    width:18px; height:18px; border-radius:50%; background:#fff;
+    left:3px; top:3px; transition:transform .2s;
+    box-shadow:0 1px 3px rgba(0,0,0,.15);
+}
+.ie-toggle input:checked + .ie-toggle-slider { background:var(--grn); }
+.ie-toggle input:checked + .ie-toggle-slider::before { transform:translateX(20px); }
+.ie-status-badge {
+    font-size:10.5px; font-weight:800; padding:4px 10px;
+    border-radius:9999px; text-transform:uppercase; letter-spacing:.4px;
+    display:inline-flex; align-items:center; gap:5px;
+}
+.ie-status-badge.on  { background:var(--glt); color:var(--grn); border:1px solid var(--gbd); }
+.ie-status-badge.off { background:var(--alt); color:var(--amb); border:1px solid var(--abd); }
+
+/* ══ SIDEBAR ══ */
+.ie-summary {
+    background:var(--surf); border:1px solid var(--bd);
+    border-radius:var(--rlg); overflow:hidden;
+}
+.ie-summary-h {
+    display:flex; align-items:center; gap:8px;
+    padding:13px 18px; border-bottom:1px solid var(--bd2);
+    background:linear-gradient(to right,var(--surf),#fafbfd);
+}
+.ie-summary-title { font-size:12px; font-weight:800; color:var(--ink); text-transform:uppercase; letter-spacing:.5px; }
+.ie-summary-b { padding:14px 16px; display:flex; flex-direction:column; gap:9px; }
+.ie-sum-row {
+    display:flex; align-items:center; gap:10px;
+    padding:9px 12px; border:1px solid var(--bd2);
+    border-radius:var(--r); background:var(--bg);
+}
+.ie-sum-icon {
+    width:32px; height:32px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:12px;
+}
+.ie-sum-icon.blue { background:var(--blt); color:var(--blue); }
+.ie-sum-icon.grn  { background:var(--glt); color:var(--grn); }
+.ie-sum-icon.amb  { background:var(--alt); color:var(--amb); }
+.ie-sum-icon.orn  { background:var(--olt); color:var(--orn); }
+.ie-sum-icon.ink  { background:var(--bg);  color:var(--ink3); border:1px solid var(--bd); }
+.ie-sum-key { font-size:10px; font-weight:800; color:var(--ink3); text-transform:uppercase; letter-spacing:.4px; }
+.ie-sum-val { font-size:12.5px; font-weight:700; color:var(--ink); }
+
+.ie-tip {
+    background:var(--blt); border:1px solid var(--bbd);
+    border-radius:var(--rlg); padding:14px 16px;
+}
+.ie-tip-title { font-size:11.5px; font-weight:800; color:var(--blue); display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.ie-tip-item  { display:flex; align-items:flex-start; gap:7px; margin-bottom:7px; font-size:11.5px; font-weight:500; color:var(--ink2); line-height:1.5; }
+.ie-tip-item:last-child { margin-bottom:0; }
+.ie-tip-item i { color:var(--blue); font-size:9px; margin-top:4px; flex-shrink:0; }
+
+/* ══ FOOTER ══ */
+.ie-foot {
+    display:flex; align-items:center; justify-content:flex-end; gap:8px;
+    padding:14px 18px; background:var(--bg);
+    border:1px solid var(--bd); border-radius:var(--rlg); margin-top:4px;
+}
+.ie-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:9px 18px; border-radius:var(--r);
+    font-size:12.5px; font-weight:700; font-family:'Montserrat',sans-serif;
+    border:1px solid transparent; cursor:pointer; transition:all .13s;
+    text-decoration:none; white-space:nowrap;
+}
+.ie-btn i { font-size:10px; }
+.ie-btn-blue  { background:var(--blue); color:#fff; }
+.ie-btn-blue:hover  { background:#1344c2; color:#fff; }
+.ie-btn-ghost { background:var(--surf); border-color:var(--bd); color:var(--ink2); }
+.ie-btn-ghost:hover { background:var(--bg); color:var(--ink); }
+
+@media (max-width:1024px) { .ie-body { grid-template-columns:1fr; } }
+@media (max-width:640px)  {
+    .ie { padding:16px; }
+    .ie-hero { padding:22px 20px; flex-direction:column; align-items:flex-start; }
+    .ie-2col { grid-template-columns:1fr; }
+}
+</style>
+
+<div class="ie">
+
+    {{-- ══ HERO ══ --}}
+    <div class="ie-hero">
+        <div class="ie-glow"></div>
+        <div class="ie-hero-l">
+            <div class="ie-hero-icon"><i class="fas fa-pen-to-square"></i></div>
+            <div>
+                <div class="ie-hero-title">Edit Item</div>
+                <div class="ie-hero-sub">Editing: <strong>{{ $item->name }}</strong></div>
+            </div>
+        </div>
+        <a href="{{ route('superadmin.items.index') }}" class="ie-back">
+            <i class="fas fa-arrow-left" style="font-size:10px"></i> Back to Items
+        </a>
     </div>
 
-    {{-- Form --}}
-    <form method="POST" action="{{ route('superadmin.items.update', $item) }}" class="space-y-6">
-        @csrf
-        @method('PUT')
+    {{-- ══ ERRORS ══ --}}
+    @if($errors->any())
+    <div class="ie-err">
+        <div class="ie-err-h"><i class="fas fa-exclamation-circle"></i> Please fix the following:</div>
+        <ul>@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+    @endif
 
-        {{-- Card: Basic information --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-lg font-medium text-gray-800 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Basic information
-                </h2>
-            </div>
-            <div class="p-6 space-y-5">
-                {{-- Item name --}}
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                        Item name <span class="text-red-500">*</span>
-                    </label>
-                    <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        required
-                        value="{{ old('name', $item->name) }}"
-                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm @error('name') border-red-300 @enderror"
-                        placeholder="E.g.: Roof replacement labor"
-                    >
-                    @error('name')
-                        <p class="text-sm text-red-600 mt-1 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                            </svg>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
+    <form method="POST" action="{{ route('superadmin.items.update', $item) }}" id="ie-form">
+        @csrf @method('PUT')
 
-                {{-- Category --}}
-                <div>
-                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                    </label>
-                    <select
-                        id="category_id"
-                        name="category_id"
-                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm bg-white @error('category_id') border-red-300 @enderror"
-                    >
-                        <option value="">— No category —</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ old('category_id', $item->category_id) == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-5-5A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
-                        </svg>
-                        Helps organize items and price lists.
-                    </p>
-                    @error('category_id')
-                        <p class="text-sm text-red-600 mt-1 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">...</svg>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
+        <div class="ie-body">
 
-                {{-- Description (optional) --}}
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-                        Description (optional)
-                    </label>
-                    <textarea
-                        id="description"
-                        name="description"
-                        rows="2"
-                        class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm"
-                        placeholder="Additional details about the item...">{{ old('description', $item->description) }}</textarea>
-                </div>
-            </div>
-        </div>
+            {{-- ══ LEFT ══ --}}
+            <div class="ie-left">
 
-        {{-- Card: Price settings --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                <h2 class="text-lg font-medium text-gray-800 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Price settings
-                </h2>
-            </div>
-            <div class="p-6 space-y-5">
-                {{-- Global price --}}
-                <div>
-                    <label for="global_price" class="block text-sm font-medium text-gray-700 mb-1">
-                        Global price (fallback)
-                    </label>
-                    <div class="relative rounded-lg shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm">$</span>
-                        </div>
-                        <input
-                            id="global_price"
-                            name="global_price"
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value="{{ old('global_price', $item->global_price) }}"
-                            class="block w-full pl-7 pr-12 rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm @error('global_price') border-red-300 @enderror"
-                            placeholder="0.00"
-                        >
+                {{-- Basic info ── --}}
+                <div class="ie-card">
+                    <div class="ie-card-h">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="ie-card-title">Basic Information</span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Used when no state or city‑specific price exists.
-                    </p>
-                    @error('global_price')
-                        <p class="text-sm text-red-600 mt-1 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">...</svg>
-                            {{ $message }}
-                        </p>
-                    @enderror
+                    <div class="ie-card-b">
+
+                        <div>
+                            <label class="ie-lbl" for="name">Item Name <span class="req">*</span></label>
+                            <input type="text" name="name" id="name"
+                                   class="ie-input {{ $errors->has('name') ? 'err' : '' }}"
+                                   value="{{ old('name', $item->name) }}"
+                                   placeholder="E.g.: Roof replacement labor"
+                                   required autofocus>
+                            @error('name')
+                            <div class="ie-ferr"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="ie-lbl" for="category_id">Category</label>
+                            <select name="category_id" id="category_id" class="ie-sel">
+                                <option value="">— No category —</option>
+                                @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}"
+                                    {{ old('category_id', $item->category_id) == $cat->id ? 'selected' : '' }}>
+                                    {{ $cat->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                            <div class="ie-hint"><i class="fas fa-tag"></i> Helps organize items and price lists.</div>
+                            @error('category_id')
+                            <div class="ie-ferr"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                            @enderror
+                        </div>
+
+                   
+
+                    </div>
                 </div>
 
-                {{-- Crew prices (2 columns) --}}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                        <label for="crew_price_with_trailer" class="block text-sm font-medium text-gray-700 mb-1">
-                            With trailer
-                        </label>
-                        <div class="relative rounded-lg shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="text-gray-500 sm:text-sm">$</span>
+                {{-- Prices ── --}}
+                <div class="ie-card">
+                    <div class="ie-card-h">
+                        <i class="fas fa-dollar-sign"></i>
+                        <span class="ie-card-title">Price Settings</span>
+                    </div>
+                    <div class="ie-card-b">
+
+                        {{-- Global price --}}
+                        <div>
+                            <label class="ie-lbl" for="global_price">Global Price <span class="opt">(fallback)</span></label>
+                            <div class="ie-price-wrap">
+                                <span class="ie-price-prefix">$</span>
+                                <input type="number" name="global_price" id="global_price" step="0.01" min="0"
+                                       class="ie-input {{ $errors->has('global_price') ? 'err' : '' }}"
+                                       value="{{ old('global_price', $item->global_price) }}"
+                                       placeholder="0.00">
                             </div>
-                            <input
-                                id="crew_price_with_trailer"
-                                name="crew_price_with_trailer"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value="{{ old('crew_price_with_trailer', $item->crew_price_with_trailer) }}"
-                                class="block w-full pl-7 pr-12 rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm @error('crew_price_with_trailer') border-red-300 @enderror"
-                                placeholder="0.00"
-                            >
+                            <div class="ie-hint"><i class="fas fa-info-circle"></i> Used when no state or city-specific price exists.</div>
+                            @error('global_price')
+                            <div class="ie-ferr"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                            @enderror
                         </div>
-                        @error('crew_price_with_trailer')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
 
-                    <div>
-                        <label for="crew_price_without_trailer" class="block text-sm font-medium text-gray-700 mb-1">
-                            Without trailer
-                        </label>
-                        <div class="relative rounded-lg shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="text-gray-500 sm:text-sm">$</span>
+                        {{-- Crew prices --}}
+                        <div>
+                            <label class="ie-lbl" style="margin-bottom:10px">Crew Prices</label>
+                            <div class="ie-2col">
+                                <div>
+                                    <label class="ie-lbl" for="crew_price_with_trailer">
+                                        <i class="fas fa-truck" style="font-size:9px;margin-right:3px;color:var(--orn)"></i>
+                                        With Trailer
+                                    </label>
+                                    <div class="ie-price-wrap">
+                                        <span class="ie-price-prefix">$</span>
+                                        <input type="number" name="crew_price_with_trailer" id="crew_price_with_trailer"
+                                               step="0.01" min="0"
+                                               class="ie-input {{ $errors->has('crew_price_with_trailer') ? 'err' : '' }}"
+                                               value="{{ old('crew_price_with_trailer', $item->crew_price_with_trailer) }}"
+                                               placeholder="0.00">
+                                    </div>
+                                    @error('crew_price_with_trailer')
+                                    <div class="ie-ferr"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="ie-lbl" for="crew_price_without_trailer">
+                                        <i class="fas fa-user" style="font-size:9px;margin-right:3px;color:var(--amb)"></i>
+                                        Without Trailer
+                                    </label>
+                                    <div class="ie-price-wrap">
+                                        <span class="ie-price-prefix">$</span>
+                                        <input type="number" name="crew_price_without_trailer" id="crew_price_without_trailer"
+                                               step="0.01" min="0"
+                                               class="ie-input {{ $errors->has('crew_price_without_trailer') ? 'err' : '' }}"
+                                               value="{{ old('crew_price_without_trailer', $item->crew_price_without_trailer) }}"
+                                               placeholder="0.00">
+                                    </div>
+                                    @error('crew_price_without_trailer')
+                                    <div class="ie-ferr"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
-                            <input
-                                id="crew_price_without_trailer"
-                                name="crew_price_without_trailer"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                value="{{ old('crew_price_without_trailer', $item->crew_price_without_trailer) }}"
-                                class="block w-full pl-7 pr-12 rounded-lg border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 transition px-4 py-2.5 text-sm @error('crew_price_without_trailer') border-red-300 @enderror"
-                                placeholder="0.00"
-                            >
+                            <div class="ie-hint" style="margin-top:10px"><i class="fas fa-shield-alt"></i> Amount paid to crew based on trailer availability.</div>
                         </div>
-                        @error('crew_price_without_trailer')
-                            <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
-                        @enderror
+
                     </div>
                 </div>
-                <p class="text-xs text-gray-500 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                    </svg>
-                    Amount paid to crew based on trailer availability.
-                </p>
-            </div>
-        </div>
 
-        {{-- Card: Status & actions --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div class="p-6 space-y-5">
-                {{-- Active checkbox with status badge --}}
-                <div class="flex items-center flex-wrap gap-3">
-                    <div class="flex items-center">
-                        <input
-                            id="is_active"
-                            name="is_active"
-                            type="checkbox"
-                            value="1"
-                            {{ old('is_active', $item->is_active) ? 'checked' : '' }}
-                            class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition"
-                        >
-                        <label for="is_active" class="ml-3 text-sm text-gray-700">
-                            Active item
-                        </label>
+                {{-- Status ── --}}
+                <div class="ie-card">
+                    <div class="ie-card-h">
+                        <i class="fas fa-toggle-on"></i>
+                        <span class="ie-card-title">Status</span>
                     </div>
-
-                    @if(!$item->is_active)
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                            </svg>
-                            Hidden from pricing
-                        </span>
-                    @endif
+                    <div class="ie-card-b">
+                        <div class="ie-toggle-row">
+                            <div class="ie-toggle-l">
+                                <label class="ie-toggle">
+                                    <input type="hidden" name="is_active" value="0">
+                                    <input type="checkbox" name="is_active" value="1"
+                                           id="tog-active"
+                                           {{ old('is_active', $item->is_active) ? 'checked' : '' }}
+                                           onchange="ieBadge(this.checked)">
+                                    <span class="ie-toggle-slider"></span>
+                                </label>
+                                <div>
+                                    <div class="ie-toggle-lbl">Active Item</div>
+                                    <div class="ie-toggle-hint">Item will appear in pricing and catalogs</div>
+                                </div>
+                            </div>
+                            <span class="ie-status-badge {{ old('is_active', $item->is_active) ? 'on' : 'off' }}"
+                                  id="ie-badge">
+                                <i class="fas fa-{{ old('is_active', $item->is_active) ? 'check-circle' : 'exclamation-triangle' }}"
+                                   style="font-size:9px"></i>
+                                {{ old('is_active', $item->is_active) ? 'Active' : 'Hidden from pricing' }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
-            {{-- Buttons --}}
-            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-wrap justify-end gap-3">
-                <a
-                    href="{{ route('superadmin.items.index') }}"
-                    class="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
-                >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    Cancel
-                </a>
-                <button
-                    type="submit"
-                    class="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
-                >
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Update item
-                </button>
+            {{-- ══ RIGHT: sidebar ══ --}}
+            <div class="ie-right">
+
+                {{-- Current values summary ── --}}
+                <div class="ie-summary">
+                    <div class="ie-summary-h">
+                        <i class="fas fa-chart-bar" style="font-size:12px;color:var(--ink3)"></i>
+                        <span class="ie-summary-title">Current Values</span>
+                    </div>
+                    <div class="ie-summary-b">
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon blue"><i class="fas fa-box"></i></div>
+                            <div style="min-width:0">
+                                <div class="ie-sum-key">Name</div>
+                                <div class="ie-sum-val" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $item->name }}</div>
+                            </div>
+                        </div>
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon amb"><i class="fas fa-tags"></i></div>
+                            <div>
+                                <div class="ie-sum-key">Category</div>
+                                <div class="ie-sum-val">{{ optional($item->category)->name ?? '—' }}</div>
+                            </div>
+                        </div>
+                        @if($item->global_price > 0)
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon grn"><i class="fas fa-dollar-sign"></i></div>
+                            <div>
+                                <div class="ie-sum-key">Global Price</div>
+                                <div class="ie-sum-val">${{ number_format($item->global_price, 2) }}</div>
+                            </div>
+                        </div>
+                        @endif
+                        @if($item->crew_price_with_trailer > 0)
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon orn"><i class="fas fa-truck"></i></div>
+                            <div>
+                                <div class="ie-sum-key">Crew w/ Trailer</div>
+                                <div class="ie-sum-val">${{ number_format($item->crew_price_with_trailer, 2) }}</div>
+                            </div>
+                        </div>
+                        @endif
+                        @if($item->crew_price_without_trailer > 0)
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon amb"><i class="fas fa-user"></i></div>
+                            <div>
+                                <div class="ie-sum-key">Crew w/o Trailer</div>
+                                <div class="ie-sum-val">${{ number_format($item->crew_price_without_trailer, 2) }}</div>
+                            </div>
+                        </div>
+                        @endif
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon {{ $item->is_active ? 'grn' : 'ink' }}">
+                                <i class="fas fa-{{ $item->is_active ? 'check-circle' : 'minus-circle' }}"></i>
+                            </div>
+                            <div>
+                                <div class="ie-sum-key">Status</div>
+                                <div class="ie-sum-val">{{ $item->is_active ? 'Active' : 'Inactive' }}</div>
+                            </div>
+                        </div>
+                        @if($item->updated_at)
+                        <div class="ie-sum-row">
+                            <div class="ie-sum-icon ink"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <div class="ie-sum-key">Last Updated</div>
+                                <div class="ie-sum-val">{{ $item->updated_at->format('M d, Y') }}</div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Tips ── --}}
+                <div class="ie-tip">
+                    <div class="ie-tip-title"><i class="fas fa-lightbulb"></i> Tips</div>
+                    <div class="ie-tip-item"><i class="fas fa-circle-dot"></i> The global price is used as a fallback when no state or city-specific price is defined.</div>
+                    <div class="ie-tip-item"><i class="fas fa-circle-dot"></i> Crew prices override the global price for crew payment calculations.</div>
+                    <div class="ie-tip-item"><i class="fas fa-circle-dot"></i> Inactive items are hidden from all pricing forms but their data is preserved.</div>
+                </div>
+
             </div>
+
         </div>
+
+        {{-- ══ FOOTER ══ --}}
+        <div class="ie-foot">
+            <a href="{{ route('superadmin.items.index') }}" class="ie-btn ie-btn-ghost">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="ie-btn ie-btn-blue">
+                <i class="fas fa-floppy-disk"></i> Update Item
+            </button>
+        </div>
+
     </form>
 </div>
+
+<script>
+function ieBadge(on) {
+    const b = document.getElementById('ie-badge');
+    b.className = 'ie-status-badge ' + (on ? 'on' : 'off');
+    b.innerHTML  = on
+        ? '<i class="fas fa-check-circle" style="font-size:9px"></i> Active'
+        : '<i class="fas fa-exclamation-triangle" style="font-size:9px"></i> Hidden from pricing';
+}
+</script>
+
 @endsection

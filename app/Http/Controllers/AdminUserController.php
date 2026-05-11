@@ -222,7 +222,7 @@ public function contractors(Request $request)
             'years_experience' => 'nullable|integer|min:0',
             'language' => 'nullable|in:English,Spanish',
            
-            'admin_notes' => 'nullable|string',
+          
             'profile_photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'company_documents.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx,xls,xlsx|max:5120'
         ]);
@@ -243,7 +243,7 @@ public function contractors(Request $request)
             $documents = $user->company_documents ?? [];
             foreach ($request->file('company_documents') as $file) {
                 $documents[] = [
-                    'file_name' => $file->store('company-documents'),
+                    'file_name' => $file->store('company-documents', 'public'),
                     'original_name' => $file->getClientOriginalName(),
                     'uploaded_at' => now()
                 ];
@@ -301,7 +301,7 @@ public function contractors(Request $request)
 
         $user->delete();
 
-        return redirect()->route('superadmin.users.list')->with('success', 'Contractor successfully removed.');
+        return redirect()->route('superadmin.users.contractors')->with('success', 'Contractor successfully removed.');
     }
 
 
